@@ -1,6 +1,6 @@
 [submodule "crazyflie-firmware"]
 	path = crazyflie-firmware
-	url = https://github.com/bitcraze/crazyflie-firmware.git
+	url = https://github.com/Rwik2000/crazyflie-firmware
 	branch = master
 [submodule "ros_ws/src/externalDependencies/libobjecttracker"]
 	path = ros_ws/src/externalDependencies/libobjecttracker
