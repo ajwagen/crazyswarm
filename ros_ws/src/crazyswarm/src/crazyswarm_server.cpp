@@ -53,6 +53,9 @@
 #include <mutex>
 #include <wordexp.h> // tilde expansion
 
+// CUSTOM CHANGE 
+#include <iostream>
+
 /*
 Threading
  * There are 2N+1 threads, where N is the number of groups (== number of unique channels)
@@ -1097,6 +1100,7 @@ private:
         states.back().qz,
         states.back().qw);
       transform.setRotation(q);
+
       m_br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", name));
       return true;
     } else {

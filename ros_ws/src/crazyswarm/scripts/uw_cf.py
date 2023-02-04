@@ -18,7 +18,9 @@ from pycrazyswarm import Crazyswarm
 
 # Quadsim simulator
 from quadsim.sim import QuadSim
-from quadsim.models import crazyflieModel, IdentityModel
+from quadsim.models import IdentityModel
+
+from pathlib import Path
 
 np.set_printoptions(linewidth=np.inf)
 
@@ -45,10 +47,12 @@ def add2Queue(array, new):
     return array
 
 class ctrlCF():
-    def __init__(self, cfName,sim=False,config_file="cf_config.yaml"):
+    def __init__(self, cfName,sim=False,config_file="cf_config.yaml", logfile='log.npz'):
         self.cfName = cfName
         self.isSim = sim
+        self.logfile = logfile
 
+        self.initialized = False
         self.state = np.zeros(14)
         self.prev_state = np.zeros(14)
         self.pid_controller  = PIDController(isSim = self.isSim)
@@ -62,7 +66,7 @@ class ctrlCF():
             self.cf = self.swarm.allcfs.crazyflies[0]
 
         else:
-            model = crazyflieModel()
+            model = IdentityModel()
             self.cf = QuadSim(model,name=self.cfName)
             self.dt = 0.005
         with open(config_file,"r") as f:
@@ -97,6 +101,7 @@ class ctrlCF():
         self.state[3:6] = vel        
         self.state[6:10] = np.array([rot.x,rot.y,rot.z,rot.w])
         self.prev_state = self.state.copy()
+        self.initialized = True
 
     def _send2cfClient(self,cf,z_acc,ang_vel):
         pos = [0,0,0]
@@ -105,6 +110,16 @@ class ctrlCF():
         yaw = 0
         omega = ang_vel.tolist()
         cf.cmdFullState(pos,vel,acc,yaw,omega)
+
+    def BB_failsafe(self, cf, bound = 0.5):
+        # pos = cf.position()#self.state[:3]
+        # print(abs(pos[0] - self.init_pos[0]), abs(pos[1] - self.init_pos[1]), pos[-1]>1.0)
+        if abs(self.state[0] - self.init_pos[0]) > bound/2 or abs(self.state[1] - self.init_pos[1]) > bound/2 or self.state[2]>2.0:
+            print('Out of Bounding Box EMERGENCY STOP!!')
+            self.swarm.allcfs.emergency()
+            self.write_to_log()
+            exit()
+
 
     def take_off(self,takeoff_height, takeoff_time, init_pos,t):
         take_offRef = Ref_State(pos = init_pos+np.array([0.,0.,min(takeoff_height/takeoff_time*t,takeoff_height)]))
@@ -117,9 +132,12 @@ class ctrlCF():
     def main_loop_cf(self,):
         timeHelper = self.swarm.timeHelper
         # cf = self.swarm.allcfs.crazyflies[0]
+
+        while not self.initialized:
+            pass
         
-        init_pos = np.copy(self.cf.position())
-        timeHelper.sleep(2.0)
+        init_pos = np.copy(self.state[:3])
+        timeHelper.sleep(0.5)
         
         t = 0.0
         startTime = timeHelper.time()
@@ -134,8 +152,15 @@ class ctrlCF():
         task1_flag = 0
         task2_flag = 0
 
+        self.pose_positions = []
+        self.pose_orientations = []
+        self.cf_positions = []
+        self.ts = []
+        self.thrust_cmds = []
 
         while not rospy.is_shutdown() and t <25.0:
+            self.BB_failsafe(self.cf)
+            
             # r = rospy.Rate(100) 
             t = timeHelper.time() - startTime
             # print(t)
@@ -180,9 +205,20 @@ class ctrlCF():
 
                 z_acc, ang_vel = self.pid_controller.response(t,self.state,land_ref)
 
+            self.pose_positions.append(self.state[:3])
+            quat = self.state[6:10]
+            rot = R.from_quat(quat)
+            eulers = rot.as_euler('ZYX', degrees=True)
+            self.pose_orientations.append(eulers)
+            self.cf_positions.append(self.cf.position())
+            self.ts.append(t)
+            self.thrust_cmds.append(z_acc)
             print("pos",self.state[:3],"ref",_ref,"zacc",z_acc,"act",self.cf.position(),"t",t)
 
+
             self._send2cfClient(self.cf,z_acc, ang_vel)
+
+            timeHelper.sleepForRate(sleepRate)
 
         pos = [0,0,0]
         vel = [0,0,0]
@@ -190,6 +226,22 @@ class ctrlCF():
         yaw = 0
         omega = ang_vel.tolist()
         self.cf.cmdFullState(pos,vel,np.array([0.,0.,0.]),yaw,omega)
+
+    def write_to_log(self):
+        LOG_DIR = Path().home() / 'Drones' / 'logs'
+
+        self.pose_positions = np.array(self.pose_positions)
+        self.pose_orientations = np.array(self.pose_orientations)
+        self.cf_positions = np.array(self.cf_positions)
+        self.ts = np.array(self.ts)
+        self.thrust_cmds = np.array(self.thrust_cmds)
+        np.savez(LOG_DIR / self.logfile, 
+            pose_positions=self.pose_positions,
+            pose_orientations=self.pose_orientations,
+            cf_positions=self.cf_positions,
+            ts=self.ts,
+            thrust_cmds=self.thrust_cmds
+        )
 
     def main_loop_sim(self,):
         i = 0
@@ -208,14 +260,20 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--quadsim', action='store_true')
     parser.add_argument('--config', action='store', type=str, default="cf_config.yaml")
+    parser.add_argument('--logfile', action='store', type=str, default='log.npz')
     g = EasyDict(vars(parser.parse_args()))
     # print(g.config)
     # exit()
-    x = ctrlCF("cf5",sim=g.quadsim,config_file=g.config)
-    if g.quadsim:
-        x.main_loop_sim()
-        # x.learning_loop()
+    x = ctrlCF("cf2",sim=g.quadsim,config_file=g.config,log_file=g.logfile)
+    try:
+        if g.quadsim:
+            x.main_loop_sim()
+            # x.learning_loop()
+        else:
+            x.main_loop_cf()
+    except KeyboardInterrupt:
+        x.write_to_log()
     else:
-        x.main_loop_cf()
+        x.write_to_log()
     
 
