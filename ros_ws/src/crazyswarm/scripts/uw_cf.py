@@ -47,10 +47,10 @@ def add2Queue(array, new):
     return array
 
 class ctrlCF():
-    def __init__(self, cfName,sim=False,config_file="cf_config.yaml", logfile='log.npz'):
+    def __init__(self, cfName,sim=False,config_file="cf_config.yaml", log_file='log.npz'):
         self.cfName = cfName
         self.isSim = sim
-        self.logfile = logfile
+        self.logfile = log_file
 
         self.initialized = False
         self.state = np.zeros(14)
@@ -104,7 +104,7 @@ class ctrlCF():
         self.initialized = True
 
     def _send2cfClient(self,cf,z_acc,ang_vel):
-        pos = [0,0,0]
+        pos = self.ref.pos
         vel = [0,0,0]
         acc = [0,0,z_acc]
         yaw = 0
@@ -123,6 +123,7 @@ class ctrlCF():
 
     def take_off(self,takeoff_height, takeoff_time, init_pos,t):
         take_offRef = Ref_State(pos = init_pos+np.array([0.,0.,min(takeoff_height/takeoff_time*t,takeoff_height)]))
+        self.ref = take_offRef
         z_acc, ang_vel = self.pid_controller.response(t,self.state,take_offRef)
         # print(np.hstack((self.state[:3],take_offRef.pos)))
         return z_acc,ang_vel, take_offRef.pos
@@ -137,6 +138,7 @@ class ctrlCF():
             pass
         
         init_pos = np.copy(self.state[:3])
+        self.init_pos = init_pos
         timeHelper.sleep(0.5)
         
         t = 0.0
@@ -157,6 +159,7 @@ class ctrlCF():
         self.cf_positions = []
         self.ts = []
         self.thrust_cmds = []
+        self.ang_vel_cmds = []
 
         while not rospy.is_shutdown() and t <25.0:
             self.BB_failsafe(self.cf)
@@ -205,7 +208,7 @@ class ctrlCF():
 
                 z_acc, ang_vel = self.pid_controller.response(t,self.state,land_ref)
 
-            self.pose_positions.append(self.state[:3])
+            self.pose_positions.append(np.copy(self.state[:3]))
             quat = self.state[6:10]
             rot = R.from_quat(quat)
             eulers = rot.as_euler('ZYX', degrees=True)
@@ -213,6 +216,7 @@ class ctrlCF():
             self.cf_positions.append(self.cf.position())
             self.ts.append(t)
             self.thrust_cmds.append(z_acc)
+            self.ang_vel_cmds.append(ang_vel * 180 / 2*np.pi)
             print("pos",self.state[:3],"ref",_ref,"zacc",z_acc,"act",self.cf.position(),"t",t)
 
 
@@ -231,14 +235,17 @@ class ctrlCF():
         LOG_DIR = Path().home() / 'Drones' / 'logs'
 
         self.pose_positions = np.array(self.pose_positions)
+        print(self.pose_positions)
         self.pose_orientations = np.array(self.pose_orientations)
         self.cf_positions = np.array(self.cf_positions)
         self.ts = np.array(self.ts)
         self.thrust_cmds = np.array(self.thrust_cmds)
+        self.ang_vel_cmds = np.array(self.ang_vel_cmds)
         np.savez(LOG_DIR / self.logfile, 
             pose_positions=self.pose_positions,
             pose_orientations=self.pose_orientations,
             cf_positions=self.cf_positions,
+            ang_vel_cmds=self.ang_vel_cmds,
             ts=self.ts,
             thrust_cmds=self.thrust_cmds
         )
