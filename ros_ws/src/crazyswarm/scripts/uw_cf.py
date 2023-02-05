@@ -161,12 +161,12 @@ class ctrlCF():
         self.thrust_cmds = []
         self.ang_vel_cmds = []
 
-        while not rospy.is_shutdown() and t <25.0:
-            self.BB_failsafe(self.cf)
+        while not rospy.is_shutdown() and t <25000.0:
+            # self.BB_failsafe(self.cf)
             
-            # r = rospy.Rate(100) 
+            # # r = rospy.Rate(100) 
             t = timeHelper.time() - startTime
-            # print(t)
+            # # print(t)
             if t<takeoff_time+100000:
                 if takeoff_flag==0:
                     # print("********* TAKEOFF **********")
@@ -217,19 +217,24 @@ class ctrlCF():
             self.ts.append(t)
             self.thrust_cmds.append(z_acc)
             self.ang_vel_cmds.append(ang_vel * 180 / 2*np.pi)
-            print("pos",self.state[:3],"ref",_ref,"zacc",z_acc,"act",self.cf.position(),"t",t)
+            z_acc = 0.0
+            ang_vel = np.zeros(3)
+            # z_acc = 0.4*np.sin(t) + 0.7
+            # ang_vel = np.array([0.4*np.sin(t), 0.4*np.cos(t), 0.0])
+            print("pos",self.state[:3],'zacc', z_acc, "act",self.cf.position(),"t",t)
 
 
             self._send2cfClient(self.cf,z_acc, ang_vel)
 
             timeHelper.sleepForRate(sleepRate)
 
-        pos = [0,0,0]
-        vel = [0,0,0]
-        acc = [0,0,z_acc]
-        yaw = 0
-        omega = ang_vel.tolist()
-        self.cf.cmdFullState(pos,vel,np.array([0.,0.,0.]),yaw,omega)
+        # pos = [0,0,0]
+        # vel = [0,0,0]
+        # acc = [0,0,z_acc]
+    
+        # yaw = 0
+        # omega = ang_vel.tolist()
+        # self.cf.cmdFullState(pos,vel,np.array([0.,0.,0.]),yaw,omega)
 
     def write_to_log(self):
         LOG_DIR = Path().home() / 'Drones' / 'logs'
