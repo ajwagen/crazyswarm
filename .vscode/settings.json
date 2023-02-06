@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "vrpn_Tracker_ThalmicLabsMyo.C": "cpp",
+        "chrono": "cpp",
+        "future": "cpp"
+    }
+}

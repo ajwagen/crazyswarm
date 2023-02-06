@@ -609,7 +609,7 @@ public:
             {"stateEstimate", "z"},
             {"stateEstimateZ", "quat"}
           }, cb));
-        m_logBlockPose->start(10); // 100ms
+        m_logBlockPose->start(40); // 100ms // DEBUG CHANGE
       }
     }
 
@@ -714,7 +714,7 @@ private:
       tf::Transform tftransform;
       tftransform.setOrigin(tf::Vector3(data->x, data->y, data->z));
       tftransform.setRotation(tf::Quaternion(q[0], q[1], q[2], q[3]));
-      m_br.sendTransform(tf::StampedTransform(tftransform, ros::Time::now(), "world", frame()));
+      // m_br.sendTransform(tf::StampedTransform(tftransform, ros::Time::now(), "world", frame())); //DEBUG CHANGE
     }
   }
 

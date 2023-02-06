@@ -92,8 +92,10 @@ class ctrlCF():
         t = rospy.get_time()
         self.state[-1] = t
         # print(t - self.prev_state[-1])
-        self.state[0:3] = np.array([pos.x,pos.y,pos.z])
-        # self.state[0:3] = self.cf.position()
+        # self.state[0:3] = np.array([pos.x,pos.y,pos.z])
+        self.pose_pos = np.array([pos.x,pos.y,pos.z])
+        self.pos_pos = self.cf.position()
+        self.state[0:3] = self.pos_pos
 
 
         # Numerical integration to calculate velocity
@@ -111,10 +113,11 @@ class ctrlCF():
         omega = ang_vel.tolist()
         cf.cmdFullState(pos,vel,acc,yaw,omega)
 
-    def BB_failsafe(self, cf, bound = 0.5):
+    def BB_failsafe(self, cf, bound = 1.0):
         # pos = cf.position()#self.state[:3]
         # print(abs(pos[0] - self.init_pos[0]), abs(pos[1] - self.init_pos[1]), pos[-1]>1.0)
-        if abs(self.state[0] - self.init_pos[0]) > bound/2 or abs(self.state[1] - self.init_pos[1]) > bound/2 or self.state[2]>2.0:
+        pos = self.cf.position()
+        if abs(pos[0] - self.init_pos[0]) > bound/2 or abs(pos[1] - self.init_pos[1]) > bound/2 or pos[2]>1.0:
             print('Out of Bounding Box EMERGENCY STOP!!')
             self.swarm.allcfs.emergency()
             self.write_to_log()
@@ -162,7 +165,9 @@ class ctrlCF():
         self.ang_vel_cmds = []
 
         while not rospy.is_shutdown() and t <25000.0:
+
             # self.BB_failsafe(self.cf)
+
             
             # # r = rospy.Rate(100) 
             t = timeHelper.time() - startTime
@@ -208,7 +213,7 @@ class ctrlCF():
 
                 z_acc, ang_vel = self.pid_controller.response(t,self.state,land_ref)
 
-            self.pose_positions.append(np.copy(self.state[:3]))
+            self.pose_positions.append(np.copy(self.pose_pos))
             quat = self.state[6:10]
             rot = R.from_quat(quat)
             eulers = rot.as_euler('ZYX', degrees=True)
@@ -219,9 +224,9 @@ class ctrlCF():
             self.ang_vel_cmds.append(ang_vel * 180 / 2*np.pi)
             z_acc = 0.0
             ang_vel = np.zeros(3)
-            # z_acc = 0.4*np.sin(t) + 0.7
-            # ang_vel = np.array([0.4*np.sin(t), 0.4*np.cos(t), 0.0])
-            print("pos",self.state[:3],'zacc', z_acc, "act",self.cf.position(),"t",t)
+            # z_acc = 0.3*np.sin(t) + 0.7
+            # ang_vel = np.array([0.25*np.sin(t), 0.25*np.cos(t), 0.0])
+            print("pos", self.pose_pos, 'zacc', z_acc, "act",self.cf.position(),"t",t)
 
 
             self._send2cfClient(self.cf,z_acc, ang_vel)
