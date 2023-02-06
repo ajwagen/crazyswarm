@@ -134,7 +134,11 @@ class ctrlCF():
         timeHelper = self.swarm.timeHelper
         # cf = self.swarm.allcfs.crazyflies[0]
 
-        while not self.initialized:
+        try:
+            while not self.initialized:
+                print('waiting')
+                pass
+        except KeyboardInterrupt:
             pass
         
         init_pos = np.copy(self.state[:3])

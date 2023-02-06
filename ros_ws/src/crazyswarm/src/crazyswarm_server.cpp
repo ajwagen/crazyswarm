@@ -53,7 +53,7 @@
 #include <mutex>
 #include <wordexp.h> // tilde expansion
 
-// CUSTOM CHANGE 
+// DEBUG CHANGE 
 #include <iostream>
 
 /*
@@ -609,7 +609,7 @@ public:
             {"stateEstimate", "z"},
             {"stateEstimateZ", "quat"}
           }, cb));
-        m_logBlockPose->start(10); // 100ms
+        m_logBlockPose->start(10); // 100ms // DEBUG CHANGE
       }
     }
 
@@ -714,7 +714,7 @@ private:
       tf::Transform tftransform;
       tftransform.setOrigin(tf::Vector3(data->x, data->y, data->z));
       tftransform.setRotation(tf::Quaternion(q[0], q[1], q[2], q[3]));
-      m_br.sendTransform(tf::StampedTransform(tftransform, ros::Time::now(), "world", frame()));
+      m_br.sendTransform(tf::StampedTransform(tftransform, ros::Time::now(), "world", frame())); // DEBUG
     }
   }
 
@@ -911,6 +911,7 @@ public:
           // tf::transformEigenToTF(transformd, tftransform);
           // tftransform.setOrigin(tf::Vector3(translation.x(), translation.y(), translation.z()));
           // tf::Quaternion tfq(q.x(), q.y(), q.z(), q.w());
+          // std::cout << "Receiving from mocap: " << states.back().x << " " << states.back().y << " " << states.back().z << "time: " << ros::Time::now() << " " << std::endl; // DEBUG CHANGE
           m_br.sendTransform(tf::StampedTransform(tftransform, ros::Time::now(), "world", m_cfs[i]->frame()));
 
           if (m_outputCSVs.size() > 0) {
@@ -955,7 +956,7 @@ public:
     // for (const auto& state : states) {
     //   std::cout << time << "," << state.x << "," << state.y << "," << state.z << std::endl;
     // }
-
+    // std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 
   void runSlow()
@@ -1555,8 +1556,13 @@ public:
       uint32_t latencyCount = 0;
 
       while (ros::ok() && !m_isEmergency) {
+        // std::cout << "RUNNING FAST: " << ros::Time::now() << std::endl; // DEBUG CHANGE
+        auto startTime = std::chrono::high_resolution_clock::now();
         // Get a frame
         mocap->waitForNextFrame();
+        auto endTime = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> timeForMocap = startTime - endTime;
+        // std::cout << "WAITING FOR MOCAP FRAME FOR: " << timeForMocap.count() << "seconds" << std::endl;
 
         latencies.clear();
 
