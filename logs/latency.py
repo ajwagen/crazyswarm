@@ -7,8 +7,8 @@ import cflib.crtp
 from cflib.crtp.crtpstack import CRTPPacket
 from cflib.crtp.crtpstack import CRTPPort
 
-uri = 'radio://0/80/2M/E7E7E7E702'
-
+uri = 'radio://0/80/2M/E7E7E7E705'
+cflib.crtp.init_drivers()
 def latency(uri, packet_size = 4, count = 500):
     link = cflib.crtp.get_link_driver(uri)
     # # wait until no more packets in queue
@@ -44,6 +44,7 @@ def latency(uri, packet_size = 4, count = 500):
 
 
 def bandwidth(uri, packet_size = 4, count = 500):
+    print(uri)
     link = cflib.crtp.get_link_driver(uri)
     # # wait until no more packets in queue
     # while True:
@@ -85,5 +86,5 @@ if __name__ == "__main__":
     #     link = cflib.crtp.get_link_driver(uri)
     #     print(link)
 
-    bandwidth(uri, 8)
+    latency(uri, 4)
     # bandwidth(uri)
