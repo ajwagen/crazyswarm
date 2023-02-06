@@ -1,4 +1,4 @@
 takeoff_height: 1.0
-takeoff_rate: 0.2
+takeoff_rate: 0.15     
 landing_height: 0.001
 landing_rate: 0.08

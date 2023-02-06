@@ -2,7 +2,7 @@
 <launch>
   <arg name="joy_dev" default="/dev/input/js0" />
 
-  <rosparam command="load" file="$(find crazyswarm)/launch/custom_crazyflieTypes.yaml" />
+  <rosparam command="load" file="$(find crazyswarm)/launch/crazyflieTypes_custom.yaml" />
   <rosparam command="load" file="$(find crazyswarm)/launch/custom_crazyflies.yaml" />
 
   <node pkg="crazyswarm" type="crazyswarm_server" name="crazyswarm_server" output="screen" >

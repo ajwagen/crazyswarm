@@ -53,9 +53,6 @@
 #include <mutex>
 #include <wordexp.h> // tilde expansion
 
-// CUSTOM CHANGE 
-#include <iostream>
-
 /*
 Threading
  * There are 2N+1 threads, where N is the number of groups (== number of unique channels)
@@ -167,6 +164,7 @@ public:
     m_subscribeCmdFullState = n.subscribe(tf_prefix + "/cmd_full_state", 1, &CrazyflieROS::cmdFullStateSetpoint, this);
     m_subscribeCmdVelocityWorld = n.subscribe(tf_prefix + "/cmd_velocity_world", 1, &CrazyflieROS::cmdVelocityWorldSetpoint, this);
     m_subscribeCmdStop = n.subscribe(m_tf_prefix + "/cmd_stop", 1, &CrazyflieROS::cmdStop, this);
+    m_subscribeCustom = n.subscribe(tf_prefix + "/cmd_custom", 1, &CrazyflieROS::cmdFullStateSetpoint, this);
 
     // New Velocity command type (Hover)
     m_subscribeCmdHover=n.subscribe(m_tf_prefix+"/cmd_hover",1,&CrazyflieROS::cmdHoverSetpoint, this);
@@ -1100,7 +1098,6 @@ private:
         states.back().qz,
         states.back().qw);
       transform.setRotation(q);
-
       m_br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", name));
       return true;
     } else {

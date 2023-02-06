@@ -118,6 +118,11 @@ class Crazyflie:
         self.cmdVelocityWorldMsg.header.seq = 0
         self.cmdVelocityWorldMsg.header.frame_id = "/world"
 
+
+        # CUSTOM:
+        self.posn = None
+        self.quaternion = None
+
     def setGroupMask(self, groupMask):
         """Sets the group mask bits for this robot.
 
@@ -337,6 +342,12 @@ class Crazyflie:
         self.tf.waitForTransform("/world", "/cf" + str(self.id), rospy.Time(0), rospy.Duration(10))
         position, quaternion = self.tf.lookupTransform("/world", "/cf" + str(self.id), rospy.Time(0))
         return np.array(position)
+    
+    def pose(self,):
+        self.tf.waitForTransform("/world", "/cf" + str(self.id), rospy.Time(0), rospy.Duration(10))
+        posn, quaternion = self.tf.lookupTransform("/world", "/cf" + str(self.id), rospy.Time(0))
+        return(np.array(posn), np.array(quaternion))
+        
 
     def getParam(self, name):
         """Returns the current value of the onboard named parameter.
