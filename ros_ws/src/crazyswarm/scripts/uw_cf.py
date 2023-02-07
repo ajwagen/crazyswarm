@@ -117,7 +117,7 @@ class ctrlCF():
         # pos = cf.position()#self.state[:3]
         # print(abs(pos[0] - self.init_pos[0]), abs(pos[1] - self.init_pos[1]), pos[-1]>1.0)
         pos = self.cf.position()
-        if abs(pos[0] - self.init_pos[0]) > bound/2 or abs(pos[1] - self.init_pos[1]) > bound/2 or pos[2]>1.0:
+        if abs(pos[0] - self.init_pos[0]) > bound/2 or abs(pos[1] - self.init_pos[1]) > bound/2 or pos[2]>1.2:
             print('Out of Bounding Box EMERGENCY STOP!!')
             self.swarm.allcfs.emergency()
             self.write_to_log()
@@ -143,7 +143,7 @@ class ctrlCF():
         init_pos = np.copy(self.state[:3])
         self.init_pos = init_pos
         timeHelper.sleep(0.5)
-        
+
         t = 0.0
         startTime = timeHelper.time()
 
@@ -165,18 +165,23 @@ class ctrlCF():
         self.ang_vel_cmds = []
 
         while not rospy.is_shutdown() and t <25000.0:
-
             # self.BB_failsafe(self.cf)
 
             
             # # r = rospy.Rate(100) 
             t = timeHelper.time() - startTime
+
+            wait_time = 10.0
             # # print(t)
-            if t<takeoff_time+100000:
+            if t<wait_time:
+                z_acc,ang_vel = 0.0,np.zeros(3)
+                pass
+
+            elif t<takeoff_time+100000:
                 if takeoff_flag==0:
                     # print("********* TAKEOFF **********")
                     takeoff_flag = 1
-                z_acc,ang_vel, _ref = self.take_off(takeoff_height, takeoff_time, init_pos,t)
+                z_acc,ang_vel, _ref = self.take_off(takeoff_height, takeoff_time, init_pos,t-wait_time)
                 # offset_pos = cf.position()
 
 
@@ -190,7 +195,7 @@ class ctrlCF():
                     self.ref.pos +=offset_pos
                     _ref = self.ref.pos
                     # print(self.ref.pos)
-                z_acc, ang_vel = self.pid_controller.response(t,self.state,self.ref)
+                z_acc, ang_vel = self.pid_controller.response(t-10.,self.state,self.ref)
 
             # elif t<takeoff_time+5.+10.:
             #     #HOVER
@@ -211,7 +216,7 @@ class ctrlCF():
                     land_ref = Ref_State(pos=land_pos)
                     _ref = land_ref.pos
 
-                z_acc, ang_vel = self.pid_controller.response(t,self.state,land_ref)
+                z_acc, ang_vel = self.pid_controller.response(t-wait_time,self.state,land_ref)
 
             self.pose_positions.append(np.copy(self.pose_pos))
             quat = self.state[6:10]

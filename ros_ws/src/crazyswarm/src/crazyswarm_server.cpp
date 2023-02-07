@@ -609,7 +609,7 @@ public:
             {"stateEstimate", "z"},
             {"stateEstimateZ", "quat"}
           }, cb));
-        m_logBlockPose->start(40); // 100ms // DEBUG CHANGE
+        m_logBlockPose->start(10); // 100ms // DEBUG CHANGE
       }
     }
 

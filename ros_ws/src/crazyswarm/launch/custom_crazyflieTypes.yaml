@@ -72,7 +72,7 @@ crazyflieTypes:
         # ki_xy: 0.05
         # i_range_xy: 2.0
         # kR_xy: 70000 # p for attitude
-        kw_xy: 20000 # d for attitude
+        kw_xy: 10000 # d for attitude
         # kR_z: 60000 # 70000 # p for yaw
         kw_z: 12000 # 30000  # d for yaw
         # ki_m_z: 500 #0 #20000     # i for yaw
