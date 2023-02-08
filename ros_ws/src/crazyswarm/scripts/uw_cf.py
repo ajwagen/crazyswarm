@@ -8,7 +8,7 @@ import yaml
 
 # import controller 
 from Controllers.pid_controller import PIDController
-# from Controllers.hover_PPO_controller import PPOController
+from Controllers.hover_ppo_controller import PPOController
 
 # Actual Drone
 import rospy
@@ -18,7 +18,7 @@ from pycrazyswarm import Crazyswarm
 
 # Quadsim simulator
 from quadsim.sim import QuadSim
-from quadsim.models import IdentityModel
+from quadsim.models import IdentityModel,crazyflieModel
 
 from pathlib import Path
 
@@ -57,7 +57,7 @@ class ctrlCF():
         self.state = np.zeros(14)
         self.prev_state = np.zeros(14)
         self.pid_controller  = PIDController(isSim = self.isSim)
-        # self.ppo_controller = PPOController(isSim = self.isSim)
+        self.ppo_controller = PPOController(isSim = self.isSim)
         time.sleep(2.0)
         if not self.isSim:
             self.swarm = Crazyswarm()
@@ -66,7 +66,7 @@ class ctrlCF():
             self.emergency_signal = 0
             self.cf = self.swarm.allcfs.crazyflies[0]
         else:
-            model = IdentityModel()
+            model = crazyflieModel()
             self.cf = QuadSim(model, name=self.cfName)
             self.dt = 0.005
         with open(config_file,"r") as f:
@@ -81,7 +81,7 @@ class ctrlCF():
         #     pass
 
     def set_ref(self,):
-        ref_pos = np.array([0., 0.0, 0.0])
+        ref_pos = np.array([0., 0.0, 1.0])
         ref_vel = np.array([0., 0., 0])
         self.ref = Ref_State(pos=ref_pos, vel=ref_vel)
 
@@ -263,7 +263,7 @@ class ctrlCF():
         while i*self.dt < 30.0:
             ref = self.ref
 
-            self.cf.step_angvel_cf(i * self.dt, self.dt, self.ppo_controller, self.ref)
+            self.cf.step_angvel_cf(i * self.dt, self.dt, self.ppo_controller, ref=self.ref)
             quadsim_state = self.cf.rb.state()
             self.cf.vis.set_state(quadsim_state.pos, quadsim_state.rot)
             time.sleep(self.dt / 2)
