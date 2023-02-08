@@ -281,7 +281,7 @@ class ctrlCF():
         while t<30.0:
 
             self.set_hover_ref(t)
-            self.cf.step_angvel_cf(i*self.dt,self.dt,self.pid_controller,self.ref)
+            self.cf.step_angvel_cf(i*self.dt,self.dt,self.pid_controller,ref=self.ref)
             quadsim_state = self.cf.rb.state()
             
             state.pos = quadsim_state.pos
