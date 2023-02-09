@@ -11,7 +11,7 @@ import copy
 # import controller 
 from Controllers.pid_controller import PIDController
 from collections import deque
-# from Controllers.hover_PPO_controller import PPOController
+from Controllers.hover_ppo_controller import PPOController
 
 # Actual Drone
 import rospy
@@ -56,7 +56,7 @@ class ctrlCF():
         # self.state = np.zeros(14)
         # self.prev_state = np.zeros(14)
         self.pid_controller  = PIDController(isSim = self.isSim)
-        # self.ppo_controller = PPOController(isSim = self.isSim)
+        self.ppo_controller = PPOController(isSim = self.isSim)
         if not self.isSim:
             self.swarm = Crazyswarm()
             rospy.Subscriber("/"+self.cfName+"/pose", PoseStamped, self.state_callback)
@@ -185,7 +185,6 @@ class ctrlCF():
         takeoff_rate = self.config["takeoff_rate"]
         takeoff_height = self.config["takeoff_height"]
         takeoff_time = takeoff_height/takeoff_rate
-        task_time = 5.0
 
         landing_rate = self.config["landing_rate"]
         # landing_time = self.config["landing_height"]/self.config["landing_rate"]
@@ -198,6 +197,10 @@ class ctrlCF():
         warmup_flag = 0
         task1_flag = 0
         task2_flag = 0
+        task1_time = 3.0
+        task2_time = 2.0
+
+
 
         # Main loop
         t = 0.0
@@ -227,7 +230,7 @@ class ctrlCF():
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
             
             ########################################################
-            elif t<takeoff_time + warmup_time + task_time:
+            elif t<takeoff_time + warmup_time + task1_time:
                 #HOVER
                 # Use the reference function here
                 self.set_hover_ref(t-warmup_time)
@@ -239,14 +242,14 @@ class ctrlCF():
                 self.ref.pos +=offset_pos
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
 
-            # elif t<takeoff_time+5.+10.:
-            #     #HOVER
-            #     if task2_flag==0:
-            #         # print("********* TASK PPO********")
-            #         task2_flag = 1
-            #         _ref = self.ref.pos
+            elif t<takeoff_time+ warmup_time+task1_time+task2_time:
+                #HOVER
+                if task2_flag==0:
+                    print("********* TASK PPO********")
+                    task2_flag = 1
+                    _ref = self.ref.pos
 
-            #     z_acc, ang_vel = self.ppo_controller.response(t,self.state,self.ref)
+                z_acc, ang_vel = self.ppo_controller.response(t,self.state,self.ref)
             # # #########################################################
                       
             else:
@@ -263,9 +266,8 @@ class ctrlCF():
                 if np.mean(land_buffer) < 0.04:
                     "***** Flight done! *********"
                     land_flag=2
-            # quat = self.state.rot
-            # rot = R.from_quat(quat)
-            # eulers = rot.as_euler('ZYX', degrees=True)
+
+
             self.pose_positions.append(np.copy(self.pose_pos))
             self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
             self.cf_positions.append(self.cf.position())
@@ -311,7 +313,7 @@ class ctrlCF():
         while t<30.0:
 
             self.set_hover_ref(t)
-            self.cf.step_angvel_cf(i*self.dt,self.dt,self.pid_controller,ref=self.ref)
+            self.cf.step_angvel_cf(i*self.dt,self.dt,self.ppo_controller,ref=self.ref)
             quadsim_state = self.cf.rb.state()
             
             state.pos = quadsim_state.pos
