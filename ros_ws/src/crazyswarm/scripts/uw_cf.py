@@ -74,12 +74,20 @@ class ctrlCF():
         self.swarm.allcfs.emergency()
 
     def set_hover_ref(self,t):
-        ref_pos = np.array([0.,0.0,0.3])
+        ref_pos = np.array([0.,0.0,0.0])
         ref_vel = np.array([0.,0.,0])
         self.ref = State_struct(pos=ref_pos,vel = ref_vel)
     
-    def set_takeoff_ref(self,t,takeoff_rate,takeoff_height):
+    def set_takeoff_ref(self,t,takeoff_height,takeoff_rate):
+        # print('debig', t, takeoff_rate, takeoff_rate*t,takeoff_height)
         ref_pos = self.init_pos+np.array([0.,0.,min(takeoff_rate*t,takeoff_height)])
+        ref_vel = np.array([0.,0.,0])
+        self.ref = State_struct(pos=ref_pos,vel = ref_vel)
+
+    def set_landing_ref(self,t,landing_height,landing_rate):
+        # print('debig', t, landing_rate, landing_rate*t,landing_height)
+        ref_pos = self.last_state
+        ref_pos[-1] = max(self.last_state[-1] - landing_rate*t,landing_height)
         ref_vel = np.array([0.,0.,0])
         self.ref = State_struct(pos=ref_pos,vel = ref_vel)
 
@@ -170,7 +178,8 @@ class ctrlCF():
         takeoff_height = self.config["takeoff_height"]
         takeoff_time = takeoff_height/takeoff_rate
 
-        landing_time = self.config["landing_height"]/self.config["landing_rate"]
+        landing_rate = self.config["landing_rate"]
+        # landing_time = self.config["landing_height"]/self.config["landing_rate"]
         landing_height = self.config["landing_height"]
 
         # Print flags
@@ -183,7 +192,7 @@ class ctrlCF():
         # Main loop
         t = 0.0
         startTime = timeHelper.time()
-        while not rospy.is_shutdown() and t <30.0:
+        while not rospy.is_shutdown() and t <25.0:
             self.BB_failsafe()
             t = timeHelper.time() - startTime
             warmup_time = self.config["kalman_warmup"]
@@ -207,7 +216,7 @@ class ctrlCF():
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
             
             ########################################################
-            elif t<takeoff_time + warmup_time + 10.:
+            elif t<takeoff_time + warmup_time + 3.:
                 #HOVER
                 # Use the reference function here
                 self.set_hover_ref(t-warmup_time)
@@ -231,13 +240,15 @@ class ctrlCF():
                       
             else:
                 if land_flag==0:
+                    self.last_state = self.state.pos
+                    land_time = t
                     print("********* LAND **********")
                     land_flag = 1
-                    land_pos = self.state.pos
-                    land_pos[-1] = landing_height
-                    land_ref = State_struct(pos=land_pos)
-
-                z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,land_ref)
+                    # land_pos = self.state.pos
+                    # land_pos[-1] = landing_height
+                    # self.ref = State_struct(pos=land_pos)
+                self.set_landing_ref(t-land_time,landing_height,landing_rate)
+                z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
 
             # quat = self.state.rot
             # rot = R.from_quat(quat)
@@ -252,6 +263,7 @@ class ctrlCF():
             self.ang_vel_cmds.append(ang_vel * 180 / 2*np.pi)
 
             self._send2cfClient(self.cf,z_acc, ang_vel)
+            print("ref",self.ref.pos,"pos",self.state.pos,"time",t)
 
             timeHelper.sleepForRate(sleepRate)
 
@@ -300,7 +312,7 @@ if __name__=="__main__":
     g = EasyDict(vars(parser.parse_args()))
 
 
-    x = ctrlCF("cf2",sim=g.quadsim,config_file=g.config,log_file=g.logfile)
+    x = ctrlCF("cf5",sim=g.quadsim,config_file=g.config,log_file=g.logfile)
     try:
         if g.quadsim:
             x.main_loop_sim()
