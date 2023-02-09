@@ -123,7 +123,7 @@ class ctrlCF():
 
     def take_off(self,takeoff_height, takeoff_time, init_pos,t):
         take_offRef = Ref_State(pos = init_pos + np.array([0., 0., min(takeoff_height / takeoff_time * t, takeoff_height)]))
-        self.ref = take_offRef
+        # self.ref = take_offRef
         z_acc, ang_vel = self.pid_controller.response(t,self.state,take_offRef)
         # print(np.hstack((self.state[:3],take_offRef.pos)))
         return z_acc,ang_vel, take_offRef.pos
@@ -161,7 +161,7 @@ class ctrlCF():
         self.thrust_cmds = []
         self.ang_vel_cmds = []
 
-        time_limit = 25000 if self.debug else 25.0
+        time_limit = 25000 if self.debug else 40.0
 
         while not rospy.is_shutdown() and t < time_limit:
             if not self.debug:
@@ -184,16 +184,16 @@ class ctrlCF():
 
 
             ########################################################
-            elif t < takeoff_time:
-                #HOVER
-                if task1_flag==0:
-                    # print("********* TASK PID********")
-                    task1_flag = 1
-                    offset_pos = init_pos + np.array([0., 0., takeoff_height])
-                    self.ref.pos += offset_pos
-                    _ref = self.ref.pos
-                    # print(self.ref.pos)
-                z_acc, ang_vel = self.pid_controller.response(t - wait_time, self.state, self.ref)
+            # elif t < takeoff_time + 20:
+            #     #HOVER
+            #     if task1_flag==0:
+            #         print("********* TASK PID********")
+            #         task1_flag = 1
+            #         offset_pos = init_pos + np.array([0., 0., takeoff_height])
+            #         self.ref.pos = offset_pos
+            #         _ref = self.ref.pos
+            #         # print(self.ref.pos)
+            #     z_acc, ang_vel = self.ppo_controller.response(t - wait_time, self.state, self.ref)
 
             # elif t<takeoff_time+5.+10.:
             #     #HOVER

@@ -2,6 +2,13 @@
     "files.associations": {
         "vrpn_Tracker_ThalmicLabsMyo.C": "cpp",
         "chrono": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "*.ipp": "cpp",
+        "*.tcc": "cpp",
+        "bitset": "cpp",
+        "cstdlib": "cpp",
+        "polynomials": "cpp",
+        "controller_rwik.h": "c",
+        "controller_mellinger.h": "c"
     }
 }
