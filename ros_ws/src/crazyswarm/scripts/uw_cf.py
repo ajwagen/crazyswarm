@@ -81,7 +81,7 @@ class ctrlCF():
         #     pass
 
     def set_ref(self,):
-        ref_pos = np.array([0., 0.0, 1.0])
+        ref_pos = np.array([0., 0.0, 0.0])
         ref_vel = np.array([0., 0., 0])
         self.ref = Ref_State(pos=ref_pos, vel=ref_vel)
 
@@ -115,7 +115,7 @@ class ctrlCF():
         # pos = cf.position()#self.state[:3]
         # print(abs(pos[0] - self.init_pos[0]), abs(pos[1] - self.init_pos[1]), pos[-1]>1.0)
         pos = self.cf.position()
-        if abs(pos[0] - self.init_pos[0]) > bound/2 or abs(pos[1] - self.init_pos[1]) > bound/2 or pos[2]>1.2:
+        if abs(pos[0] - self.init_pos[0]) > bound/2 or abs(pos[1] - self.init_pos[1]) > bound/2 or pos[2]>2.0:
             print('Out of Bounding Box EMERGENCY STOP!!')
             self.swarm.allcfs.emergency()
             self.write_to_log()
@@ -123,7 +123,7 @@ class ctrlCF():
 
     def take_off(self,takeoff_height, takeoff_time, init_pos,t):
         take_offRef = Ref_State(pos = init_pos + np.array([0., 0., min(takeoff_height / takeoff_time * t, takeoff_height)]))
-        self.ref = take_offRef
+        # self.ref = take_offRef
         z_acc, ang_vel = self.pid_controller.response(t,self.state,take_offRef)
         # print(np.hstack((self.state[:3],take_offRef.pos)))
         return z_acc,ang_vel, take_offRef.pos
@@ -160,34 +160,34 @@ class ctrlCF():
         self.ts = []
         self.thrust_cmds = []
         self.ang_vel_cmds = []
+        wait_time = 10.0
 
         time_limit = 25000 if self.debug else 25.0
 
-        while not rospy.is_shutdown() and t < time_limit:
+        while not rospy.is_shutdown() and t < time_limit + wait_time:
             if not self.debug:
                 self.BB_failsafe()   
 
             
             t = timeHelper.time() - startTime
 
-            wait_time = 10.0
             if t < wait_time:
                 z_acc, ang_vel = 0.0, np.zeros(3)
                 pass
 
-            elif t < takeoff_time + 100000:
+            elif t < takeoff_time + wait_time:
                 if takeoff_flag==0:
-                    # print("********* TAKEOFF **********")
+                    print("********* TAKEOFF **********")
                     takeoff_flag = 1
                 z_acc,ang_vel, _ref = self.take_off(takeoff_height, takeoff_time, init_pos,t - wait_time)
                 # offset_pos = cf.position()
 
 
             ########################################################
-            elif t < takeoff_time:
+            elif t < takeoff_time + wait_time + 3:
                 #HOVER
                 if task1_flag==0:
-                    # print("********* TASK PID********")
+                    print("********* TASK PID********")
                     task1_flag = 1
                     offset_pos = init_pos + np.array([0., 0., takeoff_height])
                     self.ref.pos += offset_pos
@@ -207,7 +207,7 @@ class ctrlCF():
                       
             else:
                 if land_flag == 0:
-                    # print("********* LAND **********")
+                    print("********* LAND **********")
                     land_flag = 1
                     land_pos = self.cf.position()
                     land_pos[-1] = landing_height
@@ -230,7 +230,7 @@ class ctrlCF():
                 ang_vel = np.zeros(3)
                 # z_acc = 0.3*np.sin(t) + 0.7
                 # ang_vel = np.array([0.25*np.sin(t), 0.25*np.cos(t), 0.0])
-            print("pos", self.pose_pos, 'zacc', z_acc, "act",self.cf.position(),"t",t)
+            # print("pos", self.pose_pos, 'zacc', z_acc, "act",self.cf.position(),"t",t)
 
 
             self._send2cfClient(self.cf,z_acc, ang_vel)
@@ -277,7 +277,7 @@ if __name__ == "__main__":
     parser.add_argument('--debug', action='store', type=bool, default=False)
     g = EasyDict(vars(parser.parse_args()))
     debug = g.debug
-    x = ctrlCF("cf2", sim=g.quadsim, config_file=g.config, log_file=g.logfile, debug=debug)
+    x = ctrlCF("cf5", sim=g.quadsim, config_file=g.config, log_file=g.logfile, debug=debug)
     try:
         if g.quadsim:
             x.main_loop_sim()
