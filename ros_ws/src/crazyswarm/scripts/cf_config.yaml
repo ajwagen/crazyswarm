@@ -1,8 +1,8 @@
 # Take off and landig parameters
 takeoff_height: 1.0
-takeoff_rate: 0.2
-landing_height: 0.001
-landing_rate: 0.08
+takeoff_rate: 0.4
+landing_height: 0.005
+landing_rate: 0.001
 
 E_BB_width: 1.0 # emergency bounding box width limit
 E_BB_height: 2.0 # emergency bounding box width limit

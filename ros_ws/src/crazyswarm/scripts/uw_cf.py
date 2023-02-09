@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import time
+import signal
 import argparse
 from easydict import EasyDict
 import numpy as np
@@ -9,6 +10,7 @@ import copy
 
 # import controller 
 from Controllers.pid_controller import PIDController
+from collections import deque
 # from Controllers.hover_PPO_controller import PPOController
 
 # Actual Drone
@@ -71,7 +73,12 @@ class ctrlCF():
 
     def shutdown_callback(self,):
 
+        # self.swarm.allcfs.emergency()
+        print("Shutting down ROS!")
+    def emergency_handler(self,signum,frame):
+        print("User Emergency Stop!")
         self.swarm.allcfs.emergency()
+        exit()
 
     def set_hover_ref(self,t):
         ref_pos = np.array([0.,0.0,0.0])
@@ -80,7 +87,8 @@ class ctrlCF():
     
     def set_takeoff_ref(self,t,takeoff_height,takeoff_rate):
         # print('debig', t, takeoff_rate, takeoff_rate*t,takeoff_height)
-        ref_pos = self.init_pos+np.array([0.,0.,min(takeoff_rate*t,takeoff_height)])
+        moving_pt = takeoff_rate*t
+        ref_pos = self.init_pos+np.array([0.,0.,min(moving_pt,takeoff_height)])
         ref_vel = np.array([0.,0.,0])
         self.ref = State_struct(pos=ref_pos,vel = ref_vel)
 
@@ -177,10 +185,12 @@ class ctrlCF():
         takeoff_rate = self.config["takeoff_rate"]
         takeoff_height = self.config["takeoff_height"]
         takeoff_time = takeoff_height/takeoff_rate
+        task_time = 5.0
 
         landing_rate = self.config["landing_rate"]
         # landing_time = self.config["landing_height"]/self.config["landing_rate"]
         landing_height = self.config["landing_height"]
+        land_buffer = deque([0.]*5)
 
         # Print flags
         land_flag = 0
@@ -192,7 +202,8 @@ class ctrlCF():
         # Main loop
         t = 0.0
         startTime = timeHelper.time()
-        while not rospy.is_shutdown() and t <25.0:
+        signal.signal(signal.SIGINT, self.emergency_handler)
+        while not rospy.is_shutdown():
             self.BB_failsafe()
             t = timeHelper.time() - startTime
             warmup_time = self.config["kalman_warmup"]
@@ -216,7 +227,7 @@ class ctrlCF():
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
             
             ########################################################
-            elif t<takeoff_time + warmup_time + 3.:
+            elif t<takeoff_time + warmup_time + task_time:
                 #HOVER
                 # Use the reference function here
                 self.set_hover_ref(t-warmup_time)
@@ -244,12 +255,14 @@ class ctrlCF():
                     land_time = t
                     print("********* LAND **********")
                     land_flag = 1
-                    # land_pos = self.state.pos
-                    # land_pos[-1] = landing_height
-                    # self.ref = State_struct(pos=land_pos)
+
                 self.set_landing_ref(t-land_time,landing_height,landing_rate)
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
-
+                land_buffer.appendleft(self.state.pos[-1])
+                land_buffer.pop()
+                if np.mean(land_buffer) < 0.04:
+                    "***** Flight done! *********"
+                    land_flag=2
             # quat = self.state.rot
             # rot = R.from_quat(quat)
             # eulers = rot.as_euler('ZYX', degrees=True)
@@ -262,10 +275,15 @@ class ctrlCF():
             self.thrust_cmds.append(z_acc)
             self.ang_vel_cmds.append(ang_vel * 180 / 2*np.pi)
 
+            if land_flag==2:
+                z_acc,ang_vel=0.,np.zeros(3)
             self._send2cfClient(self.cf,z_acc, ang_vel)
             print("ref",self.ref.pos,"pos",self.state.pos,"time",t)
 
             timeHelper.sleepForRate(sleepRate)
+
+            if land_flag==2:
+                break
 
     def write_to_log(self):
         LOG_DIR = Path().home() / 'Drones' / 'logs'
@@ -312,7 +330,7 @@ if __name__=="__main__":
     g = EasyDict(vars(parser.parse_args()))
 
 
-    x = ctrlCF("cf5",sim=g.quadsim,config_file=g.config,log_file=g.logfile)
+    x = ctrlCF("cf2",sim=g.quadsim,config_file=g.config,log_file=g.logfile)
     try:
         if g.quadsim:
             x.main_loop_sim()
