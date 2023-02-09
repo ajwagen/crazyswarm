@@ -4,6 +4,7 @@ from scipy.spatial.transform import Rotation as R
 from quadsim.learning.train_policy import DroneTask, RLAlgo, SAVED_POLICY_DIR, import_config, CONFIG_DIR
 from quadsim.visualizer import Vis
 import torch
+from torch.autograd.functional import jacobian
 from stable_baselines3.common.env_util import make_vec_env
 
 # from quadsim.control import Controller
@@ -81,18 +82,18 @@ class PPOController():
 
     quat = rot.as_quat() 
 
-    # print(pos,vel,rot)
     obs = np.hstack((pos,vel,quat))
     action, _states = self.policy.predict(obs, deterministic=True)
 
-    th_obs,_ = self.policy.policy.obs_to_tensor(obs)
-    _action = self.policy.policy._predict(th_obs, deterministic=True)
-    # print()
-    _action[0].backward()
-    # print(th_obs.grad)
-    torch.autograd.grad(_action[0],th_obs,retain_graph=True,allow_unused=True)
+
+    ################################
+    # Gradient (gain) calculation for hovering
+    # th_obs,_ = self.policy.policy.obs_to_tensor(obs)
+    # j = jacobian(self.policy.policy._predict,(th_obs))
+    # j = j[0,:,0,:].detach().cpu().numpy()
+    # exit()
+    ################################
 
     action[0]+=self.g
     self.prev_pos = pos.copy()
-    # print(type(action))
     return action[0], action[1:]
