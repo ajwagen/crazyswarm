@@ -85,12 +85,12 @@ class PPOController():
     obs = np.hstack((pos,vel,quat))
     action, _states = self.policy.predict(obs, deterministic=True)
 
-    # th_obs,_ = self.policy.policy.obs_to_tensor(obs)
-    # _action = self.policy.policy._predict(th_obs, deterministic=True)
-    # # print()
-    # # _action[0].backward()
-    # # print(th_obs.grad)
-    # torch.autograd.grad(_action[0],th_obs,retain_graph=True,allow_unused=True)
+    th_obs,_ = self.policy.policy.obs_to_tensor(obs)
+    _action = self.policy.policy._predict(th_obs, deterministic=True)
+    # print()
+    _action[0].backward()
+    # print(th_obs.grad)
+    torch.autograd.grad(_action[0],th_obs,retain_graph=True,allow_unused=True)
 
     action[0]+=self.g
     self.prev_pos = pos.copy()

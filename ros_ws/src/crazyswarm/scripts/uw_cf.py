@@ -78,6 +78,7 @@ class ctrlCF():
     def emergency_handler(self,signum,frame):
         print("User Emergency Stop!")
         self.swarm.allcfs.emergency()
+        self.write_to_log()
         exit()
 
     def set_hover_ref(self,t):
@@ -197,7 +198,7 @@ class ctrlCF():
         warmup_flag = 0
         task1_flag = 0
         task2_flag = 0
-        task1_time = 3.0
+        task1_time = 10.0
         task2_time = 2.0
 
 
@@ -242,14 +243,14 @@ class ctrlCF():
                 self.ref.pos +=offset_pos
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
 
-            elif t<takeoff_time+ warmup_time+task1_time+task2_time:
-                #HOVER
-                if task2_flag==0:
-                    print("********* TASK PPO********")
-                    task2_flag = 1
-                    _ref = self.ref.pos
+            # elif t<takeoff_time+ warmup_time+task1_time+task2_time:
+            #     #HOVER
+            #     if task2_flag==0:
+            #         print("********* TASK PPO********")
+            #         task2_flag = 1
+            #         _ref = self.ref.pos
 
-                z_acc, ang_vel = self.ppo_controller.response(t,self.state,self.ref)
+            #     z_acc, ang_vel = self.ppo_controller.response(t,self.state,self.ref)
             # # #########################################################
                       
             else:
@@ -288,12 +289,13 @@ class ctrlCF():
                 break
 
     def write_to_log(self):
-        LOG_DIR = Path().home() / 'Drones' / 'logs'
+        LOG_DIR = Path().home() / 'sda4/drones/crazyswarm' / 'logs'
 
         self.pose_positions = np.array(self.pose_positions)
-        print(self.pose_positions)
         self.pose_orientations = np.array(self.pose_orientations)
         self.cf_positions = np.array(self.cf_positions)
+        self.ref_orientation = np.array(self.ref_orientation)
+        self.ref_positions = np.array(self.ref_positions)
         self.ts = np.array(self.ts)
         self.thrust_cmds = np.array(self.thrust_cmds)
         self.ang_vel_cmds = np.array(self.ang_vel_cmds)
@@ -301,6 +303,8 @@ class ctrlCF():
             pose_positions=self.pose_positions,
             pose_orientations=self.pose_orientations,
             cf_positions=self.cf_positions,
+            ref_positions = self.ref_positions,
+            ref_orientation = self.ref_orientation,
             ang_vel_cmds=self.ang_vel_cmds,
             ts=self.ts,
             thrust_cmds=self.thrust_cmds

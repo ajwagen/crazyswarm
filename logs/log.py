@@ -24,60 +24,60 @@ plt.rcParams['figure.facecolor'] = 'w'
 plotCols = 1;
 plotRows = 1;
 
-# let's see which keys exists in current data set
-keys = ""
-for k, v in logData.items():
-    keys += k
+# # let's see which keys exists in current data set
+# keys = ""
+# for k, v in logData.items():
+#     keys += k
 
-# get plot config from user
-plotGyro = 0
-if re.search('gyro', keys):
-    inStr = input("plot gyro data? ([Y]es / [n]o): ")
-    if ((re.search('^[Yy]', inStr)) or (inStr == '')):
-        plotGyro = 1
-        plotRows += 1
+# # get plot config from user
+# plotGyro = 0
+# if re.search('gyro', keys):
+#     inStr = input("plot gyro data? ([Y]es / [n]o): ")
+#     if ((re.search('^[Yy]', inStr)) or (inStr == '')):
+#         plotGyro = 1
+#         plotRows += 1
 
-plotAccel = 0
-if re.search('acc', keys):
-    inStr = input("plot accel data? ([Y]es / [n]o): ")
-    if ((re.search('^[Yy]', inStr)) or (inStr == '')):
-        plotAccel = 1
-        plotRows += 1
+# plotAccel = 0
+# if re.search('acc', keys):
+#     inStr = input("plot accel data? ([Y]es / [n]o): ")
+#     if ((re.search('^[Yy]', inStr)) or (inStr == '')):
+#         plotAccel = 1
+#         plotRows += 1
 
-plotMag = 0
-if re.search('mag', keys):
-    inStr = input("plot magnetometer data? ([Y]es / [n]o): ")
-    if ((re.search('^[Yy]', inStr)) or (inStr == '')):
-        plotMag = 1
-        plotRows += 1
+# plotMag = 0
+# if re.search('mag', keys):
+#     inStr = input("plot magnetometer data? ([Y]es / [n]o): ")
+#     if ((re.search('^[Yy]', inStr)) or (inStr == '')):
+#         plotMag = 1
+#         plotRows += 1
 
-plotBaro = 0
-if re.search('baro', keys):
-    inStr = input("plot barometer data? ([Y]es / [n]o): ")
-    if ((re.search('^[Yy]', inStr)) or (inStr == '')):
-        plotBaro = 1
-        plotRows += 1
+# plotBaro = 0
+# if re.search('baro', keys):
+#     inStr = input("plot barometer data? ([Y]es / [n]o): ")
+#     if ((re.search('^[Yy]', inStr)) or (inStr == '')):
+#         plotBaro = 1
+#         plotRows += 1
 
-plotCtrl = 0
-if re.search('ctrltarget', keys):
-    inStr = input("plot control data? ([Y]es / [n]o): ")
-    if ((re.search('^[Yy]', inStr)) or (inStr == '')):
-        plotCtrl = 1
-        plotRows += 1
+# plotCtrl = 0
+# if re.search('ctrltarget', keys):
+#     inStr = input("plot control data? ([Y]es / [n]o): ")
+#     if ((re.search('^[Yy]', inStr)) or (inStr == '')):
+#         plotCtrl = 1
+#         plotRows += 1
 
-plotStab = 0
-if re.search('stabilizer', keys):
-    inStr = input("plot stabilizer data? ([Y]es / [n]o): ")
-    if ((re.search('^[Yy]', inStr)) or (inStr == '')):
-        plotStab = 1
-        plotRows += 1
+# plotStab = 0
+# if re.search('stabilizer', keys):
+#     inStr = input("plot stabilizer data? ([Y]es / [n]o): ")
+#     if ((re.search('^[Yy]', inStr)) or (inStr == '')):
+#         plotStab = 1
+#         plotRows += 1
 
-plotRwik = 0
-if re.search('ctrlRwik', keys):
-    inStr = input("plot Rwik data? ([Y]es / [n]o): ")
-    if ((re.search('^[Yy]', inStr)) or (inStr == '')):
-        plotRwik = 1
-        plotRows += 1
+# plotRwik = 0
+# if re.search('ctrlRwik', keys):
+#     inStr = input("plot Rwik data? ([Y]es / [n]o): ")
+#     if ((re.search('^[Yy]', inStr)) or (inStr == '')):
+#         plotRwik = 1
+#         plotRows += 1
     
 # current plot for simple subplot usage
 plotCurrent = 0;
