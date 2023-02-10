@@ -198,7 +198,7 @@ class ctrlCF():
         warmup_flag = 0
         task1_flag = 0
         task2_flag = 0
-        task1_time = 10.0
+        task1_time = 20.0
         task2_time = 2.0
 
 
@@ -281,7 +281,7 @@ class ctrlCF():
             if land_flag==2:
                 z_acc,ang_vel=0.,np.zeros(3)
             self._send2cfClient(self.cf,z_acc, ang_vel)
-            print("ref",self.ref.pos,"pos",self.state.pos,"time",t)
+            # print("ref",self.ref.pos,"pos",self.state.pos,"time",t)
 
             timeHelper.sleepForRate(sleepRate)
 
