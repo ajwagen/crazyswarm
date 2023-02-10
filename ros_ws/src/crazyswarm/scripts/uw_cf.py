@@ -184,7 +184,6 @@ class ctrlCF():
 
 
             ########################################################
-<<<<<<< HEAD
             # elif t < takeoff_time + 20:
             #     #HOVER
             #     if task1_flag==0:
@@ -195,18 +194,6 @@ class ctrlCF():
             #         _ref = self.ref.pos
             #         # print(self.ref.pos)
             #     z_acc, ang_vel = self.ppo_controller.response(t - wait_time, self.state, self.ref)
-=======
-            elif t < takeoff_time + wait_time + 3:
-                #HOVER
-                if task1_flag==0:
-                    print("********* TASK PID********")
-                    task1_flag = 1
-                    offset_pos = init_pos + np.array([0., 0., takeoff_height])
-                    self.ref.pos += offset_pos
-                    _ref = self.ref.pos
-                    # print(self.ref.pos)
-                z_acc, ang_vel = self.pid_controller.response(t - wait_time, self.state, self.ref)
->>>>>>> 49a8b4cc29737dbd693f6e4944f2010796f809b0
 
             # elif t<takeoff_time+5.+10.:
             #     #HOVER
