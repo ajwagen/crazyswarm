@@ -181,7 +181,6 @@ public:
         }
       }
       m_logFile << std::endl;
-
       if (m_enableLoggingPose) {
         m_pubPose = n.advertise<geometry_msgs::PoseStamped>(m_tf_prefix + "/pose", 10);
       }
@@ -710,7 +709,6 @@ private:
 
       m_pubPose.publish(msg);
 
-
       tf::Transform tftransform;
       tftransform.setOrigin(tf::Vector3(data->x, data->y, data->z));
       tftransform.setRotation(tf::Quaternion(q[0], q[1], q[2], q[3]));
@@ -971,7 +969,7 @@ public:
         }
       }
       m_slowQueue.callAvailable(ros::WallDuration(0));
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      std::this_thread::sleep_for(std::chrono::milliseconds(10)); // DEBUG CHANGE
     }
   }
 

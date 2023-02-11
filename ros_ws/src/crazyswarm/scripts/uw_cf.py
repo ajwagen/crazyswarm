@@ -12,6 +12,7 @@ import copy
 from Controllers.pid_controller import PIDController
 from collections import deque
 from Controllers.hover_ppo_controller import PPOController
+from Controllers.bc_controller import BCController
 
 # Actual Drone
 import rospy
@@ -44,10 +45,11 @@ class State_struct:
     self.t = 0.
 
 class ctrlCF():
-    def __init__(self, cfName,sim=False,config_file="cf_config.yaml", log_file='log.npz'):
+    def __init__(self, cfName,sim=False,config_file="cf_config.yaml", log_file='log.npz', debug=False):
         self.cfName = cfName
         self.isSim = sim
         self.logfile = log_file
+        self.debug = debug
 
         self.initialized = False
         self.state = State_struct()
@@ -57,6 +59,7 @@ class ctrlCF():
         # self.prev_state = np.zeros(14)
         self.pid_controller  = PIDController(isSim = self.isSim)
         self.ppo_controller = PPOController(isSim = self.isSim)
+        self.bc_controller = BCController(isSim=self.isSim)
         if not self.isSim:
             self.swarm = Crazyswarm()
             rospy.Subscriber("/"+self.cfName+"/pose", PoseStamped, self.state_callback)
@@ -127,6 +130,8 @@ class ctrlCF():
         self.state.t = rospy.get_time()
         self.pose_pos = np.array([pos.x,pos.y,pos.z])
         self.pos_pos = self.cf.position()
+        self.motrack_orientation = self.cf.orientation()
+        self.motrack_orientation = R.from_quat(self.motrack_orientation)
         rot = np.array([rot.x,rot.y,rot.z,rot.w])
 
         # Adding ROS subscribed data to state
@@ -167,8 +172,12 @@ class ctrlCF():
     def main_loop_cf(self,):
         timeHelper = self.swarm.timeHelper
 
-        while not self.initialized:
-            pass
+        try:
+            while not self.initialized:
+                pass
+        except KeyboardInterrupt:
+            exit()
+        print('Initialized...')
         
         self.init_pos = np.copy(self.state.pos)
 
@@ -198,17 +207,20 @@ class ctrlCF():
         warmup_flag = 0
         task1_flag = 0
         task2_flag = 0
-        task1_time = 20.0
-        task2_time = 2.0
+        task1_time = 5.0
+        task2_time = 10.0
 
-
+        if self.debug:
+            takeoff_time = 100000
 
         # Main loop
         t = 0.0
         startTime = timeHelper.time()
         signal.signal(signal.SIGINT, self.emergency_handler)
         while not rospy.is_shutdown():
-            self.BB_failsafe()
+            if not self.debug:
+                self.BB_failsafe()
+
             t = timeHelper.time() - startTime
             warmup_time = self.config["kalman_warmup"]
 
@@ -240,17 +252,23 @@ class ctrlCF():
                     task1_flag = 1
                     offset_pos = self.init_pos+np.array([0.,0.,takeoff_height])
 
-                self.ref.pos +=offset_pos
+                self.ref.pos += offset_pos
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
 
-            # elif t<takeoff_time+ warmup_time+task1_time+task2_time:
-            #     #HOVER
-            #     if task2_flag==0:
-            #         print("********* TASK PPO********")
-            #         task2_flag = 1
-            #         _ref = self.ref.pos
 
-            #     z_acc, ang_vel = self.ppo_controller.response(t,self.state,self.ref)
+            elif t<takeoff_time+ warmup_time+task1_time+task2_time:
+                #HOVER
+                if task2_flag==0:
+                    print("********* TASK PPO********")
+                    task2_flag = 1
+                    _ref = self.ref.pos
+
+                z_acc, ang_vel = self.bc_controller.response(t, self.state, self.ref)
+                print(self.state.pos, self.state.rot.as_euler('ZYX', degrees=True), self.ref.pos, 'z_cmd', z_acc, 'ang', ang_vel)
+                z_pid, ang_pid = self.pid_controller.response(t-warmup_time,self.state,self.ref)
+                print('pid z cmd', z_pid, 'pid ang', ang_pid)
+
+
             # # #########################################################
                       
             else:
@@ -276,12 +294,16 @@ class ctrlCF():
             self.ref_orientation.append(self.ref.rot.as_euler('ZYX',degrees=True))
             self.ts.append(t)
             self.thrust_cmds.append(z_acc)
-            self.ang_vel_cmds.append(ang_vel * 180 / 2*np.pi)
+            self.ang_vel_cmds.append(ang_vel * 180 / (2*np.pi))
 
             if land_flag==2:
                 z_acc,ang_vel=0.,np.zeros(3)
-            self._send2cfClient(self.cf,z_acc, ang_vel)
-            # print("ref",self.ref.pos,"pos",self.state.pos,"time",t)
+            if self.debug:
+                z_acc = 0.0
+                ang_vel = np.zeros(3)
+                print("cf", self.cf.position(), "pose",self.pose_pos, 'orientation', self.motrack_orientation.as_euler('ZYX', degrees=True), "time",t)
+
+            self._send2cfClient(self.cf, z_acc, ang_vel)
 
             timeHelper.sleepForRate(sleepRate)
 
@@ -289,7 +311,7 @@ class ctrlCF():
                 break
 
     def write_to_log(self):
-        LOG_DIR = Path().home() / 'sda4/drones/crazyswarm' / 'logs'
+        LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
 
         self.pose_positions = np.array(self.pose_positions)
         self.pose_orientations = np.array(self.pose_orientations)
@@ -314,10 +336,20 @@ class ctrlCF():
         i = 0
         t = 0.     
         state = State_struct()   
+        p = np.array([-0.01638478, -0.0758579, -0.01579895])
+        r = R.from_euler('ZYX', np.array([-1.10916878,  0.63578264,  0.15242415]), degrees=True)
+        state.pos = p
+        state.rot = r
+        ref = State_struct()
+        self.cf.rb.pos = p
+        self.cf.rb.quat = np.hstack((r.as_quat()[-1], r.as_quat()[0:3]))
+
+        print("PID RESPONSE", self.pid_controller.response(0.0, state, ref))
+
         while t<30.0:
 
             self.set_hover_ref(t)
-            self.cf.step_angvel_cf(i*self.dt,self.dt,self.ppo_controller,ref=self.ref)
+            self.cf.step_angvel_cf(i*self.dt, self.dt, self.bc_controller, ref=self.ref)
             quadsim_state = self.cf.rb.state()
             
             state.pos = quadsim_state.pos
@@ -326,17 +358,18 @@ class ctrlCF():
             self.cf.vis.set_state(quadsim_state.pos,quadsim_state.rot)
             time.sleep(self.dt/2)
             t = i*self.dt
-            i+=1
+            i += 1
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--quadsim', action='store_true')
     parser.add_argument('--config', action='store', type=str, default="cf_config.yaml")
     parser.add_argument('--logfile', action='store', type=str, default='log.npz')
+    parser.add_argument('--debug', action='store', type=bool, default=False)
     g = EasyDict(vars(parser.parse_args()))
 
+    x = ctrlCF("cf2",sim=g.quadsim,config_file=g.config,log_file=g.logfile, debug=g.debug)
 
-    x = ctrlCF("cf2",sim=g.quadsim,config_file=g.config,log_file=g.logfile)
     try:
         if g.quadsim:
             x.main_loop_sim()

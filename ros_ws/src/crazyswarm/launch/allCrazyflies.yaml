@@ -1,6 +1,6 @@
 crazyflies:
-  - id: 1
-    channel: 100
+  - id: 2
+    channel: 80
     initialPosition: [1.5, 1.5, 0.0]
     type: medium
   - id: 40

@@ -24,12 +24,12 @@ plt.rcParams['figure.facecolor'] = 'w'
 plotCols = 1;
 plotRows = 1;
 
-# # let's see which keys exists in current data set
-# keys = ""
-# for k, v in logData.items():
-#     keys += k
+# let's see which keys exists in current data set
+keys = ""
+for k, v in logData.items():
+    keys += k
 
-# # get plot config from user
+# get plot config from user
 # plotGyro = 0
 # if re.search('gyro', keys):
 #     inStr = input("plot gyro data? ([Y]es / [n]o): ")
@@ -79,8 +79,8 @@ plotRows = 1;
 #         plotRwik = 1
 #         plotRows += 1
     
-# current plot for simple subplot usage
-plotCurrent = 0;
+# # current plot for simple subplot usage
+# plotCurrent = 0;
 
 # new figure
 plt.figure(0)
@@ -94,10 +94,11 @@ plt.plot(logData['tick'], logData['ctrlRwik.angVel_y'])
 plt.plot(logData['tick'], logData['gyro.y'], color='red')
 plt.ylabel('Pitch')
 plt.subplot(3, 1, 3, sharex=ax)
-plt.plot(logData['tick'], logData['ctrlRwik.angVel_z'])
-plt.plot(logData['tick'], logData['gyro.z'], color='red')
+plt.plot(logData['tick'], logData['ctrlRwik.angVel_z'], label='Cmd ang vel (deg/s)')
+plt.plot(logData['tick'], logData['gyro.z'], color='red', label='Measured ang vel (deg/s)')
 plt.ylabel('Yaw')
 plt.suptitle('Angular Velocity (deg/s)')
+plt.legend()
 
 plt.figure(1)
 ax1 = plt.subplot(3, 1, 1)
@@ -136,29 +137,39 @@ plt.plot(ts, logData['ctrlRwik.angVel_y'][~zero_norms])
 plt.ylabel('Y')
 
 plt.subplot(3, 1, 3, sharex=ax1)
-plt.plot(ts, eulers[:, 0], color='red')
-plt.plot(ts, logData['ctrlRwik.angVel_z'][~zero_norms])
+plt.plot(ts, eulers[:, 0], color='red', label='Euler angle (deg)')
+plt.plot(ts, logData['ctrlRwik.angVel_z'][~zero_norms], label='Cmd Ang Vel (deg/s)')
 plt.ylabel('Z')
+plt.legend()
 
 plt.suptitle('Orientation and Des ang vel')
 
 plt.figure(2)
 ax2 = plt.subplot(3, 1, 1)
-plt.plot(logData['tick'], logData['ctrlRwik.state_x'])
+try:
+    plt.plot(logData['tick'], logData['ctrlRwik.state_x'])
+except:
+    pass
 try:
     plt.plot(logData['tick'], logData['ctrlRwik.ref_x'], color='green')
 except:
     pass
 
 plt.subplot(3, 1, 2, sharex=ax2)
-plt.plot(logData['tick'], logData['ctrlRwik.state_y'])
+try:
+    plt.plot(logData['tick'], logData['ctrlRwik.state_y'])
+except:
+    pass
 try:
     plt.plot(logData['tick'], logData['ctrlRwik.ref_y'], color='green')
 except:
     pass
 
 plt.subplot(3, 1, 3, sharex=ax2)
-plt.plot(logData['tick'], logData['ctrlRwik.state_z'])
+try:
+    plt.plot(logData['tick'], logData['ctrlRwik.state_z'])
+except:
+    pass
 try:
     plt.plot(logData['tick'], logData['ctrlRwik.ref_z'], color='green')
 except:
@@ -172,6 +183,28 @@ except:
     pass
 plt.title('Cmd z acc')
 
+try:
+    plt.figure(4)
+    ax4 = plt.subplot(3, 1, 1)
+    plt.plot(ts, logData['gyro.x'][~zero_norms], color='red')
+    plt.plot(ts, logData['ctrlRwik.angVel_x'][~zero_norms])
+    plt.plot(ts, logData['ctrlRwik.cmd_roll'][~zero_norms]/100)
+    plt.ylabel('X')
+
+    plt.subplot(3, 1, 2, sharex=ax4)
+    plt.plot(ts, logData['gyro.y'][~zero_norms], color='red')
+    plt.plot(ts, logData['ctrlRwik.angVel_y'][~zero_norms])
+    plt.plot(ts, logData['ctrlRwik.cmd_pitch'][~zero_norms]/100)
+    plt.ylabel('Y')
+
+    plt.subplot(3, 1, 3, sharex=ax4)
+    plt.plot(ts, logData['gyro.z'][~zero_norms], color='red', label='Measured ang vel (deg/s)')
+    plt.plot(ts, logData['ctrlRwik.angVel_z'][~zero_norms], label='Cmd Ang Vel (deg/s)')
+    plt.plot(ts, logData['ctrlRwik.cmd_yaw'][~zero_norms]/100, label='outputted cmds')
+    plt.ylabel('Z')
+    plt.legend()
+except:
+    pass
 # plt.figure(3)
 # plt.subplot(3, 1, 1)
 # plt.plot(logData['tick'], logData['acc.x'])

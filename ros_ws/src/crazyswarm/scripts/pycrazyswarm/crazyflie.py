@@ -86,6 +86,7 @@ class Crazyflie:
         self.takeoffService = rospy.ServiceProxy(prefix + "/takeoff", Takeoff)
         rospy.wait_for_service(prefix + "/land")
         self.landService = rospy.ServiceProxy(prefix + "/land", Land)
+
         # rospy.wait_for_service(prefix + "/stop")
         # self.stopService = rospy.ServiceProxy(prefix + "/stop", Stop)
         rospy.wait_for_service(prefix + "/go_to")
@@ -338,6 +339,11 @@ class Crazyflie:
         position, quaternion = self.tf.lookupTransform("/world", "/cf" + str(self.id), rospy.Time(0))
         return np.array(position)
 
+    def orientation(self):
+        self.tf.waitForTransform("/world", "/cf" + str(self.id), rospy.Time(0), rospy.Duration(10))
+        position, quaternion = self.tf.lookupTransform("/world", "/cf" + str(self.id), rospy.Time(0))
+        return np.array(quaternion)
+
     def getParam(self, name):
         """Returns the current value of the onboard named parameter.
 
@@ -587,7 +593,7 @@ class CrazyflieServer:
             with open(crazyflies_yaml, 'r') as ymlfile:
                 cfg = yaml.load(ymlfile)
         else:
-            cfg = yaml.load(crazyflies_yaml)
+            cfg = yaml.load(crazyflies_yaml, Loader=yaml.FullLoader)
 
         self.tf = TransformListener()
 
