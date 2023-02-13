@@ -59,6 +59,7 @@ class ctrlCF():
         # self.prev_state = np.zeros(14)
         self.pid_controller  = PIDController(isSim = self.isSim)
         self.ppo_controller = PPOController(isSim = self.isSim)
+        self.ppo_controller.response(0.1, self.state, self.ref, fl=0)
         self.bc_controller = BCController(isSim=self.isSim)
         if not self.isSim:
             self.swarm = Crazyswarm()
@@ -133,6 +134,7 @@ class ctrlCF():
         self.motrack_orientation = self.cf.orientation()
         self.motrack_orientation = R.from_quat(self.motrack_orientation)
         rot = np.array([rot.x,rot.y,rot.z,rot.w])
+        # self.cf_orientation = R>from_quat()
 
         # Adding ROS subscribed data to state
         self.state.pos = self.pos_pos
@@ -191,6 +193,10 @@ class ctrlCF():
         self.thrust_cmds = []
         self.ang_vel_cmds = []
 
+        self.ppo_acc = []
+        self.ppo_ang = []
+
+
         # Take off and Landing configs
         takeoff_rate = self.config["takeoff_rate"]
         takeoff_height = self.config["takeoff_height"]
@@ -207,7 +213,7 @@ class ctrlCF():
         warmup_flag = 0
         task1_flag = 0
         task2_flag = 0
-        task1_time = 5.0
+        task1_time = 8.0
         task2_time = 10.0
 
         if self.debug:
@@ -233,6 +239,7 @@ class ctrlCF():
                     print("Taking off in 3 seconds ..... ")
                 
                 z_acc,ang_vel = 0.0,np.zeros(3)
+                z_ppo,ang_ppo=0.0,np.zeros(3)
                 pass
 
             elif t<takeoff_time + warmup_time:
@@ -241,7 +248,8 @@ class ctrlCF():
                     print("********* TAKEOFF **********")
                     takeoff_flag = 1
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
-            
+                z_ppo, ang_ppo = self.ppo_controller.response(t-warmup_time,self.state,self.ref)
+
             ########################################################
             elif t<takeoff_time + warmup_time + task1_time:
                 #HOVER
@@ -253,20 +261,25 @@ class ctrlCF():
                     offset_pos = self.init_pos+np.array([0.,0.,takeoff_height])
 
                 self.ref.pos += offset_pos
-                z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
+                z_acc, ang_vel = self.pid_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                z_ppo, ang_ppo = self.ppo_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                # print("pid_acc: ",z_acc,"pid_ang: ",ang_vel)
+                # print("ppo_acc: ",z_ppo,"ppo_ang: ",ang_ppo, "\n")
 
+            # elif t<takeoff_time+ warmup_time+task1_time+task2_time:
+            #     #HOVER
+            #     if task2_flag==0:
+            #         print("********* TASK PPO********")
+            #         task2_flag = 1
+            #         _ref = self.ref.pos
 
-            elif t<takeoff_time+ warmup_time+task1_time+task2_time:
-                #HOVER
-                if task2_flag==0:
-                    print("********* TASK PPO********")
-                    task2_flag = 1
-                    _ref = self.ref.pos
-
-                z_acc, ang_vel = self.bc_controller.response(t, self.state, self.ref)
-                print(self.state.pos, self.state.rot.as_euler('ZYX', degrees=True), self.ref.pos, 'z_cmd', z_acc, 'ang', ang_vel)
-                z_pid, ang_pid = self.pid_controller.response(t-warmup_time,self.state,self.ref)
-                print('pid z cmd', z_pid, 'pid ang', ang_pid)
+            #     z_acc, ang_vel = self.ppo_controller.response(t-warmup_time, self.state, self.ref)
+            #     print('z_cmd', z_acc, 'ang', ang_vel, t)
+            #     ang_vel[0] = ang_vel[0]/3
+            #     ang_vel[1] = ang_vel[1]/3
+            #     # z_acc[1]
+            #     z_pid, ang_pid = self.pid_controller.response(t-warmup_time,self.state,self.ref)
+            #     print('pid z cmd', z_pid, 'pid ang', ang_pid)
 
 
             # # #########################################################
@@ -280,12 +293,13 @@ class ctrlCF():
 
                 self.set_landing_ref(t-land_time,landing_height,landing_rate)
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
+                z_ppo, ang_ppo = self.ppo_controller.response(t-warmup_time,self.state,self.ref)
+                
                 land_buffer.appendleft(self.state.pos[-1])
                 land_buffer.pop()
-                if np.mean(land_buffer) < 0.04:
+                if np.mean(land_buffer) < 0.06:
                     "***** Flight done! *********"
                     land_flag=2
-
 
             self.pose_positions.append(np.copy(self.pose_pos))
             self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
@@ -296,6 +310,12 @@ class ctrlCF():
             self.thrust_cmds.append(z_acc)
             self.ang_vel_cmds.append(ang_vel * 180 / (2*np.pi))
 
+            self.ppo_acc.append(z_ppo)
+            self.ppo_ang.append(ang_ppo*180/(2*np.pi))
+
+            print("pid_acc: ",z_acc,"pid_ang: ",ang_vel)
+            print("ppo_acc: ",z_ppo,"ppo_ang: ",ang_ppo, "\n")
+
             if land_flag==2:
                 z_acc,ang_vel=0.,np.zeros(3)
             if self.debug:
@@ -303,6 +323,7 @@ class ctrlCF():
                 ang_vel = np.zeros(3)
                 print("cf", self.cf.position(), "pose",self.pose_pos, 'orientation', self.motrack_orientation.as_euler('ZYX', degrees=True), "time",t)
 
+            ang_vel[0] = np.copy(ang_ppo[0]*0.35)
             self._send2cfClient(self.cf, z_acc, ang_vel)
 
             timeHelper.sleepForRate(sleepRate)
@@ -311,7 +332,7 @@ class ctrlCF():
                 break
 
     def write_to_log(self):
-        LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
+        LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'logs'
 
         self.pose_positions = np.array(self.pose_positions)
         self.pose_orientations = np.array(self.pose_orientations)
@@ -321,6 +342,10 @@ class ctrlCF():
         self.ts = np.array(self.ts)
         self.thrust_cmds = np.array(self.thrust_cmds)
         self.ang_vel_cmds = np.array(self.ang_vel_cmds)
+
+        self.ppo_acc = np.array(self.ppo_acc)
+        self.ppo_ang = np.array(self.ppo_ang)
+
         np.savez(LOG_DIR / self.logfile, 
             pose_positions=self.pose_positions,
             pose_orientations=self.pose_orientations,
@@ -329,7 +354,9 @@ class ctrlCF():
             ref_orientation = self.ref_orientation,
             ang_vel_cmds=self.ang_vel_cmds,
             ts=self.ts,
-            thrust_cmds=self.thrust_cmds
+            thrust_cmds=self.thrust_cmds,
+            ppo_ang = self.ppo_ang,
+            ppo_acc = self.ppo_acc,
         )
 
     def main_loop_sim(self,):
@@ -341,15 +368,15 @@ class ctrlCF():
         state.pos = p
         state.rot = r
         ref = State_struct()
-        self.cf.rb.pos = p
-        self.cf.rb.quat = np.hstack((r.as_quat()[-1], r.as_quat()[0:3]))
+        # self.cf.rb.pos = p
+        # self.cf.rb.quat = np.hstack((r.as_quat()[-1], r.as_quat()[0:3]))
 
         print("PID RESPONSE", self.pid_controller.response(0.0, state, ref))
 
         while t<30.0:
 
             self.set_hover_ref(t)
-            self.cf.step_angvel_cf(i*self.dt, self.dt, self.bc_controller, ref=self.ref)
+            self.cf.step_angvel_cf(i*self.dt, self.dt, self.ppo_controller, ref=self.ref)
             quadsim_state = self.cf.rb.state()
             
             state.pos = quadsim_state.pos
