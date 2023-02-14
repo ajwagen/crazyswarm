@@ -7,12 +7,14 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 import yaml
 import copy
+import torch
 
 # import controller 
 from Controllers.pid_controller import PIDController
 from collections import deque
 from Controllers.hover_ppo_controller import PPOController
 from Controllers.bc_controller import BCController
+from gainTune.model import GainTune
 
 # Actual Drone
 import rospy
@@ -61,6 +63,11 @@ class ctrlCF():
         self.ppo_controller = PPOController(isSim = self.isSim)
         self.ppo_controller.response(0.1, self.state, self.ref, fl=0)
         self.bc_controller = BCController(isSim=self.isSim)
+
+        self.gaintuner = GainTune(1)
+        self.gaintuner.load_state_dict(torch.load("gainTune/model.pth"))
+        self.ppo_buffer = np.zeros((5,4))
+        
         if not self.isSim:
             self.swarm = Crazyswarm()
             rospy.Subscriber("/"+self.cfName+"/pose", PoseStamped, self.state_callback)
@@ -170,6 +177,17 @@ class ctrlCF():
     
     def land(self,):
         pass
+    
+    def GTuner(self,):
+        
+        ppo_buff = torch.tensor(self.ppo_buffer).float()
+        ppo_buff = ppo_buff.permute(1,0).unsqueeze(0)
+        out = self.gaintuner(ppo_buff)
+        out = out[0].squeeze(1).detach().cpu().numpy()
+        th = out[0]
+        av = out[1:]
+        return th, av
+    
 
     def main_loop_cf(self,):
         timeHelper = self.swarm.timeHelper
@@ -195,7 +213,10 @@ class ctrlCF():
 
         self.ppo_acc = []
         self.ppo_ang = []
-
+        self.bc_acc = []
+        self.bc_ang = []
+        self.gt_acc = []
+        self.gt_ang = []
 
         # Take off and Landing configs
         takeoff_rate = self.config["takeoff_rate"]
@@ -240,6 +261,9 @@ class ctrlCF():
                 
                 z_acc,ang_vel = 0.0,np.zeros(3)
                 z_ppo,ang_ppo=0.0,np.zeros(3)
+                z_bc,ang_bc=0.0,np.zeros(3)
+                z_gt,ang_gt=0.0,np.zeros(3)
+
                 pass
 
             elif t<takeoff_time + warmup_time:
@@ -248,7 +272,10 @@ class ctrlCF():
                     print("********* TAKEOFF **********")
                     takeoff_flag = 1
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
-                z_ppo, ang_ppo = self.bc_controller.response(t-warmup_time,self.state,self.ref)
+                z_bc, ang_bc = self.bc_controller.response(t-warmup_time,self.state,self.ref)
+                z_ppo, ang_ppo = self.ppo_controller.response(t-warmup_time,self.state,self.ref)
+                
+                z_gt, ang_gt = self.GTuner()
 
             ########################################################
             elif t<takeoff_time + warmup_time + task1_time:
@@ -262,7 +289,9 @@ class ctrlCF():
 
                 self.ref.pos += offset_pos
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
-                z_ppo, ang_ppo = self.bc_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                z_bc, ang_bc = self.bc_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                z_ppo, ang_ppo = self.ppo_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                z_gt, ang_gt = self.GTuner()
                 # print("pid_acc: ",z_acc,"pid_ang: ",ang_vel)
                 # print("ppo_acc: ",z_ppo,"ppo_ang: ",ang_ppo, "\n")
 
@@ -293,7 +322,9 @@ class ctrlCF():
 
                 self.set_landing_ref(t-land_time,landing_height,landing_rate)
                 z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
-                z_ppo, ang_ppo = self.bc_controller.response(t-warmup_time,self.state,self.ref)
+                z_bc, ang_bc = self.bc_controller.response(t-warmup_time,self.state,self.ref)
+                z_ppo, ang_ppo = self.ppo_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                z_gt, ang_gt = self.GTuner()
                 
                 land_buffer.appendleft(self.state.pos[-1])
                 land_buffer.pop()
@@ -301,20 +332,32 @@ class ctrlCF():
                     "***** Flight done! *********"
                     land_flag=2
 
+            self.ppo_buffer[0:-1] = self.ppo_buffer[1:]
+            # print(self.ppo_buffer[-1])
+            # print(np.hstack((z_ppo,ang_ppo)))
+            self.ppo_buffer[-1] = np.hstack((z_ppo,ang_ppo))
+
             self.pose_positions.append(np.copy(self.pose_pos))
             self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
             self.cf_positions.append(self.cf.position())
             self.ref_positions.append(self.ref.pos)
             self.ref_orientation.append(self.ref.rot.as_euler('ZYX',degrees=True))
             self.ts.append(t)
+            
             self.thrust_cmds.append(z_acc)
             self.ang_vel_cmds.append(ang_vel * 180 / (2*np.pi))
 
             self.ppo_acc.append(z_ppo)
             self.ppo_ang.append(ang_ppo*180/(2*np.pi))
 
-            print("pid_acc: ",z_acc,"pid_ang: ",ang_vel)
-            print("ppo_acc: ",z_ppo,"ppo_ang: ",ang_ppo, "\n")
+            self.bc_acc.append(z_bc)
+            self.bc_ang.append(ang_bc*180/(2*np.pi))
+
+            self.gt_acc.append(z_gt)
+            self.gt_ang.append(ang_gt*180/(2*np.pi))
+
+            # print("pid_acc: ",z_acc,"pid_ang: ",ang_vel)
+            # print("ppo_acc: ",z_ppo,"ppo_ang: ",ang_ppo, "\n")
 
             if land_flag==2:
                 z_acc,ang_vel=0.,np.zeros(3)
@@ -346,6 +389,12 @@ class ctrlCF():
         self.ppo_acc = np.array(self.ppo_acc)
         self.ppo_ang = np.array(self.ppo_ang)
 
+        self.bc_acc = np.array(self.bc_acc)
+        self.bc_ang = np.array(self.bc_ang)
+
+        self.gt_acc = np.array(self.gt_acc)
+        self.gt_ang = np.array(self.gt_ang)
+
         np.savez(LOG_DIR / self.logfile, 
             pose_positions=self.pose_positions,
             pose_orientations=self.pose_orientations,
@@ -357,6 +406,12 @@ class ctrlCF():
             thrust_cmds=self.thrust_cmds,
             ppo_ang = self.ppo_ang,
             ppo_acc = self.ppo_acc,
+
+            bc_ang = self.bc_ang,
+            bc_acc = self.bc_acc,
+
+            gt_ang = self.gt_ang,
+            gt_acc = self.gt_acc,
         )
 
     def main_loop_sim(self,):
