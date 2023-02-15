@@ -97,6 +97,13 @@ class ctrlCF():
         ref_vel = np.array([0.,0.,0])
         self.ref = State_struct(pos=ref_pos,vel = ref_vel)
     
+    def set_circle_ref(self,t):
+        radius = 0.5
+        center = np.array([-radius,0.,0.])
+        ref_pos = np.array([radius*np.cos(t*0.8),radius*np.sin(t*0.8),0.0]) + center
+        ref_vel = np.array([0.,0.,0])
+        self.ref = State_struct(pos=ref_pos,vel = ref_vel)
+    
     def set_takeoff_ref(self,t,takeoff_height,takeoff_rate):
         # print('debig', t, takeoff_rate, takeoff_rate*t,takeoff_height)
         moving_pt = takeoff_rate*t
@@ -234,7 +241,7 @@ class ctrlCF():
         warmup_flag = 0
         task1_flag = 0
         task2_flag = 0
-        task1_time = 8.0
+        task1_time = 3.0
         task2_time = 10.0
 
         if self.debug:
@@ -295,20 +302,30 @@ class ctrlCF():
                 # print("pid_acc: ",z_acc,"pid_ang: ",ang_vel)
                 # print("ppo_acc: ",z_ppo,"ppo_ang: ",ang_ppo, "\n")
 
-            # elif t<takeoff_time+ warmup_time+task1_time+task2_time:
-            #     #HOVER
-            #     if task2_flag==0:
-            #         print("********* TASK PPO********")
-            #         task2_flag = 1
-            #         _ref = self.ref.pos
+            elif t<takeoff_time+ warmup_time+task1_time+task2_time:
+                #HOVER
+                self.set_circle_ref(t-warmup_time-takeoff_time-task1_time)
 
-            #     z_acc, ang_vel = self.bc_controller.response(t-warmup_time, self.state, self.ref)
-            #     print('z_cmd', z_acc, 'ang', ang_vel, t)
-            #     ang_vel[0] = ang_vel[0]/3
-            #     ang_vel[1] = ang_vel[1]/3
-            #     # z_acc[1]
-            #     z_pid, ang_pid = self.pid_controller.response(t-warmup_time,self.state,self.ref)
-            #     print('pid z cmd', z_pid, 'pid ang', ang_pid)
+                if task2_flag==0:
+                    print("********* TASK CIRCLE********")
+                    task2_flag = 1
+                    _ref = self.ref.pos
+                    offset_pos = self.state.pos
+                self.ref.pos += offset_pos
+
+                # z_acc, ang_vel = self.pid_controller.response(t-warmup_time, self.state, self.ref)
+                
+                z_acc, ang_vel = self.pid_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                z_bc, ang_bc = self.bc_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                z_ppo, ang_ppo = self.ppo_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                z_gt, ang_gt = self.GTuner()
+
+                # print('z_cmd', z_acc, 'ang', ang_vel, t)
+                # ang_vel[0] = ang_vel[0]/3
+                # ang_vel[1] = ang_vel[1]/3
+                # # z_acc[1]
+                # z_pid, ang_pid = self.pid_controller.response(t-warmup_time,self.state,self.ref)
+                # print('pid z cmd', z_pid, 'pid ang', ang_pid)
 
 
             # # #########################################################
@@ -368,6 +385,8 @@ class ctrlCF():
 
             # ang_vel[0] = np.copy(ang_ppo[0]*0.35)
             self._send2cfClient(self.cf, z_acc, ang_vel)
+            # self._send2cfClient(self.cf, z_bc, ang_bc)
+
 
             timeHelper.sleepForRate(sleepRate)
 

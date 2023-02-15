@@ -26,7 +26,7 @@ class PPOController():
     self.prev_t = None
 
     self.task: DroneTask = DroneTask.HOVER
-    self.policy_name = "hover_obs_noise_01"
+    self.policy_name = "hover_ucost_med"
     self.algo = RLAlgo.PPO
     self.eval_steps = 1000
     self.config_filename = "default_hover.py"
