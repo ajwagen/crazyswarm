@@ -346,13 +346,8 @@ class ctrlCF():
             else:
                 # PID controller for takeoff and landing
                 controller = self.pid_controller
-
-            # Send controller commands to the simulator and simulate the dynamics
-            z_acc,ang_vel = 0.,np.array([0.,0.,0.])
-            if t>self.warmup_time:
-                _,z_acc,ang_vel = self.cf.step_angvel_cf(i*self.dt, self.dt, controller, ref=self.ref)            
-
-            # Send controller commands to the simulator and simulate the dynamics
+                
+            # Sending state data to the controller
             z_acc,ang_vel = 0.,np.array([0.,0.,0.])      
             if t>self.warmup_time:
                 z_acc,ang_vel = controller.response(t-self.prev_task_time,self.state,self.ref)
@@ -372,8 +367,6 @@ class ctrlCF():
                 z_acc,ang_vel=0.,np.zeros(3)
             if self.flag["land"]==0:
                 self.land_start_timer = t
-
-
 
             if self.debug:
                 z_acc = 0.0
