@@ -213,7 +213,7 @@ class ctrlCF():
         warmup_flag = 0
         task1_flag = 0
         task2_flag = 0
-        task1_time = 3.0
+        task1_time = 10.0
         task2_time = 10.0
 
         if self.debug:
@@ -266,17 +266,17 @@ class ctrlCF():
                 # print("pid_acc: ",z_acc,"pid_ang: ",ang_vel)
                 # print("ppo_acc: ",z_ppo,"ppo_ang: ",ang_ppo, "\n")
 
-            elif t<takeoff_time+ warmup_time+task1_time+task2_time:
-                #HOVER
-                self.set_hover_ref(t-warmup_time)
+            # elif t<takeoff_time+ warmup_time+task1_time+task2_time:
+            #     #HOVER
+            #     self.set_hover_ref(t-warmup_time)
 
-                if task2_flag==0:
-                    print("********* TASK PPO********")
-                    task2_flag = 1
-                    _ref = self.ref.pos
+            #     if task2_flag==0:
+            #         print("********* TASK PPO********")
+            #         task2_flag = 1
+            #         _ref = self.ref.pos
                     
-                self.ref.pos += offset_pos
-                z_acc, ang_vel = self.ppo_controller.response(t-warmup_time, self.state, self.ref)
+            #     self.ref.pos += offset_pos
+            #     z_acc, ang_vel = self.ppo_controller.response(t-warmup_time, self.state, self.ref)
                 # print('z_cmd', z_acc, 'ang', ang_vel, t)
                 # ang_vel[0] = ang_vel[0]/3
                 # ang_vel[1] = ang_vel[1]/3
@@ -289,7 +289,7 @@ class ctrlCF():
                       
             else:
                 if land_flag==0:
-                    self.last_state = self.state.pos
+                    self.last_state = np.copy(self.state.pos)
                     land_time = t
                     print("********* LAND **********")
                     land_flag = 1

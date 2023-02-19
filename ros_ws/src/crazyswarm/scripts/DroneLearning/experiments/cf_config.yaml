@@ -7,29 +7,42 @@ landing_rate: 0.001
 E_BB_width: 3.0 # emergency bounding box width limit
 E_BB_height: 1.3 # emergency bounding box width limit
 
-kalman_warmup: 10.0
+kalman_warmup: 0.0
 
 # Run Details
 
 # Leave the tasks blank if you want just take off and landing
+controllers: ["PPOController","BCController"]
+gainTuning : [False,False] # Hover, PPO
+
 tasks: 
   - ref: 'set_hover_ref'
     cntrl: "pid_controller"
-    time: 3.0
+    time: 4.0
     description: "Hover PID"
   
   - ref: 'set_circle_ref'
     cntrl: "pid_controller"
+    gainTune: False
     time: 10.0
     description: "circle PID"
   
-  - ref: 'set_hover_ref'
-    cntrl: "ppo_controller"
-    time: 10.0
-    description: "Hover PPO"
+  # - ref: 'set_hover_ref'
+  #   cntrl: "ppo_controller"
+  #   gainTune: False
+  #   time: 10.0
+  #   description: "Hover PPO"
 
-  - ref: 'set_hover_ref'
-    cntrl: "bc_controller"
-    time: 3.0
-    description: "Hover Behaviour"
+  # - ref: 'set_hover_ref'
+  #   cntrl: "bc_controller"
+  #   gainTune: False
+  #   time: 3.0
+  #   description: "Hover Behaviour"
+    
+  # - ref: 'set_hover_ref'
+  #   cntrl: "ppo_controller"
+  #   gainTune: True
+  #   time: 4.0
+  #   description: "Hover ppo GT"
+
 rwik : hello

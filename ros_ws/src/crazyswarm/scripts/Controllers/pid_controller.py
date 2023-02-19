@@ -84,10 +84,10 @@ class PIDController():
     # print(rot)
     # r = R.from_quat(rot)
 
-    self.p_err_buffer = add2npQueue(self.p_err_buffer, p_err)
-    self.dt_buffer = add2npQueue(self.dt_buffer, dt)
+    # self.p_err_buffer = add2npQueue(self.p_err_buffer, p_err)
+    # self.dt_buffer = add2npQueue(self.dt_buffer, dt)
 
-    self.pos_err_int = np.sum(self.p_err_buffer*self.dt_buffer)
+    # self.pos_err_int = np.sum(self.p_err_buffer*self.dt_buffer)
     self.pos_err_int+=p_err*dt
 
     acc_des = (np.array([0, 0, self.g]) - self.kp_pos*(p_err) - self.kd_pos*(vel) - self.ki_pos*self.pos_err_int + ref.acc)

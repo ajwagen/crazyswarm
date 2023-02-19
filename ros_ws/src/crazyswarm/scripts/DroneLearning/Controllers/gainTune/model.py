@@ -14,7 +14,10 @@ class GainTune(nn.Module):
         
         self.linear1 = nn.Linear(5, 3)
         self.linear2 = nn.Linear(3, 1)
+        # gain_model = GainTune(batch_size)
 
+        self.opt = torch.optim.Adam(self.parameters(),lr = 0.001)
+        self.criterion = torch.nn.MSELoss()
 
     def forward(self, x):
         x = x.float()
@@ -24,6 +27,17 @@ class GainTune(nn.Module):
         x = self.linear1(x)
         x = self.linear2(x)
         return x
+
+    def _forward_learn(self,x,target):
+        
+        self.opt.zero_grad()
+        op = self.forward(x)
+
+        loss = self.criterion(op[0,:,0].float(), torch.tensor(target).to(op.device).float())
+        print(loss)
+        loss.backward()
+        self.opt.step()
+        return op
 
     # def init_hidden(self,):
     #     # This method generates the first hidden state of zeros which we'll use in the forward pass

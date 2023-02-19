@@ -6,7 +6,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 import yaml
 import copy
-import matplotlib.pyplot as plt
+import torch
 
 from cf_utils.rigid_body import State_struct
 from ref_traj import Trajectories
@@ -16,6 +16,7 @@ from Controllers.pid_controller import PIDController
 from collections import deque
 from Controllers.hover_ppo_controller import PPOController
 from Controllers.bc_controller import BCController
+from Controllers.gainTune.model import GainTune
 
 # Actual Drone
 import rospy
@@ -48,11 +49,23 @@ class ctrlCF():
         # self.state = np.zeros(14)
         # self.prev_state = np.zeros(14)
         self.pid_controller  = PIDController(isSim = self.isSim)
-        self.ppo_controller = PPOController(isSim = self.isSim)
+
+
+        with open(config_file,"r") as f:
+            self.config = yaml.full_load(f)
+
+        self.ppo_controller = globals()[self.config["controllers"][0]](isSim=self.isSim)
+        
+        # PPOController(isSim = self.isSim)
         self.ppo_controller.response(0.1, self.state, self.ref, fl=0)
         self.bc_controller = BCController(isSim=self.isSim)
+
+        # self.gaintuner = GainTune()
+        # # self.gaintuner.load_state_dict(torch.load("Controllers/gainTune/model.pth"))
+        self.gt_buffer = np.zeros((5,4))
+
         if not self.isSim:
-            self.swarm = Crazyswarm(crazyflies_yaml='../../launch/custom_crazyflies.yaml')
+            self.swarm = Crazyswarm()
             rospy.Subscriber("/"+self.cfName+"/pose", PoseStamped, self.state_callback)
             rospy.on_shutdown(self.shutdown_callback)
             self.emergency_signal = 0
@@ -64,8 +77,12 @@ class ctrlCF():
             self.dt = 0.003
 
 
-        with open(config_file,"r") as f:
-            self.config = yaml.full_load(f)
+        self.gt_heads=[]
+        for i in self.config["gainTuning"]:
+            if i:
+                self.gt_heads.append(GainTune())
+            else:
+                self.gt_heads.append(None)
 
         self.set_logging_arrays()
         self.set_tasks()
@@ -204,6 +221,21 @@ class ctrlCF():
     def land(self,):
         pass
 
+    def GTuner(self,target):
+        gt_buff = torch.tensor(self.gt_buffer).float()
+        gt_buff = gt_buff.permute(1,0).unsqueeze(0)
+
+        for i in range(len(self.gt_heads)):
+            if self.gt_heads[i]!=None:
+                self.gt_heads[i]._forward_learn(gt_buff, target)
+
+
+        # out = self.gaintuner._forward_learn(gt_buff,gt_buff)
+        # out = self.gaintuner(gt_buff)
+        # out = out[0].squeeze(1).detach().cpu().numpy()
+        # th = out[0]
+        # av = out[1:]
+        # return th, av
     
     ####### Log all the data at the end #########
     def write_to_log(self):
@@ -237,7 +269,7 @@ class ctrlCF():
             )
         else:
             LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'sim_logs'
-        
+    
             self.pose_positions = np.array(self.pose_positions)
             self.pose_orientations = np.array(self.pose_orientations)
             self.ref_orientation = np.array(self.ref_orientation)
@@ -245,9 +277,7 @@ class ctrlCF():
             self.ts = np.array(self.ts)
             self.thrust_cmds = np.array(self.thrust_cmds)
             self.ang_vel_cmds = np.array(self.ang_vel_cmds)
-
-            plt.plot(self.ts,self.ref_positions)
-            plt.show()
+    
             # self.ppo_acc = np.array(self.ppo_acc)
             # self.ppo_ang = np.array(self.ppo_ang)
     
@@ -420,12 +450,22 @@ class ctrlCF():
             z_acc,ang_vel = 0.,np.array([0.,0.,0.])
             if t>self.warmup_time:
                 z_acc,ang_vel = self.cf.step_angvel_cf(i*self.dt, self.dt, controller, ref=self.ref)            
-                self.cf.step_angvel_raw(self.dt, z_acc*0.032, ang_vel, dists=None)
+            
+                if self.task_num == -1:
+                    self.GTuner(np.hstack((z_acc,ang_vel)))
+
+                self.cf.step_angvel_raw(self.dt, z_acc*0.032, ang_vel,dists=None)
+            # if self.task_num = -1
+
             # End Flight if landed
             if self.flag["land"]==2:
                 z_acc,ang_vel=0.,np.zeros(3)
             if self.flag["land"]==0:
                 self.land_start_timer = t
+
+
+            self.gt_buffer[0:-1] = self.gt_buffer[1:]
+            self.gt_buffer[-1] = np.hstack((z_acc,ang_vel))
 
             # Quadsim and State update in the simulation and Visualisation
             quadsim_state = self.cf.rb.state()
@@ -439,7 +479,7 @@ class ctrlCF():
             # Logging
             self.pose_positions.append(np.copy(self.state.pos))
             self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
-            self.ref_positions.append(np.copy(self.ref.pos))
+            self.ref_positions.append(self.ref.pos)
             self.ref_orientation.append(self.ref.rot.as_euler('ZYX',degrees=True))
             self.ts.append(t)
             self.thrust_cmds.append(z_acc)
