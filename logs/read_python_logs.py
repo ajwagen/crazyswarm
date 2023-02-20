@@ -10,6 +10,7 @@ def plot_npz(filename):
     pose_orientations = saved_data['pose_orientations']
     cf_positions = saved_data['cf_positions']
     ts = saved_data['ts']
+    ref_positions = saved_data['ref_positions']
     thrust_cmds = saved_data['thrust_cmds']
     ang_vel_cmds = saved_data['ang_vel_cmds']
 
@@ -19,19 +20,22 @@ def plot_npz(filename):
     ax1 = plt.subplot(3, 1, 1)
     plt.plot(ts, pose_positions[:, 0], label='/cf/pose position')
     plt.plot(ts, cf_positions[:, 0], label='cf.position()')
+    plt.plot(ts, ref_positions[:, 0])
     plt.subplot(3, 1, 2, sharex=ax1)
     plt.plot(ts, pose_positions[:, 1], label='/cf/pose position')
     plt.plot(ts, cf_positions[:, 1], label='cf.position()')
+    plt.plot(ts, ref_positions[:, 1])
     plt.subplot(3, 1, 3, sharex=ax1)
     plt.plot(ts, pose_positions[:, 2], label='/cf/pose position')
     plt.plot(ts, cf_positions[:, 2], label='cf.position()')
+    plt.plot(ts, ref_positions[:, 2], label='ref position')
     plt.legend()
     plt.suptitle('positions (python)')
 
     plt.figure(1)
     ax2 = plt.subplot(3, 1, 1)
     plt.plot(ts, ang_vel_cmds[:, 0])
-    plt.plot(ts, pose_orientations[:, 2], color='red')
+    plt.plot(ts, pose_orientations[:, 2], color='red', marker='o')
     plt.subplot(3, 1, 2, sharex=ax2)
     plt.plot(ts, ang_vel_cmds[:, 1])
     plt.plot(ts, pose_orientations[:, 1], color='red')

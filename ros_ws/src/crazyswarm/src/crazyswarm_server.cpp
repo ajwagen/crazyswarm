@@ -181,7 +181,6 @@ public:
         }
       }
       m_logFile << std::endl;
-
       if (m_enableLoggingPose) {
         m_pubPose = n.advertise<geometry_msgs::PoseStamped>(m_tf_prefix + "/pose", 10);
       }
@@ -609,7 +608,7 @@ public:
             {"stateEstimate", "z"},
             {"stateEstimateZ", "quat"}
           }, cb));
-        m_logBlockPose->start(10); // 100ms // DEBUG CHANGE
+        m_logBlockPose->start(2); // 100ms // DEBUG CHANGE
       }
     }
 
@@ -709,7 +708,6 @@ private:
       msg.pose.orientation.w = q[3];
 
       m_pubPose.publish(msg);
-
 
       tf::Transform tftransform;
       tftransform.setOrigin(tf::Vector3(data->x, data->y, data->z));
@@ -971,7 +969,7 @@ public:
         }
       }
       m_slowQueue.callAvailable(ros::WallDuration(0));
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      std::this_thread::sleep_for(std::chrono::milliseconds(2)); // DEBUG CHANGE
     }
   }
 

@@ -72,10 +72,42 @@ crazyflieTypes:
         # ki_xy: 0.05
         # i_range_xy: 2.0
         # kR_xy: 70000 # p for attitude
-        kw_xy: 10000 # d for attitude
+        kw_xy: 20000 # d for attitude
         # kR_z: 60000 # 70000 # p for yaw
-        kw_z: 12000 # 30000  # d for yaw
-        # ki_m_z: 500 #0 #20000     # i for yaw
+        kw_z: 20000 # 30000  # d for yaw
+        ki_w_z: 12500 #0 #20000     # i for yaw
+        ki_w_x: 5500
+        ki_w_y: 5500
+        # i_range_m_z: 1500 # i range for yaw
+        kd_omega_rp: 200 # roll and pitch angular velocity d gain
+        # kp_z: 1.25
+        # kd_z: 0.4
+        # ki_z: 0.05
+        # i_range_z: 0.4
+        mass: 0.032
+        massThrust: 132000
+  defaultMultiMarker_rwik:
+    bigQuad: False
+    batteryVoltageWarning: 3.8  # V
+    batteryVoltateCritical: 3.7 # V
+    markerConfiguration: 0 # changed to 3 for single marker tracking
+    dynamicsConfiguration: 0
+    firmwareParams:
+      kalman:
+        pNAcc_xy: 4.0 # default 0.5
+        pNAcc_z: 8.0 # default 1.0
+        mNGyro_rollpitch: 0.2 # default 0.1
+        mNGyro_yaw: 0.1 # default 0.1
+      ctrlRwik:
+        # kp_xy: 0.4 #0.6 # p for position
+        # kd_xy: 0.2 # 0.35 # d for position
+        # ki_xy: 0.05
+        # i_range_xy: 2.0
+        # kR_xy: 70000 # p for attitude
+        kw_xy: 12000 # d for attitude
+        # kR_z: 60000 # 70000 # p for yaw
+        kw_z: 20000 # 30000  # d for yaw
+        ki_w_z: 10000 #0 #20000     # i for yaw
         # i_range_m_z: 1500 # i range for yaw
         kd_omega_rp: 200 # roll and pitch angular velocity d gain
         # kp_z: 1.25
@@ -204,7 +236,7 @@ dynamicsConfigurations:
     maxPitchRate: 20.0
     maxRollRate: 20.0
     maxYawRate: 10.0
-    maxRoll: 1.4
-    maxPitch: 1.4
+    maxRoll: 3.14
+    maxPitch: 3.14
     maxFitnessScore: 0.001
 

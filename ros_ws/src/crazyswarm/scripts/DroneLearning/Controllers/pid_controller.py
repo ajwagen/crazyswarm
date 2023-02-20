@@ -34,8 +34,8 @@ class PIDController():
 
     self.kp_pos = 6.0
     self.kd_pos = 4.0
-    self.ki_pos = 0.7
-    self.kp_rot =   80.0/16
+    self.ki_pos = 0.0
+    self.kp_rot =   90.0/16
     self.yaw_gain = 220.0/16
     self.kp_ang =   16
 
@@ -71,40 +71,37 @@ class PIDController():
     else:
       dt = t - self.prev_t
     self.prev_t = t
-    pos = state[0:3]
-    vel = state[3:6]
-    rot = state[6:10]
+
+    pos = state.pos
+    vel = state.vel
+    rot = state.rot
+    
+    # pos = state[0:3]
+    # vel = state[3:6]
+    # rot = state[6:10]
 
     p_err = pos - ref.pos
-    r = R.from_quat(rot)
+    # print(rot)
+    # r = R.from_quat(rot)
 
-    self.p_err_buffer = add2npQueue(self.p_err_buffer, p_err)
-    self.dt_buffer = add2npQueue(self.dt_buffer, dt)
+    # self.p_err_buffer = add2npQueue(self.p_err_buffer, p_err)
+    # self.dt_buffer = add2npQueue(self.dt_buffer, dt)
 
-    self.pos_err_int = np.sum(self.p_err_buffer*self.dt_buffer)
+    # self.pos_err_int = np.sum(self.p_err_buffer*self.dt_buffer)
     self.pos_err_int+=p_err*dt
 
     acc_des = (np.array([0, 0, self.g]) - self.kp_pos*(p_err) - self.kd_pos*(vel) - self.ki_pos*self.pos_err_int + ref.acc)
 
-    u_des = r.as_matrix().T.dot(acc_des)
+    u_des = rot.as_matrix().T.dot(acc_des)
 
     acc_des = np.linalg.norm(u_des)
 
     rot_err = np.cross(u_des / acc_des, np.array([0, 0, 1]))
 
-    yaw, _, _ = r.as_euler('zyx')
+    yaw, _, _ = rot.as_euler('zyx')
     yaw_des = 0.0  # self.ref.yaw(t)
 
     omega_des = -self.kp_rot * rot_err
     omega_des[2] = -self.yaw_gain*(yaw-yaw_des)
 
-    # if not self.isSim:
     return acc_des, omega_des
-
-    # ang = state[-4:-1]
-    # ang_err = ang-omega_des
-    # # ang_err[1] = -ang_err[1]
-    # torque = -self.kp_ang*(ang_err)
-    # # ang_acc[1] = -ang_acc[1]
-    # # torque = self.I.dot(ang_acc)
-    # return bodyz_force, torque
