@@ -247,7 +247,7 @@ class ctrlCF():
                 if takeoff_flag==0:
                     print("********* TAKEOFF **********")
                     takeoff_flag = 1
-                z_acc, ang_vel = self.pid_controller.response(t-warmup_time,self.state,self.ref)
+                z_acc, ang_vel = self.ppo_controller.response(t-warmup_time,self.state,self.ref)
                 z_ppo, ang_ppo = self.bc_controller.response(t-warmup_time,self.state,self.ref)
 
             ########################################################
@@ -261,8 +261,8 @@ class ctrlCF():
                     offset_pos = self.init_pos+np.array([0.,0.,takeoff_height])
 
                 self.ref.pos += offset_pos
-                z_acc, ang_vel = self.pid_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
-                z_ppo, ang_ppo = self.bc_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                z_acc, ang_vel = self.ppo_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
+                z_ppo, ang_ppo = self.ppo_controller.response(t-warmup_time-takeoff_time,self.state,self.ref)
                 # print("pid_acc: ",z_acc,"pid_ang: ",ang_vel)
                 # print("ppo_acc: ",z_ppo,"ppo_ang: ",ang_ppo, "\n")
 
@@ -313,15 +313,16 @@ class ctrlCF():
             self.ppo_acc.append(z_ppo)
             self.ppo_ang.append(ang_ppo*180/(2*np.pi))
 
-            print("pid_acc: ",z_acc,"pid_ang: ",ang_vel)
-            print("ppo_acc: ",z_ppo,"ppo_ang: ",ang_ppo, "\n")
+            # print("pid_acc: ",z_acc,"pid_ang: ",ang_vel)
+            # print("ppo_acc: ",z_ppo,"ppo_ang: ",ang_ppo, "\n")
 
             if land_flag==2:
                 z_acc,ang_vel=0.,np.zeros(3)
             if self.debug:
                 z_acc = 0.0
+                # z_acc = 0.3*np.sin(t) + 0.3
                 ang_vel = np.zeros(3)
-                print("cf", self.cf.position(), "pose",self.pose_pos, 'orientation', self.motrack_orientation.as_euler('ZYX', degrees=True), "time",t)
+                print("cf", self.cf.position(), "pose", self.pose_pos, "time",t)
 
             # ang_vel[0] = np.copy(ang_ppo[0]*0.35)
             self._send2cfClient(self.cf, z_acc, ang_vel)
@@ -332,7 +333,7 @@ class ctrlCF():
                 break
 
     def write_to_log(self):
-        LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'logs'
+        LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
 
         self.pose_positions = np.array(self.pose_positions)
         self.pose_orientations = np.array(self.pose_orientations)

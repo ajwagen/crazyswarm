@@ -75,7 +75,9 @@ crazyflieTypes:
         kw_xy: 12000 # d for attitude
         # kR_z: 60000 # 70000 # p for yaw
         kw_z: 20000 # 30000  # d for yaw
-        ki_w_z: 10000 #0 #20000     # i for yaw
+        ki_w_z: 12500 #0 #20000     # i for yaw
+        ki_w_x: 5500 #2000
+        ki_w_y: 5500 #1000
         # i_range_m_z: 1500 # i range for yaw
         kd_omega_rp: 200 # roll and pitch angular velocity d gain
         # kp_z: 1.25

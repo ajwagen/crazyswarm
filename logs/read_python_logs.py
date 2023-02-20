@@ -13,6 +13,8 @@ def plot_npz(filename):
     ref_positions = saved_data['ref_positions']
     thrust_cmds = saved_data['thrust_cmds']
     ang_vel_cmds = saved_data['ang_vel_cmds']
+    ppo_ang_cmds = saved_data['ppo_ang']
+    ppo_thrust_cmds = saved_data['ppo_acc']
 
     print(pose_orientations.shape, pose_orientations.shape, cf_positions.shape, ts.shape, thrust_cmds.shape)
 
@@ -31,6 +33,7 @@ def plot_npz(filename):
     plt.plot(ts, ref_positions[:, 2], label='ref position')
     plt.legend()
     plt.suptitle('positions (python)')
+    print(pose_positions[:, 2], cf_positions[:, 2])
 
     plt.figure(1)
     ax2 = plt.subplot(3, 1, 1)
@@ -45,6 +48,20 @@ def plot_npz(filename):
     plt.suptitle('cf/pose orientation (python) & ang vel cmds')
     plt.legend()
 
+    plt.figure(2
+               )
+    ax2 = plt.subplot(3, 1, 1)
+    plt.plot(ts, ang_vel_cmds[:, 0])
+    plt.plot(ts, ppo_ang_cmds[:, 0], color='red')
+    plt.subplot(3, 1, 2, sharex=ax2)
+    plt.plot(ts, ang_vel_cmds[:, 1])
+    plt.plot(ts, ppo_ang_cmds[:, 1], color='red')
+    plt.subplot(3, 1, 3, sharex=ax2)
+    plt.plot(ts, ang_vel_cmds[:, 2], label='PID ang vel cmd')
+    plt.plot(ts, ppo_ang_cmds[:, 2], color='red', label='PPO ang vel cmd')
+    plt.suptitle('PPO vs PID ang vel cmds')
+    plt.legend()
+
     # plt.figure(2)
     # ax3 = plt.subplot(3, 1, 1)
     # plt.plot(ts, cf_positions[:, 0])
@@ -55,7 +72,9 @@ def plot_npz(filename):
     # plt.suptitle('cf.position() (python)')
 
     plt.figure(3)
-    plt.plot(ts, thrust_cmds)
+    plt.plot(ts, thrust_cmds, label='PID')
+    plt.plot(ts, ppo_thrust_cmds, label='PPO')
+    plt.legend()
     plt.title('Cmd z acc (python)')
 
     plt.show()

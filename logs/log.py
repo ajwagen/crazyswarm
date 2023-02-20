@@ -88,14 +88,24 @@ plt.figure(0)
 ax = plt.subplot(3, 1, 1)
 plt.plot(logData['tick'], logData['ctrlRwik.angVel_x'])
 plt.plot(logData['tick'], logData['gyro.x'], color='red')
+ax2 = ax.twinx()
+ax2.plot(logData['tick'], logData['ctrlRwik.i_roll'], color='green')
+
 plt.ylabel('Roll')
-plt.subplot(3, 1, 2, sharex=ax)
+ax3 = plt.subplot(3, 1, 2, sharex=ax)
 plt.plot(logData['tick'], logData['ctrlRwik.angVel_y'])
 plt.plot(logData['tick'], logData['gyro.y'], color='red')
+ax3 = ax3.twinx()
+ax3.plot(logData['tick'], logData['ctrlRwik.i_pitch'], color='green')
+
 plt.ylabel('Pitch')
-plt.subplot(3, 1, 3, sharex=ax)
+ax4 = plt.subplot(3, 1, 3, sharex=ax)
 plt.plot(logData['tick'], logData['ctrlRwik.angVel_z'], label='Cmd ang vel (deg/s)')
 plt.plot(logData['tick'], logData['gyro.z'], color='red', label='Measured ang vel (deg/s)')
+ax5 = ax4.twinx()
+ax5.plot(logData['tick'], logData['ctrlRwik.i_yaw'], color='green', label='Integral term')
+
+
 plt.ylabel('Yaw')
 plt.suptitle('Angular Velocity (deg/s)')
 plt.legend()
@@ -183,28 +193,28 @@ except:
     pass
 plt.title('Cmd z acc')
 
-try:
-    plt.figure(4)
-    ax4 = plt.subplot(3, 1, 1)
-    plt.plot(ts, logData['gyro.x'][~zero_norms], color='red')
-    plt.plot(ts, logData['ctrlRwik.angVel_x'][~zero_norms])
-    plt.plot(ts, logData['ctrlRwik.cmd_roll'][~zero_norms]/100)
-    plt.ylabel('X')
+# try:
+#     plt.figure(4)
+#     ax4 = plt.subplot(3, 1, 1)
+#     plt.plot(ts, logData['gyro.x'][~zero_norms], color='red')
+#     plt.plot(ts, logData['ctrlRwik.angVel_x'][~zero_norms])
+#     plt.plot(ts, logData['ctrlRwik.cmd_roll'][~zero_norms]/100)
+#     plt.ylabel('X')
 
-    plt.subplot(3, 1, 2, sharex=ax4)
-    plt.plot(ts, logData['gyro.y'][~zero_norms], color='red')
-    plt.plot(ts, logData['ctrlRwik.angVel_y'][~zero_norms])
-    plt.plot(ts, logData['ctrlRwik.cmd_pitch'][~zero_norms]/100)
-    plt.ylabel('Y')
+#     plt.subplot(3, 1, 2, sharex=ax4)
+#     plt.plot(ts, logData['gyro.y'][~zero_norms], color='red')
+#     plt.plot(ts, logData['ctrlRwik.angVel_y'][~zero_norms])
+#     plt.plot(ts, logData['ctrlRwik.cmd_pitch'][~zero_norms]/100)
+#     plt.ylabel('Y')
 
-    plt.subplot(3, 1, 3, sharex=ax4)
-    plt.plot(ts, logData['gyro.z'][~zero_norms], color='red', label='Measured ang vel (deg/s)')
-    plt.plot(ts, logData['ctrlRwik.angVel_z'][~zero_norms], label='Cmd Ang Vel (deg/s)')
-    plt.plot(ts, logData['ctrlRwik.cmd_yaw'][~zero_norms]/100, label='outputted cmds')
-    plt.ylabel('Z')
-    plt.legend()
-except:
-    pass
+#     plt.subplot(3, 1, 3, sharex=ax4)
+#     plt.plot(ts, logData['gyro.z'][~zero_norms], color='red', label='Measured ang vel (deg/s)')
+#     plt.plot(ts, logData['ctrlRwik.angVel_z'][~zero_norms], label='Cmd Ang Vel (deg/s)')
+#     plt.plot(ts, logData['ctrlRwik.cmd_yaw'][~zero_norms]/100, label='outputted cmds')
+#     plt.ylabel('Z')
+#     plt.legend()
+# except:
+#     pass
 # plt.figure(3)
 # plt.subplot(3, 1, 1)
 # plt.plot(logData['tick'], logData['acc.x'])

@@ -54,11 +54,12 @@ def plot_npz(filename):
     plt.figure(1)
     ax2 = plt.subplot(3, 1, 1)
 
-    #  yaw
+    #  roll
     plt.plot(ts, ang_vel_cmds[:, 0])
     plt.plot(ts, ppo_ang[:, 0])
     plt.plot(ts, gt_ang[:, 0]-138)
     plt.plot(ts, bc_ang[:, 0])
+    plt.grid()
 
     # plt.plot(ts, q[:, 0])
 
@@ -68,14 +69,15 @@ def plot_npz(filename):
     plt.plot(ts, ppo_ang[:, 1])
     plt.plot(ts, gt_ang[:, 1]-138)
     plt.plot(ts, bc_ang[:, 1])
+    plt.grid()
 
-    # roll
+    # yaw
     plt.subplot(3, 1, 3, sharex=ax2)
     plt.plot(ts, ang_vel_cmds[:, 2], label='Ang Vel Cmd (deg/s)')
     plt.plot(ts, ppo_ang[:, 2], label='ppo')
     plt.plot(ts, gt_ang[:, 2]-138, label = 'gain tune')
     plt.plot(ts, bc_ang[:, 2], label='BC')
-
+    plt.grid()
     plt.suptitle('cf/pose orientation (python) & ang vel cmds')
     plt.legend()
 
