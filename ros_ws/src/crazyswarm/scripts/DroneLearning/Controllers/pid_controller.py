@@ -81,8 +81,6 @@ class PIDController():
     # rot = state[6:10]
 
     p_err = pos - ref.pos
-    print("state : ",pos,"\tref : ",ref.pos)
-    print(p_err)
     # print(rot)
     # r = R.from_quat(rot)
 

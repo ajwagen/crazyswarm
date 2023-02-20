@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 import signal
+import sys
+
+sys.path.append('..')
+
 import argparse
 from easydict import EasyDict
 import numpy as np
@@ -209,7 +213,7 @@ class ctrlCF():
     def write_to_log(self):
 
         if not self.isSim:
-            LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'logs'
+            LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
     
             self.pose_positions = np.array(self.pose_positions)
             self.pose_orientations = np.array(self.pose_orientations)
@@ -325,6 +329,7 @@ class ctrlCF():
                 pass
         except KeyboardInterrupt:
             exit()
+        print('Initialized!')
         
         # All tasks are done taking the offset position (point after takeoff) as the origin
         self.init_pos = np.copy(self.state.pos)
@@ -344,7 +349,7 @@ class ctrlCF():
             self.set_refs_from_tasks(t,offset_pos)
 
             ###### Setting the controller for the particular task
-            if self.task_num>0 and self.task_num<len(self.tasks):
+            if self.task_num>=0 and self.task_num<len(self.tasks):
                 controller = getattr(self,self.tasks[self.task_num]["cntrl"])
             else:
                 # PID controller for takeoff and landing
