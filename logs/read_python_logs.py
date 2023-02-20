@@ -35,7 +35,7 @@ def plot_npz(filename):
     plt.figure(1)
     ax2 = plt.subplot(3, 1, 1)
     plt.plot(ts, ang_vel_cmds[:, 0])
-    plt.plot(ts, pose_orientations[:, 2], color='red')
+    plt.plot(ts, pose_orientations[:, 2], color='red', marker='o')
     plt.subplot(3, 1, 2, sharex=ax2)
     plt.plot(ts, ang_vel_cmds[:, 1])
     plt.plot(ts, pose_orientations[:, 1], color='red')

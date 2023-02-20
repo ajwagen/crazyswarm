@@ -25,11 +25,11 @@ class PPOController():
 
     self.prev_t = None
 
-    self.task: DroneTask = DroneTask.HOVER
-    self.policy_name = "hover_04k"
+    self.task: DroneTask = DroneTask.YAWFLIP
+    self.policy_name = "yawflip_latency_ucost"
     self.algo = RLAlgo.PPO
     self.eval_steps = 1000
-    self.config_filename = "default_hover.py"
+    self.config_filename = "yawflip.py"
     # viz = True
     self.train_config = None
 

@@ -182,7 +182,7 @@ class ctrlCF():
 
         # Adding ROS subscribed data to state
         self.state.pos = self.pos_pos
-        self.state.vel = (self.state.pos-self.prev_state.pos)/(0.1) 
+        self.state.vel = (self.state.pos-self.prev_state.pos)/(0.02) 
         self.state.rot = R.from_quat(rot)
         self.prev_state = copy.deepcopy(self.state)
         self.initialized = True

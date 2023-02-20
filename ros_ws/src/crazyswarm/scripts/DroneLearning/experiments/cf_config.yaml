@@ -17,12 +17,18 @@ gainTuning : [False,False] # Hover, PPO
 
 tasks: 
   - ref: 'set_hover_ref'
-    cntrl: "ppo_controller"
-    time: 4.0
+    cntrl: "pid_controller"
+    time: 3.0
     description: "Hover PID"
+
+  - ref: 'set_hover_ref'
+    cntrl: "ppo_controller"
+    time: 5.0
+    description: "Yawflip PPO"
+
   
   # - ref: 'set_circle_ref'
-  #   cntrl: "pid_controller"
+  #   cntrl: "ppo_controller"
   #   gainTune: False
   #   time: 10.0
   #   description: "circle PID"
