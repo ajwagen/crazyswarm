@@ -14,22 +14,38 @@ def add2npQueue(array, new):
     return array
 
 class PPOController():
-  def __init__(self,isSim):
+  def __init__(self,isSim, policy_config="hover"):
     super().__init__()
     # self.model = model
 
     self.isSim = isSim
-
+    self.policy_config = policy_config
     self.mass = 0.027
     self.g = 9.8
 
     self.prev_t = None
+    self.set_policy()
+  
+  def select_policy_configs(self,):
+    if self.policy_config=="hover":
+      self.task: DroneTask = DroneTask.HOVER
+      self.policy_name = "hover_04k"
+      self.config_filename = "default_hover.py"
 
-    self.task: DroneTask = DroneTask.YAWFLIP
-    self.policy_name = "yawflip_latency_ucost"
+    if self.policy_config == "yawflip":
+      self.task: DroneTask = DroneTask.YAWFLIP
+      self.policy_name = "yawflip_latency_ucost"
+      self.config_filename = "yawflip.py"
+  
+  def set_policy(self,):
+
+    # self.task: DroneTask = DroneTask.YAWFLIP
+    # self.policy_name = "yawflip_latency_ucost"
+    # self.config_filename = "yawflip.py"
+    self.select_policy_configs()
+
     self.algo = RLAlgo.PPO
     self.eval_steps = 1000
-    self.config_filename = "yawflip.py"
     # viz = True
     self.train_config = None
 
@@ -51,7 +67,7 @@ class PPOController():
     self.prev_pos = 0.
 
 
-  def response(self, t, state, ref , fl = 1):
+  def response(self, t, state, ref , fl=1):
     """
         Given a time t and state state, return body z force and torque (body-frame).
 

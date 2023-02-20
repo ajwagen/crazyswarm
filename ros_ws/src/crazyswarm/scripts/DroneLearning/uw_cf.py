@@ -18,7 +18,7 @@ from ref_traj import Trajectories
 # import controller 
 from Controllers.pid_controller import PIDController
 from collections import deque
-from Controllers.hover_ppo_controller import PPOController
+from Controllers.ppo_controller import PPOController
 from Controllers.bc_controller import BCController
 
 # Actual Drone
@@ -52,9 +52,26 @@ class ctrlCF():
         # self.state = np.zeros(14)
         # self.prev_state = np.zeros(14)
         self.pid_controller  = PIDController(isSim = self.isSim)
-        self.ppo_controller = PPOController(isSim = self.isSim)
-        self.ppo_controller.response(0.1, self.state, self.ref, fl=0)
-        self.bc_controller = BCController(isSim=self.isSim)
+
+        with open(config_file,"r") as f:
+            self.config = yaml.full_load(f)
+
+        # Reusing controllers if tasks require the exact same controller with same the same policy. 
+        # keys of the dict are saved as cntrl+"_"+policy_config
+        self.controllers = { }        
+        
+        for i in range(len(self.config["tasks"])):
+            ctrl_policy = self.config["tasks"][i]["cntrl"] + "_" + self.config["tasks"][i]["policy_config"]
+            # Checking if controller is already initialized
+            if ctrl_policy in self.controllers.keys():
+                pass
+            else:
+                self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
+                                                                                            policy_config = self.config["tasks"][i]["policy_config"])
+                # Warming up controller
+                self.controllers[ctrl_policy].response(0.1, self.state, self.ref,fl=0.)
+        
+
         if not self.isSim:
             self.swarm = Crazyswarm(crazyflies_yaml='../../launch/custom_crazyflies.yaml')
             rospy.Subscriber("/"+self.cfName+"/pose", PoseStamped, self.state_callback)
@@ -66,10 +83,6 @@ class ctrlCF():
             model = crazyflieModel()
             self.cf = QuadSim(model,name=self.cfName)
             self.dt = 0.003
-
-
-        with open(config_file,"r") as f:
-            self.config = yaml.full_load(f)
 
         self.set_logging_arrays()
         self.set_tasks()
@@ -350,7 +363,8 @@ class ctrlCF():
 
             ###### Setting the controller for the particular task
             if self.task_num>=0 and self.task_num<len(self.tasks):
-                controller = getattr(self,self.tasks[self.task_num]["cntrl"])
+                controller_key = self.config["tasks"][self.task_num]["cntrl"] + "_" + self.config["tasks"][self.task_num]["policy_config"]
+                controller = self.controllers[controller_key]
             else:
                 # PID controller for takeoff and landing
                 controller = self.pid_controller
@@ -416,7 +430,9 @@ class ctrlCF():
 
             ###### Setting the controller for the particular task
             if self.task_num>0 and self.task_num<len(self.tasks):
-                controller = getattr(self,self.tasks[self.task_num]["cntrl"])
+                # controller = getattr(self,self.tasks[self.task_num]["cntrl"])
+                controller_key = self.config["tasks"][self.task_num]["cntrl"] + "_" + self.config["tasks"][self.task_num]["policy_config"]
+                controller = self.controllers[controller_key]
             else:
                 # PID controller for takeoff and landing
                 controller = self.pid_controller

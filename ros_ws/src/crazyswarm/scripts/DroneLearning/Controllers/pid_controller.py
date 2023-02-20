@@ -9,7 +9,7 @@ def add2npQueue(array, new):
     return array
 
 class PIDController():
-  def __init__(self,isSim):
+  def __init__(self,isSim, policy_config=None):
     super().__init__()
     # self.model = model
 
@@ -48,7 +48,7 @@ class PIDController():
     self.p_err_buffer = np.zeros((50,3))
     self.dt_buffer = np.zeros((50,3))
     self.pos_err_int = 0
-  def response(self, t, state, ref ):
+  def response(self, t, state, ref, fl=1):
     """
         Given a time t and state state, return body z force and torque (body-frame).
 
