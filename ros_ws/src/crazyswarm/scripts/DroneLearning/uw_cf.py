@@ -51,7 +51,8 @@ class ctrlCF():
         self.ref = State_struct()
         # self.state = np.zeros(14)
         # self.prev_state = np.zeros(14)
-        self.pid_controller  = PIDController(isSim = self.isSim)
+        self.default_controller  = PPOController(isSim = self.isSim)
+        self.default_controller.response(0.1, self.state, self.ref,fl=0.)
 
         with open(config_file,"r") as f:
             self.config = yaml.full_load(f)
@@ -226,7 +227,7 @@ class ctrlCF():
     def write_to_log(self):
 
         if not self.isSim:
-            LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
+            LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'logs'
     
             self.pose_positions = np.array(self.pose_positions)
             self.pose_orientations = np.array(self.pose_orientations)
@@ -262,11 +263,6 @@ class ctrlCF():
             self.ts = np.array(self.ts)
             self.thrust_cmds = np.array(self.thrust_cmds)
             self.ang_vel_cmds = np.array(self.ang_vel_cmds)
-
-            plt.plot(self.ts,self.ref_positions)
-            plt.show()
-            # self.ppo_acc = np.array(self.ppo_acc)
-            # self.ppo_ang = np.array(self.ppo_ang)
     
             np.savez(LOG_DIR / self.logfile, 
                 pose_positions=self.pose_positions,
@@ -367,7 +363,7 @@ class ctrlCF():
                 controller = self.controllers[controller_key]
             else:
                 # PID controller for takeoff and landing
-                controller = self.pid_controller
+                controller = self.default_controller
                 
             # Sending state data to the controller
             z_acc,ang_vel = 0.,np.array([0.,0.,0.])      
@@ -435,7 +431,7 @@ class ctrlCF():
                 controller = self.controllers[controller_key]
             else:
                 # PID controller for takeoff and landing
-                controller = self.pid_controller
+                controller = self.default_controller
 
             # Send controller commands to the simulator and simulate the dynamics
             z_acc,ang_vel = 0.,np.array([0.,0.,0.])
