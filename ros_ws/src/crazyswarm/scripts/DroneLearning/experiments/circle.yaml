@@ -18,17 +18,11 @@ tasks:
     policy_config: none
     description: "Hover PID"
 
-  - ref: 'goto'
+  - ref: 'set_circle_ref'
     cntrl: "PPOController"
     policy_config : "hover"
-    time: 5.0
-    description: "linear PPO"
-
-  # - ref: 'set_circle_ref'
-  #   cntrl: "PPOController"
-  #   policy_config : "hover"
-  #   time: 14.0
-  #   description: "circle PPO"
+    time: 14.0
+    description: "circle PPO"
 
   
   # - ref: 'set_circle_ref'

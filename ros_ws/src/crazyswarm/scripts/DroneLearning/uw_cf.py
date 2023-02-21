@@ -51,8 +51,10 @@ class ctrlCF():
         self.ref = State_struct()
         # self.state = np.zeros(14)
         # self.prev_state = np.zeros(14)
-        self.default_controller  = PPOController(isSim = self.isSim)
+        self.default_controller  = PIDController(isSim = self.isSim)
         self.default_controller.response(0.1, self.state, self.ref,fl=0.)
+
+        self.curr_controller = self.default_controller
 
         with open(config_file,"r") as f:
             self.config = yaml.full_load(f)
@@ -61,6 +63,7 @@ class ctrlCF():
         # keys of the dict are saved as cntrl+"_"+policy_config
         self.controllers = { }        
         
+        print(self.config["tasks"])
         for i in range(len(self.config["tasks"])):
             ctrl_policy = self.config["tasks"][i]["cntrl"] + "_" + self.config["tasks"][i]["policy_config"]
             # Checking if controller is already initialized
@@ -273,6 +276,15 @@ class ctrlCF():
                 ts=self.ts,
                 thrust_cmds=self.thrust_cmds,)
     
+    def switch_controller(self,):
+        ###### Setting the controller for the particular task
+        if self.task_num>=0 and self.task_num<len(self.tasks):
+            controller_key = self.config["tasks"][self.task_num]["cntrl"] + "_" + self.config["tasks"][self.task_num]["policy_config"]
+            self.curr_controller = self.controllers[controller_key]
+        else:
+            # PID controller for takeoff and landing
+            self.curr_controller = self.default_controller
+
     def set_refs_from_tasks(self,t,offset_pos):
         '''
         Iterates over the tasks by keeping tabs on the timer. 
@@ -283,9 +295,12 @@ class ctrlCF():
         self.task_num is the index of self.tasks currently being completed by the drone.
         NOTE: take off and landing are not considered in this task
         '''
+        
         # Iterating over the tasks
         if t >= self.takeoff_time+self.tasks_time+self.warmup_time:
             self.task_num+=1
+            self.trajs.ret = 0
+            self.switch_controller()
 
         ###########################################################################
         if t<self.warmup_time:
@@ -298,7 +313,7 @@ class ctrlCF():
             if self.flag["takeoff"]==0:
                 print("********* TAKEOFF **********")
                 self.flag["takeoff"] = 1
-            self.ref = self.trajs.set_takeoff_ref(t-self.warmup_time,self.config["takeoff_height"],self.config["takeoff_rate"])
+            self.ref,_ = self.trajs.set_takeoff_ref(t-self.warmup_time,self.config["takeoff_height"],self.config["takeoff_rate"])
 
         ###### Tasks
         # Switching to the tasks and getting the reference trajectory positions
@@ -312,7 +327,7 @@ class ctrlCF():
                 self.tasks_time+=self.tasks[self.task_num]["time"]
                 
             if t<self.takeoff_time + self.warmup_time + self.tasks_time:
-                self.ref = getattr(self.trajs,self.tasks[self.task_num]["ref"])(t-self.prev_task_time)
+                self.ref,_ = getattr(self.trajs,self.tasks[self.task_num]["ref"])(t-self.prev_task_time)
                 self.ref.pos+=offset_pos           
         
         ###### Landing
@@ -322,12 +337,13 @@ class ctrlCF():
                 print("********* LAND **********")
                 self.flag["land"] = 1
             
-            self.ref = self.trajs.set_landing_ref(t-self.land_start_timer,self.config["landing_height"],self.config["landing_rate"])                
+            self.ref,_ = self.trajs.set_landing_ref(t-self.land_start_timer,self.config["landing_height"],self.config["landing_rate"])                
             self.land_buffer.appendleft(self.state.pos[-1])
             self.land_buffer.pop()
             if np.mean(self.land_buffer) < 0.06:
                 print("***** Flight done! ******")
                 self.flag['land']=2
+        
 
     def main_loop_cf(self,):
         timeHelper = self.swarm.timeHelper
@@ -356,24 +372,16 @@ class ctrlCF():
             # Setting the refernce trajectory points from the tasks stated in the configuration file
     
             self.set_refs_from_tasks(t,offset_pos)
-
-            ###### Setting the controller for the particular task
-            if self.task_num>=0 and self.task_num<len(self.tasks):
-                controller_key = self.config["tasks"][self.task_num]["cntrl"] + "_" + self.config["tasks"][self.task_num]["policy_config"]
-                controller = self.controllers[controller_key]
-            else:
-                # PID controller for takeoff and landing
-                controller = self.default_controller
-                
+               
             # Sending state data to the controller
             z_acc,ang_vel = 0.,np.array([0.,0.,0.])      
             if t>self.warmup_time:
-                z_acc,ang_vel = controller.response(t-self.prev_task_time,self.state,self.ref)
+                z_acc,ang_vel = self.curr_controller.response(t-self.prev_task_time,self.state,self.ref)
 
             self.pose_positions.append(np.copy(self.pose_pos))
             self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
             self.cf_positions.append(self.cf.position())
-            self.ref_positions.append(self.ref.pos)
+            self.ref_positions.append(np.copy(self.ref.pos))
             self.ref_orientation.append(self.ref.rot.as_euler('ZYX',degrees=True))
             self.ts.append(t)
             self.thrust_cmds.append(z_acc)
@@ -424,19 +432,10 @@ class ctrlCF():
     
             self.set_refs_from_tasks(t,offset_pos)
 
-            ###### Setting the controller for the particular task
-            if self.task_num>0 and self.task_num<len(self.tasks):
-                # controller = getattr(self,self.tasks[self.task_num]["cntrl"])
-                controller_key = self.config["tasks"][self.task_num]["cntrl"] + "_" + self.config["tasks"][self.task_num]["policy_config"]
-                controller = self.controllers[controller_key]
-            else:
-                # PID controller for takeoff and landing
-                controller = self.default_controller
-
             # Send controller commands to the simulator and simulate the dynamics
             z_acc,ang_vel = 0.,np.array([0.,0.,0.])
             if t>self.warmup_time:
-                z_acc,ang_vel = self.cf.step_angvel_cf(i*self.dt, self.dt, controller, ref=self.ref)            
+                z_acc,ang_vel = self.cf.step_angvel_cf(i*self.dt, self.dt, self.curr_controller, ref=self.ref)            
                 self.cf.step_angvel_raw(self.dt, z_acc*0.032, ang_vel, dists=None)
             # End Flight if landed
             if self.flag["land"]==2:
