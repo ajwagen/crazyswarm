@@ -90,7 +90,7 @@ crazyflieTypes:
     bigQuad: False
     batteryVoltageWarning: 3.8  # V
     batteryVoltateCritical: 3.7 # V
-    markerConfiguration: 0 # changed to 3 for single marker tracking
+    markerConfiguration: 4 # changed to 3 for single marker tracking
     dynamicsConfiguration: 0
     firmwareParams:
       kalman:
@@ -196,7 +196,7 @@ crazyflieTypes:
         i_range_z: 4.0
         mass: 0.380
         massThrust: 5400 # 5500 - full battery
-numMarkerConfigurations: 4
+numMarkerConfigurations: 5
 markerConfigurations:
   "0":  # for standard Crazyflie
     numPoints: 4
@@ -227,6 +227,17 @@ markerConfigurations:
     offset: [0.0, -0.01, -0.04]
     points:
       "0": [0.0177184,0.0139654,0.0557585]
+  "4":
+    numPoints: 5
+    offset: [0.0, -0.01, -0.04]
+    points:
+      "0": [0.0177184,0.0139654,0.0557585]
+      "1": [-0.0328889,0.0509139,0.0402475]
+      "2": [-0.0328889,-0.02757,0.0390601]
+      "3": [0.0431307,-0.0331216,0.0388839]
+      # "4" : [0.023, 0.012, 0.048]
+      "4" : [-0.03, 0.012, 0.048]
+
 numDynamicsConfigurations: 1
 dynamicsConfigurations:
   "0":

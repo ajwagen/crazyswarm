@@ -364,28 +364,28 @@ class ctrlCF():
         t = 0.0
         startTime = timeHelper.time()
         while not rospy.is_shutdown():
+            t = timeHelper.time() - startTime
             if not self.debug:
                 self.BB_failsafe() # Bounding Box Failsafe
 
-            t = timeHelper.time() - startTime
             
-            # Setting the refernce trajectory points from the tasks stated in the configuration file
-    
-            self.set_refs_from_tasks(t,offset_pos)
-               
-            # Sending state data to the controller
-            z_acc,ang_vel = 0.,np.array([0.,0.,0.])      
-            if t>self.warmup_time:
-                z_acc,ang_vel = self.curr_controller.response(t-self.prev_task_time,self.state,self.ref)
+                # Setting the refernce trajectory points from the tasks stated in the configuration file
+        
+                self.set_refs_from_tasks(t,offset_pos)
+                
+                # Sending state data to the controller
+                z_acc,ang_vel = 0.,np.array([0.,0.,0.])      
+                if t>self.warmup_time:
+                    z_acc,ang_vel = self.curr_controller.response(t-self.prev_task_time,self.state,self.ref)
 
-            self.pose_positions.append(np.copy(self.pose_pos))
-            self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
-            self.cf_positions.append(self.cf.position())
-            self.ref_positions.append(np.copy(self.ref.pos))
-            self.ref_orientation.append(self.ref.rot.as_euler('ZYX',degrees=True))
-            self.ts.append(t)
-            self.thrust_cmds.append(z_acc)
-            self.ang_vel_cmds.append(ang_vel * 180 / (2*np.pi))
+                self.pose_positions.append(np.copy(self.pose_pos))
+                self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
+                self.cf_positions.append(self.cf.position())
+                self.ref_positions.append(np.copy(self.ref.pos))
+                self.ref_orientation.append(self.ref.rot.as_euler('ZYX',degrees=True))
+                self.ts.append(t)
+                self.thrust_cmds.append(z_acc)
+                self.ang_vel_cmds.append(ang_vel * 180 / (2*np.pi))
 
 
             # Setting motors to 0, if landing is complete
@@ -397,7 +397,9 @@ class ctrlCF():
             if self.debug:
                 z_acc = 0.0
                 ang_vel = np.zeros(3)
-                print("cf", self.cf.position(), "pose",self.pose_pos, 'orientation', self.motrack_orientation.as_euler('ZYX', degrees=True), "time",t)
+                print('MT : ', self.motrack_orientation.as_euler('ZYX', degrees=True), "time",t)
+                print('CF : ', self.state.rot.as_euler('ZYX', degrees=True), "time",t , '\n')
+
 
             self._send2cfClient(self.cf, z_acc, ang_vel)
 
@@ -474,7 +476,7 @@ if __name__=="__main__":
     parser.add_argument('--debug', action='store', type=bool, default=False)
     g = EasyDict(vars(parser.parse_args()))
 
-    x = ctrlCF("cf2",sim=g.quadsim,config_file=g.config,log_file=g.logfile, debug=g.debug)
+    x = ctrlCF("cf5",sim=g.quadsim,config_file=g.config,log_file=g.logfile, debug=g.debug)
 
     try:
         if g.quadsim:
