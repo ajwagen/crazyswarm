@@ -6,15 +6,17 @@ import matplotlib.pyplot as plt
 def plot_npz(filename):
     saved_data = np.load(filename)
 
-    pose_positions = saved_data['pose_positions']
-    pose_orientations = saved_data['pose_orientations']
-    cf_positions = saved_data['cf_positions']
-    ts = saved_data['ts']
-    ref_positions = saved_data['ref_positions']
-    thrust_cmds = saved_data['thrust_cmds']
-    ang_vel_cmds = saved_data['ang_vel_cmds']
+    pose_positions = saved_data['pose_positions'][10:]
+    pose_orientations = saved_data['pose_orientations'][10:]
+    cf_positions = saved_data['cf_positions'][10:]
+    ts = saved_data['ts'][10:]
+    ref_positions = saved_data['ref_positions'][10:]
+    thrust_cmds = saved_data['thrust_cmds'][10:]
+    ang_vel_cmds = saved_data['ang_vel_cmds'][10:]
+    mocap_orientation = saved_data['motrack_orientation'][10:]
 
-    print(pose_orientations.shape, pose_orientations.shape, cf_positions.shape, ts.shape, thrust_cmds.shape)
+    offs = mocap_orientation[0] - pose_orientations[0]
+    # print(pose_orientations.shape, pose_orientations.shape, cf_positions.shape, ts.shape, thrust_cmds.shape)
 
     plt.figure(0)
     ax1 = plt.subplot(3, 1, 1)
@@ -34,13 +36,16 @@ def plot_npz(filename):
 
     plt.figure(1)
     ax2 = plt.subplot(3, 1, 1)
-    plt.plot(ts, ang_vel_cmds[:, 0])
+    # plt.plot(ts, ang_vel_cmds[:, 0])
+    plt.plot(ts, mocap_orientation[:,2] - offs[2])
     plt.plot(ts, pose_orientations[:, 2], color='red', marker='o')
     plt.subplot(3, 1, 2, sharex=ax2)
-    plt.plot(ts, ang_vel_cmds[:, 1])
+    # plt.plot(ts, ang_vel_cmds[:, 1])
+    plt.plot(ts, mocap_orientation[:,1] - offs[1])
     plt.plot(ts, pose_orientations[:, 1], color='red')
     plt.subplot(3, 1, 3, sharex=ax2)
-    plt.plot(ts, ang_vel_cmds[:, 2], label='Ang Vel Cmd (deg/s)')
+    # plt.plot(ts, ang_vel_cmds[:, 2], label='Ang Vel Cmd (deg/s)')
+    plt.plot(ts, mocap_orientation[:,0] - offs[0], label='mocap data')
     plt.plot(ts, pose_orientations[:, 0], color='red', label='Euler Angle (deg)')
     plt.suptitle('cf/pose orientation (python) & ang vel cmds')
     plt.legend()

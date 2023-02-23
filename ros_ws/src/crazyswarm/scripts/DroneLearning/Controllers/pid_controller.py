@@ -32,9 +32,9 @@ class PIDController():
     # self.yaw_gain = 130.0/16
     # self.kp_ang =   16
 
-    self.kp_pos = 6.0
+    self.kp_pos = 7.0
     self.kd_pos = 4.0
-    self.ki_pos = 0.0
+    self.ki_pos = 2.3
     self.kp_rot =   90.0/16
     self.yaw_gain = 220.0/16
     self.kp_ang =   16

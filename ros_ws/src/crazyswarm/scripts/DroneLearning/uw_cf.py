@@ -133,6 +133,8 @@ class ctrlCF():
         self.thrust_cmds = []
         self.ang_vel_cmds = []
 
+        self.pose_orient_mocap=[]
+
         self.ppo_acc = []
         self.ppo_ang = []
 
@@ -240,6 +242,8 @@ class ctrlCF():
             self.ts = np.array(self.ts)
             self.thrust_cmds = np.array(self.thrust_cmds)
             self.ang_vel_cmds = np.array(self.ang_vel_cmds)
+
+            self.pose_orient_mocap = np.array(self.pose_orient_mocap)
     
             # self.ppo_acc = np.array(self.ppo_acc)
             # self.ppo_ang = np.array(self.ppo_ang)
@@ -247,6 +251,7 @@ class ctrlCF():
             np.savez(LOG_DIR / self.logfile, 
                 pose_positions=self.pose_positions,
                 pose_orientations=self.pose_orientations,
+                motrack_orientation = self.pose_orient_mocap,
                 cf_positions=self.cf_positions,
                 ref_positions = self.ref_positions,
                 ref_orientation = self.ref_orientation,
@@ -380,6 +385,7 @@ class ctrlCF():
 
                 self.pose_positions.append(np.copy(self.pose_pos))
                 self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
+                self.pose_orient_mocap.append(self.motrack_orientation.as_euler("ZYX",degrees=True))
                 self.cf_positions.append(self.cf.position())
                 self.ref_positions.append(np.copy(self.ref.pos))
                 self.ref_orientation.append(self.ref.rot.as_euler('ZYX',degrees=True))

@@ -228,7 +228,7 @@ markerConfigurations:
     points:
       "0": [0.0177184,0.0139654,0.0557585]
   "4":
-    numPoints: 5
+    numPoints: 4
     offset: [0.0, -0.01, -0.04]
     points:
       "0": [0.0177184,0.0139654,0.0557585]
@@ -236,7 +236,7 @@ markerConfigurations:
       "2": [-0.0328889,-0.02757,0.0390601]
       "3": [0.0431307,-0.0331216,0.0388839]
       # "4" : [0.023, 0.012, 0.048]
-      "4" : [-0.03, 0.012, 0.048]
+      # "4" : [-0.03, 0.012, 0.048]
 
 numDynamicsConfigurations: 1
 dynamicsConfigurations:
