@@ -251,6 +251,15 @@ class ctrlCF():
             self.ang_vel_cmds = np.array(self.ang_vel_cmds)
 
             plt.plot(self.ts,self.ref_positions)
+            plt.figure()
+            plt.plot(self.ts, self.thrust_cmds)
+            plt.figure()
+            ax = plt.subplot(3, 1, 1)
+            plt.plot(self.ts, self.pose_orientations[:, 0])
+            plt.subplot(3, 1, 2, sharex=ax)
+            plt.plot(self.ts, self.pose_orientations[:, 1])
+            plt.subplot(3, 1, 3, sharex=ax)
+            plt.plot(self.ts, self.pose_orientations[:, 2])
             plt.show()
             # self.ppo_acc = np.array(self.ppo_acc)
             # self.ppo_ang = np.array(self.ppo_ang)
@@ -358,7 +367,7 @@ class ctrlCF():
             # Sending state data to the controller
             z_acc,ang_vel = 0.,np.array([0.,0.,0.])      
             if t>self.warmup_time:
-                z_acc,ang_vel = controller.response(t-self.prev_task_time,self.state,self.ref)
+                z_acc,ang_vel = controller.response(t, self.state, self.ref)
 
             self.pose_positions.append(np.copy(self.pose_pos))
             self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))

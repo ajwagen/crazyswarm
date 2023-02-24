@@ -1,6 +1,6 @@
 import numpy as np
 from cf_utils.rigid_body import State_struct
-
+from scipy.spatial.transform import Rotation as R
 
 class Trajectories:
     def __init__(self, init_pos=np.array([0.,0.,0.])):
@@ -11,6 +11,15 @@ class Trajectories:
         ref_pos = np.array([0.,0.0,0.0])
         ref_vel = np.array([0.,0.,0])
         ref = State_struct(pos=ref_pos,vel = ref_vel)
+
+        return ref
+    
+    def set_hover_yawrot_ref(self,t):
+        ref_pos = np.array([0.,0.0,0.0])
+        ref_vel = np.array([0.,0.,0])
+        euler_rot = np.array([0.0, 0.0, 90.0])
+        rot = R.from_euler('XYZ', euler_rot, degrees=True)
+        ref = State_struct(pos=ref_pos, vel = ref_vel, rot=rot)
 
         return ref
         

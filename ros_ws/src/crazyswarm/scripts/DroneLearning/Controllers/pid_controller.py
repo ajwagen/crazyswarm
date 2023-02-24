@@ -34,7 +34,7 @@ class PIDController():
 
     self.kp_pos = 6.0
     self.kd_pos = 4.0
-    self.ki_pos = 0.0
+    self.ki_pos = 1.2
     self.kp_rot =   90.0/16
     self.yaw_gain = 220.0/16
     self.kp_ang =   16
@@ -48,7 +48,7 @@ class PIDController():
     self.p_err_buffer = np.zeros((50,3))
     self.dt_buffer = np.zeros((50,3))
     self.pos_err_int = 0
-  def response(self, t, state, ref ):
+  def response(self, t, state, ref):
     """
         Given a time t and state state, return body z force and torque (body-frame).
 
@@ -75,6 +75,8 @@ class PIDController():
     pos = state.pos
     vel = state.vel
     rot = state.rot
+
+    ref_rot = ref.rot
     
     # pos = state[0:3]
     # vel = state[3:6]
@@ -99,7 +101,7 @@ class PIDController():
     rot_err = np.cross(u_des / acc_des, np.array([0, 0, 1]))
 
     yaw, _, _ = rot.as_euler('zyx')
-    yaw_des = 0.0  # self.ref.yaw(t)
+    yaw_des = ref_rot.as_euler('zyx')[0]#0.0  # self.ref.yaw(t)
 
     omega_des = -self.kp_rot * rot_err
     omega_des[2] = -self.yaw_gain*(yaw-yaw_des)

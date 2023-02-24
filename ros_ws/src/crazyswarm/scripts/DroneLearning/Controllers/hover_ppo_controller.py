@@ -25,11 +25,11 @@ class PPOController():
 
     self.prev_t = None
 
-    self.task: DroneTask = DroneTask.YAWFLIP
-    self.policy_name = "yawflip_latency_ucost"
+    self.task: DroneTask = DroneTask.YAWFLIP_90
+    self.policy_name = "yawflip_90"
     self.algo = RLAlgo.PPO
     self.eval_steps = 1000
-    self.config_filename = "yawflip.py"
+    self.config_filename = "yawflip_latency.py"
     # viz = True
     self.train_config = None
 
@@ -76,6 +76,7 @@ class PPOController():
     
     if fl:
       self.prev_t = t
+      
     pos = state.pos - ref.pos
     vel = state.vel
     rot = state.rot
