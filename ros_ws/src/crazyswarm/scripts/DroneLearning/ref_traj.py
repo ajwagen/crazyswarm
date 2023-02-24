@@ -1,13 +1,23 @@
 import numpy as np
 from cf_utils.rigid_body import State_struct
+from scipy.spatial.transform import Rotation as R
 
 
 class Trajectories:
     def __init__(self, init_pos=np.array([0.,0.,0.])):
         self.init_pos = init_pos
-        self.last_state = np.array([0.,0.,0])
+        self.last_state = State_struct()
 
         self.ret = 0
+    def yaw_rot(self,t):
+        rate = 1.2
+
+        ref_pos = np.array([0.,0.,0.])
+        ref_vel = np.array([0.,0.,0])
+        ref_rot = np.array([min(rate*t,2*np.pi/3),0.,0. ])
+        ref = State_struct(pos=ref_pos,vel = ref_vel, rot = R.from_euler("ZYX",ref_rot))
+
+        return ref, self.ret
 
     def set_hover_ref(self,t):
         ref_pos = np.array([0.,0.0,0.0])
@@ -25,10 +35,11 @@ class Trajectories:
         return ref, self.ret
 
     def set_landing_ref(self,t,landing_height,landing_rate):
-        ref_pos = self.last_state
-        ref_pos[-1] = max(self.last_state[-1] - landing_rate*t,landing_height)
+        ref_pos = self.last_state.pos
+        ref_rot= self.last_state.rot
+        ref_pos[-1] = max(self.last_state.pos[-1] - landing_rate*t,landing_height)
         ref_vel = np.array([0.,0.,0])
-        ref = State_struct(pos=ref_pos,vel = ref_vel)
+        ref = State_struct(pos=ref_pos,vel = ref_vel, rot=ref_rot)
         self.ret = 0
         return ref, self.ret
 

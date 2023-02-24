@@ -90,6 +90,9 @@ class ctrlCF():
 
         self.set_logging_arrays()
         self.set_tasks()
+        self.motrack_offset = np.array([0.,0.,0.])
+        self.cf_orientation_offset = np.array([0.,0.,0.])
+
 
     ######### E STOPS ################
     def shutdown_callback(self,):
@@ -194,8 +197,17 @@ class ctrlCF():
         self.state.t = rospy.get_time()
         self.pose_pos = np.array([pos.x,pos.y,pos.z])
         self.pos_pos = self.cf.position()
-        self.motrack_orientation = self.cf.orientation()
-        self.motrack_orientation = R.from_quat(self.motrack_orientation)
+        # self.motrack_orientation = self.cf.orientation()
+        # self.motrack_orientation = R.from_quat(self.motrack_orientation)
+
+        motrack_orientation_quat = self.cf.orientation()
+        motrack_orientation = R.from_quat(motrack_orientation_quat)
+        motrack_orientation_euler = motrack_orientation.as_euler("ZYX") - self.motrack_offset
+        self.motrack_orientation = R.from_euler("ZYX", motrack_orientation_euler)
+
+        if self.initialized == False:
+            self.motrack_offset = np.copy(motrack_orientation_euler)
+
         rot = np.array([rot.x,rot.y,rot.z,rot.w])
         # self.cf_orientation = R>from_quat()
 
@@ -334,11 +346,11 @@ class ctrlCF():
             if t<self.takeoff_time + self.warmup_time + self.tasks_time:
                 self.ref,_ = getattr(self.trajs,self.tasks[self.task_num]["ref"])(t-self.prev_task_time)
                 self.ref.pos+=offset_pos           
-        
+
         ###### Landing
         else:
             if self.flag["land"]==0:
-                self.trajs.last_state = self.state.pos
+                self.trajs.last_state = copy.deepcopy(self.state)
                 print("********* LAND **********")
                 self.flag["land"] = 1
             

@@ -2,6 +2,22 @@ import numpy as np
 import argparse
 import matplotlib.pyplot as plt
 
+def Kalman_Filter() :
+  for n in range(measurements):
+     x = A*x+B*u[n]
+     P = A*P*A.T + Q
+ 
+ # Measurement Update (Correction)
+ # ===============================
+ # Compute the Kalman Gain
+    S = H*P*H.T + R
+    K = (P*H.T) * np.linalg.pinv(S)# Update the estimate via z
+    Z = mx[n]
+    y = Z — (H*x) # Innovation or Residual
+    x = x + (K*y)
+ 
+ # Update the error covariance
+    P = (I — (K*H))*P.
 
 def plot_npz(filename):
     saved_data = np.load(filename)
@@ -36,15 +52,15 @@ def plot_npz(filename):
 
     plt.figure(1)
     ax2 = plt.subplot(3, 1, 1)
-    plt.plot(ts, ang_vel_cmds[:, 0])
+    # plt.plot(ts, ang_vel_cmds[:, 0])
     plt.plot(ts, mocap_orientation[:,2] - offs[2])
-    plt.plot(ts, pose_orientations[:, 2], color='red')
+    plt.plot(ts, pose_orientations[:, 2], color='red', marker='o')
     plt.subplot(3, 1, 2, sharex=ax2)
-    plt.plot(ts, ang_vel_cmds[:, 1])
+    # plt.plot(ts, ang_vel_cmds[:, 1])
     plt.plot(ts, mocap_orientation[:,1] - offs[1])
     plt.plot(ts, pose_orientations[:, 1], color='red')
     plt.subplot(3, 1, 3, sharex=ax2)
-    plt.plot(ts, ang_vel_cmds[:, 2], label='Ang Vel Cmd (deg/s)')
+    # plt.plot(ts, ang_vel_cmds[:, 2], label='Ang Vel Cmd (deg/s)')
     plt.plot(ts, mocap_orientation[:,0] - offs[0], label='mocap data')
     plt.plot(ts, pose_orientations[:, 0], color='red', label='Euler Angle (deg)')
     plt.suptitle('cf/pose orientation (python) & ang vel cmds')

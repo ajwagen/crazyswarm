@@ -81,6 +81,7 @@ class PIDController():
     # rot = state[6:10]
 
     p_err = pos - ref.pos
+
     # print(rot)
     # r = R.from_quat(rot)
 
@@ -98,8 +99,10 @@ class PIDController():
 
     rot_err = np.cross(u_des / acc_des, np.array([0, 0, 1]))
 
-    yaw, _, _ = rot.as_euler('zyx')
-    yaw_des = 0.0  # self.ref.yaw(t)
+    ref_orient = ref.rot.as_euler("ZYX")
+    yaw, _, _ = rot.as_euler('ZYX')
+    yaw_des = ref_orient[0]  # self.ref.yaw(t)
+    # print(yaw_des)
 
     omega_des = -self.kp_rot * rot_err
     omega_des[2] = -self.yaw_gain*(yaw-yaw_des)
