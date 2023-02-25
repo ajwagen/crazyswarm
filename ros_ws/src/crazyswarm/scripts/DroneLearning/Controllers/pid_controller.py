@@ -1,6 +1,7 @@
 import numpy as np
 
 from scipy.spatial.transform import Rotation as R
+from cf_utils.rigid_body import State_struct
 
 # from quadsim.control import Controller
 def add2npQueue(array, new):
@@ -17,6 +18,8 @@ class PIDController():
 
     self.mass = 0.032
     self.g = 9.8
+    self.offset_pos = np.zeros(3)
+    self.trajectories = None
 
     # self.kp_pos = 6.0
     # self.kd_pos = 4.0
@@ -32,9 +35,9 @@ class PIDController():
     # self.yaw_gain = 130.0/16
     # self.kp_ang =   16
 
-    self.kp_pos = 7.0
+    self.kp_pos = 6.0
     self.kd_pos = 4.0
-    self.ki_pos = 2.3
+    self.ki_pos = 1.2 # 0 for sim
     self.kp_rot =   90.0/16
     self.yaw_gain = 220.0/16
     self.kp_ang =   16
@@ -48,7 +51,7 @@ class PIDController():
     self.p_err_buffer = np.zeros((50,3))
     self.dt_buffer = np.zeros((50,3))
     self.pos_err_int = 0
-  def response(self, t, state, ref, fl=1):
+  def response(self, t, state, ref, ref_func, fl=1):
     """
         Given a time t and state state, return body z force and torque (body-frame).
 
@@ -71,6 +74,9 @@ class PIDController():
     else:
       dt = t - self.prev_t
     self.prev_t = t
+
+    if dt < 0:
+      dt = 0
 
     pos = state.pos
     vel = state.vel

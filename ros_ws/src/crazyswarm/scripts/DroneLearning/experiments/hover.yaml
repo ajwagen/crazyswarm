@@ -13,9 +13,9 @@ kalman_warmup: 3.0
 
 tasks: 
   - ref: 'set_hover_ref'
-    cntrl: "PIDController"
-    time: 7.0
-    policy_config: none
+    cntrl: "PPOController"
+    time: 30.0
+    policy_config: hover
     description: "Hover PID"
 
   # - ref: 'goto'

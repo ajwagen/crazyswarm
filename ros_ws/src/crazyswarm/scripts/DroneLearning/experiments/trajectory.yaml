@@ -14,18 +14,17 @@ kalman_warmup: 3.0
 tasks: 
   - ref: 'set_hover_ref'
     cntrl: "PIDController"
-    time: 2.0
-    policy_config: "hover"
-    description: "Hover PID"
-
-  - ref: 'set_hover_ref'
-    cntrl: "PPOController"
     time: 4.0
-    policy_config: "yawflip"
+    policy_config: none
     description: "Hover PID"
 
+  - ref: 'zigzag_traj'
+    cntrl: "PIDController"
+    time: 10.0
+    policy_config: none
+    description: "Trajectory PPO"
 
-  # - ref: 'set_hover_ref'
+  # - ref: 'goto'
   #   cntrl: "PPOController"
   #   policy_config : "hover"
   #   time: 5.0

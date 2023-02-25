@@ -9,12 +9,13 @@ class Trajectories:
         self.last_state = State_struct()
 
         self.ret = 0
+        
     def yaw_rot(self,t):
         rate = 1.2
 
         ref_pos = np.array([0.,0.,0.])
         ref_vel = np.array([0.,0.,0])
-        ref_rot = np.array([min(rate*t,2*np.pi/3),0.,0. ])
+        ref_rot = np.array([min(rate*t, 2*(np.pi/3)),0.,0. ])
         ref = State_struct(pos=ref_pos,vel = ref_vel, rot = R.from_euler("ZYX",ref_rot))
 
         return ref, self.ret
@@ -65,4 +66,16 @@ class Trajectories:
         ref = State_struct(pos=ref_pos,vel = ref_vel)
         
         return ref, self.ret
+    
+    def zigzag_traj(self, t, T=1, D=1):
+        if (t // T) % 2 == 0:
+            x = D / T * (t % T)
+        else:
+            x = D - (D / T * (t % T))
+        
+        ref_pos = np.array([x,0,0])
+        ref = State_struct(pos = ref_pos)
+
+        return ref, ref_pos        
+
         

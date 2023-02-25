@@ -32,7 +32,7 @@ def plot_npz(filename):
     plt.plot(ts, cf_positions[:, 2], label='cf.position()')
     plt.plot(ts, ref_positions[:, 2], label='ref position')
     plt.legend()
-    plt.suptitle('positions (python)')
+    plt.suptitle('PID')
 
     plt.figure(1)
     ax2 = plt.subplot(3, 1, 1)

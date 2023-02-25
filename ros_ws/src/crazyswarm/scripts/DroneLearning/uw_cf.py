@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import signal
 import sys
-
+import time
 sys.path.append('..')
 
 import argparse
@@ -20,6 +20,8 @@ from Controllers.pid_controller import PIDController
 from collections import deque
 from Controllers.ppo_controller import PPOController
 from Controllers.bc_controller import BCController
+from Controllers.traj_ppo_controller import PPOController_trajectory
+
 
 # Actual Drone
 import rospy
@@ -49,10 +51,11 @@ class ctrlCF():
         self.state = State_struct()
         self.prev_state = State_struct()
         self.ref = State_struct()
+        self.ref_func = None
         # self.state = np.zeros(14)
         # self.prev_state = np.zeros(14)
         self.default_controller  = PIDController(isSim = self.isSim)
-        self.default_controller.response(0.1, self.state, self.ref,fl=0.)
+        self.default_controller.response(0.1, self.state, self.ref,self.ref_func,fl=0.)
 
         self.curr_controller = self.default_controller
 
@@ -73,7 +76,8 @@ class ctrlCF():
                 self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
                                                                                             policy_config = self.config["tasks"][i]["policy_config"])
                 # Warming up controller
-                self.controllers[ctrl_policy].response(0.1, self.state, self.ref,fl=0.)
+                self.controllers[ctrl_policy].response(0.1, self.state, self.ref, self.ref_func, fl=0.)
+                # self.controller.trajectories = Trajectories
         
 
         if not self.isSim:
@@ -84,9 +88,10 @@ class ctrlCF():
             self.cf = self.swarm.allcfs.crazyflies[0]
 
         else:
-            model = crazyflieModel()
+            # model = crazyflieModel()
+            model = IdentityModel()
             self.cf = QuadSim(model,name=self.cfName)
-            self.dt = 0.003
+            self.dt = 0.02
 
         self.set_logging_arrays()
         self.set_tasks()
@@ -244,7 +249,7 @@ class ctrlCF():
     def write_to_log(self):
 
         if not self.isSim:
-            LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'logs'
+            LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
     
             self.pose_positions = np.array(self.pose_positions)
             self.pose_orientations = np.array(self.pose_orientations)
@@ -274,7 +279,7 @@ class ctrlCF():
                 # ppo_acc = self.ppo_acc,
             )
         else:
-            LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'sim_logs'
+            LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'sim_logs'
         
             self.pose_positions = np.array(self.pose_positions)
             self.pose_orientations = np.array(self.pose_orientations)
@@ -293,14 +298,16 @@ class ctrlCF():
                 ts=self.ts,
                 thrust_cmds=self.thrust_cmds,)
     
-    def switch_controller(self,):
+    def switch_controller(self,offset_pos):
         ###### Setting the controller for the particular task
         if self.task_num>=0 and self.task_num<len(self.tasks):
             controller_key = self.config["tasks"][self.task_num]["cntrl"] + "_" + self.config["tasks"][self.task_num]["policy_config"]
             self.curr_controller = self.controllers[controller_key]
+            self.curr_controller.offset_pos = np.copy(offset_pos)
         else:
             # PID controller for takeoff and landing
             self.curr_controller = self.default_controller
+            self.curr_controller.offset_pos = np.copy(offset_pos)
 
     def set_refs_from_tasks(self,t,offset_pos):
         '''
@@ -317,7 +324,7 @@ class ctrlCF():
         if t >= self.takeoff_time+self.tasks_time+self.warmup_time:
             self.task_num+=1
             self.trajs.ret = 0
-            self.switch_controller()
+            self.switch_controller(offset_pos)
 
         ###########################################################################
         if t<self.warmup_time:
@@ -331,6 +338,7 @@ class ctrlCF():
                 print("********* TAKEOFF **********")
                 self.flag["takeoff"] = 1
             self.ref,_ = self.trajs.set_takeoff_ref(t-self.warmup_time,self.config["takeoff_height"],self.config["takeoff_rate"])
+            self.ref_func = self.trajs.set_takeoff_ref
 
         ###### Tasks
         # Switching to the tasks and getting the reference trajectory positions
@@ -344,6 +352,7 @@ class ctrlCF():
                 self.tasks_time+=self.tasks[self.task_num]["time"]
                 
             if t<self.takeoff_time + self.warmup_time + self.tasks_time:
+                self.ref_func = getattr(self.trajs,self.tasks[self.task_num]["ref"])
                 self.ref,_ = getattr(self.trajs,self.tasks[self.task_num]["ref"])(t-self.prev_task_time)
                 self.ref.pos+=offset_pos           
 
@@ -354,7 +363,8 @@ class ctrlCF():
                 print("********* LAND **********")
                 self.flag["land"] = 1
             
-            self.ref,_ = self.trajs.set_landing_ref(t-self.land_start_timer,self.config["landing_height"],self.config["landing_rate"])                
+            self.ref,_ = self.trajs.set_landing_ref(t-self.land_start_timer,self.config["landing_height"],self.config["landing_rate"])       
+            self.ref_func = self.trajs.set_landing_ref         
             self.land_buffer.appendleft(self.state.pos[-1])
             self.land_buffer.pop()
             if np.mean(self.land_buffer) < 0.06:
@@ -393,7 +403,7 @@ class ctrlCF():
                 # Sending state data to the controller
                 z_acc,ang_vel = 0.,np.array([0.,0.,0.])      
                 if t>self.warmup_time:
-                    z_acc,ang_vel = self.curr_controller.response(t-self.prev_task_time,self.state,self.ref)
+                    z_acc,ang_vel = self.curr_controller.response(t-self.prev_task_time,self.state,self.ref, self.ref_func)
 
                 self.pose_positions.append(np.copy(self.pose_pos))
                 self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
@@ -417,6 +427,14 @@ class ctrlCF():
                 ang_vel = np.zeros(3)
                 print('MT : ', self.motrack_orientation.as_euler('ZYX', degrees=True), "time",t)
                 print('CF : ', self.state.rot.as_euler('ZYX', degrees=True), "time",t , '\n')
+                self.pose_positions.append(np.copy(self.pose_pos))
+                self.pose_orientations.append(np.copy(self.state.rot.as_euler('ZYX', degrees=True)))
+                self.pose_orient_mocap.append(np.copy(self.motrack_orientation.as_euler("ZYX",degrees=True)))
+                self.cf_positions.append(np.copy(self.cf.position()))
+                self.ts.append(t)
+
+                self.thrust_cmds.append(z_acc)
+                self.ang_vel_cmds.append(ang_vel * 180 / (2*np.pi))
 
 
             self._send2cfClient(self.cf, z_acc, ang_vel)
@@ -455,8 +473,8 @@ class ctrlCF():
             # Send controller commands to the simulator and simulate the dynamics
             z_acc,ang_vel = 0.,np.array([0.,0.,0.])
             if t>self.warmup_time:
-                z_acc,ang_vel = self.cf.step_angvel_cf(i*self.dt, self.dt, self.curr_controller, ref=self.ref)            
-                self.cf.step_angvel_raw(self.dt, z_acc*0.032, ang_vel, dists=None)
+                z_acc,ang_vel = self.cf.step_angvel_cf(t - self.prev_task_time , self.dt, self.curr_controller, ref=self.ref, ref_func = self.ref_func)            
+                self.cf.step_angvel_raw(self.dt, z_acc*1, ang_vel, k=0.4, dists=None)
             # End Flight if landed
             if self.flag["land"]==2:
                 z_acc,ang_vel=0.,np.zeros(3)
@@ -467,13 +485,9 @@ class ctrlCF():
             quadsim_state = self.cf.rb.state()
             self.update_sim_states(quadsim_state)
             self.cf.vis.set_state(quadsim_state.pos,quadsim_state.rot)
-            
-            # Simulation timer update
-            t = i*self.dt
-            i +=1 
-            
+                    
             # Logging
-            self.pose_positions.append(np.copy(self.state.pos))
+            self.pose_positions.append(np.copy(self.state.pos) - offset_pos)
             self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
             self.ref_positions.append(np.copy(self.ref.pos))
             self.ref_orientation.append(self.ref.rot.as_euler('ZYX',degrees=True))
@@ -481,9 +495,14 @@ class ctrlCF():
             self.thrust_cmds.append(z_acc)
             self.ang_vel_cmds.append(ang_vel * 180 / (2*np.pi))
 
+            # Simulation timer update
+            t = i*self.dt
+            i +=1 
+
             if self.flag["land"]==2:
                 break
 
+            # time.sleep(1)
             # self.ppo_acc.append(z_ppo)
             # self.ppo_ang.append(ang_ppo*180/(2*np.pi))
 if __name__=="__main__":
@@ -494,7 +513,7 @@ if __name__=="__main__":
     parser.add_argument('--debug', action='store', type=bool, default=False)
     g = EasyDict(vars(parser.parse_args()))
 
-    x = ctrlCF("cf5",sim=g.quadsim,config_file=g.config,log_file=g.logfile, debug=g.debug)
+    x = ctrlCF("cf2",sim=g.quadsim,config_file=g.config,log_file=g.logfile, debug=g.debug)
 
     try:
         if g.quadsim:

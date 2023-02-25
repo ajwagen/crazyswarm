@@ -13,31 +13,23 @@ def add2npQueue(array, new):
     array[-1] = new
     return array
 
-class PPOController():
-  def __init__(self,isSim, policy_config="hover"):
+class PPOController_trajectory():
+  def __init__(self,isSim, policy_config="trajectory"):
     super().__init__()
-    # self.model = model
 
     self.isSim = isSim
     self.policy_config = policy_config
     self.mass = 0.027
     self.g = 9.8
-    self.offset_pos = np.zeros(3)
-    self.trajectories = None
 
     self.prev_t = None
+    self.offset_pos = np.zeros(3)
     self.set_policy()
+    self.time_horizon = 10
+
+    self.trajectories = None
   
   def select_policy_configs(self,):
-    if self.policy_config=="hover":
-      self.task: DroneTask = DroneTask.HOVER
-      self.policy_name = "hover_04k"
-      self.config_filename = "default_hover.py"
-
-    if self.policy_config == "yawflip":
-      self.task: DroneTask = DroneTask.YAWFLIP_90
-      self.policy_name = "yawflip_90"
-      self.config_filename = "yawflip_latency.py"
 
     if self.policy_config == "trajectory":
       self.task: DroneTask = DroneTask.TRAJFBFF
@@ -99,33 +91,24 @@ class PPOController():
     
     if fl:
       self.prev_t = t
-
-    # the drone always tries to orient to (0,0,0)
-    pos = state.pos - ref.pos
+    
+    pos = state.pos - self.offset_pos
     vel = state.vel
     rot = state.rot
 
     quat = rot.as_quat() 
 
     obs = np.hstack((pos,vel,quat))
-    action, _states = self.policy.predict(obs, deterministic=True)
+
+    if fl==0:
+       obs_=np.zeros((self.time_horizon+1)*3+10)
+    else:
+        ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
+        obs_ = np.hstack([obs, obs[0:3] - ref_func(t)[0].pos] + ff_terms)
 
 
-    ################################
-    # # Gradient (gain) calculation for hovering
-    # th_obs,_ = self.policy.policy.obs_to_tensor(obs)
-    # j = jacobian(self.policy.policy._predict,(th_obs))
-    # j = j[0,:,0,:].detach().cpu().numpy()
-    # print(j)
-    # exit()
-    ################################
-# 
+    action, _states = self.policy.predict(obs_, deterministic=True)
 
-# [[  3.67305589   1.38716006  -9.53558922   4.38564968   1.68557179 -10.64670753  -7.13586092  15.51110363 -12.54623222   0.24622881]
-#  [  0.90983611  10.75347614   4.6693573   -0.83937329  10.08096027   2.01146364 -28.32143784  -2.30262518  -6.37237597  -0.67694801]
-#  [ -9.83611393  -4.55986023   3.62569857 -13.52033424  -1.33899236   2.54128242   5.33164978 -43.40154266   1.18937016   0.59184641]
-#  [ -0.34359568  -0.66659546   1.27601814   0.58130348  -1.72741628   1.22041595   4.60577106   1.54117    -16.57507133   0.13079186]]
-# 
     action[0]+=self.g
     self.prev_pos = pos.copy()
     return action[0], action[1:]
