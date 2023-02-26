@@ -249,7 +249,11 @@ class ctrlCF():
     def write_to_log(self):
 
         if not self.isSim:
-            LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
+            # Rwik :
+            LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'logs'
+            
+            # Kevin : 
+            # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
     
             self.pose_positions = np.array(self.pose_positions)
             self.pose_orientations = np.array(self.pose_orientations)
@@ -279,7 +283,12 @@ class ctrlCF():
                 # ppo_acc = self.ppo_acc,
             )
         else:
-            LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'sim_logs'
+
+            # Rwik :
+            LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'sim_logs'
+            
+            # Kevin : 
+            # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
         
             self.pose_positions = np.array(self.pose_positions)
             self.pose_orientations = np.array(self.pose_orientations)
@@ -447,9 +456,14 @@ class ctrlCF():
     
     # Simulation
     def update_sim_states(self,quadsim_state):
+        quadsim_state = self.add_observation_noise(quadsim_state)
         self.state.pos = quadsim_state.pos
         self.state.rot = quadsim_state.rot
         self.state.vel = quadsim_state.vel
+    
+    def add_observation_noise(self, state):
+        state.pos += np.random.normal(loc=0.0, scale=0.01, size=3)
+        return state
 
     def main_loop_sim(self,):
 
@@ -474,7 +488,8 @@ class ctrlCF():
             z_acc,ang_vel = 0.,np.array([0.,0.,0.])
             if t>self.warmup_time:
                 z_acc,ang_vel = self.cf.step_angvel_cf(t - self.prev_task_time , self.dt, self.curr_controller, ref=self.ref, ref_func = self.ref_func)            
-                self.cf.step_angvel_raw(self.dt, z_acc*1, ang_vel, k=0.4, dists=None)
+                obs_state = self.cf.step_angvel_raw(self.dt, z_acc*1, ang_vel, k=0.4, dists=None)
+            
             # End Flight if landed
             if self.flag["land"]==2:
                 z_acc,ang_vel=0.,np.zeros(3)
@@ -483,7 +498,11 @@ class ctrlCF():
 
             # Quadsim and State update in the simulation and Visualisation
             quadsim_state = self.cf.rb.state()
-            self.update_sim_states(quadsim_state)
+            if t<=self.warmup_time:
+                self.update_sim_states(quadsim_state)
+            else:
+                self.update_sim_states(obs_state)
+
             self.cf.vis.set_state(quadsim_state.pos,quadsim_state.rot)
                     
             # Logging
