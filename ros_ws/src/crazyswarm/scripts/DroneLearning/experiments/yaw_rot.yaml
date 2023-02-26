@@ -19,10 +19,10 @@ tasks:
     description: "Hover PID"
 
   - ref: 'yaw_rot'
-    cntrl: "PIDController"
-    policy_config : "none"
+    cntrl: "PPOController_adaptive"
+    policy_config : "yawflip"
     time: 5.0
-    description: "PID yaw rotation"
+    description: "PPO yaw rotation"
 
   
   # - ref: 'set_circle_ref'

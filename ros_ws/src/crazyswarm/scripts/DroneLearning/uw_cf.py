@@ -18,7 +18,7 @@ from ref_traj import Trajectories
 # import controller 
 from Controllers.pid_controller import PIDController
 from collections import deque
-from Controllers.ppo_controller import PPOController
+from Controllers.hover_ppo_controller import *
 from Controllers.bc_controller import BCController
 from Controllers.traj_ppo_controller import PPOController_trajectory
 
@@ -521,7 +521,7 @@ class ctrlCF():
             if self.flag["land"]==2:
                 break
 
-            # time.sleep(1)
+            time.sleep(0.001)
             # self.ppo_acc.append(z_ppo)
             # self.ppo_ang.append(ang_ppo*180/(2*np.pi))
 if __name__=="__main__":
