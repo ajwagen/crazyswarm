@@ -15,5 +15,6 @@ tasks:
   - ref: 'set_hover_ref'
     cntrl: "PIDController"
     time: 3.0
+    adaptive: False
     policy_config: none
     description: "Hover PID"

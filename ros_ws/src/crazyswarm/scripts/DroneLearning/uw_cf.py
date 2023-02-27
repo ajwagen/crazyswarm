@@ -54,7 +54,8 @@ class ctrlCF():
         self.ref_func = None
         # self.state = np.zeros(14)
         # self.prev_state = np.zeros(14)
-        self.default_controller  = PIDController(isSim = self.isSim)
+        # self.default_controller  = PIDController(isSim = self.isSim)
+        self.default_controller  = PPOController(isSim = self.isSim, policy_config = "hover" , adaptive = False)
         self.default_controller.response(0.1, self.state, self.ref,self.ref_func,fl=0.)
 
         self.curr_controller = self.default_controller
@@ -74,7 +75,8 @@ class ctrlCF():
                 pass
             else:
                 self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
-                                                                                            policy_config = self.config["tasks"][i]["policy_config"])
+                                                                                            policy_config = self.config["tasks"][i]["policy_config"],
+                                                                                            adaptive = self.config["tasks"][i]["adaptive"])
                 # Warming up controller
                 self.controllers[ctrl_policy].response(0.1, self.state, self.ref, self.ref_func, fl=0.)
                 # self.controller.trajectories = Trajectories

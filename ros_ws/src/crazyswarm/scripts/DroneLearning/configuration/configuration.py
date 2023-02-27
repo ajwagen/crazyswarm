@@ -121,7 +121,7 @@ class EnvCondition(Enum):
         for each value.
         """
         return {
-            EnvCondition.WIND: (env.wind_vector, 3, -4.0, 4.0),
+            EnvCondition.WIND: (env.wind_vector, 3, -2.0, 2.0),
             EnvCondition.MASS: (env.model.mass, 1, 0.0, np.inf),
             # Assume diagonal
             EnvCondition.I: (np.diagonal(env.model.I), 3, 0.0, np.inf),

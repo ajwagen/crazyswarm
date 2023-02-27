@@ -14,45 +14,16 @@ kalman_warmup: 3.0
 tasks: 
   - ref: 'set_hover_ref'
     cntrl: "PPOController"
-    time: 30.0
+    time: 5.0
+    adaptive: False
     policy_config: hover
-    description: "Hover PID"
+    description: "Hover PPO"
 
-  # - ref: 'goto'
+  # - ref: 'set_hover_ref'
   #   cntrl: "PPOController"
-  #   policy_config : "hover"
+  #   policy_config : "hover_adaptive"
   #   time: 5.0
-  #   description: "linear PPO"
-
-  # - ref: 'set_circle_ref'
-  #   cntrl: "PPOController"
-  #   policy_config : "hover"
-  #   time: 14.0
-  #   description: "circle PPO"
-
-  
-  # - ref: 'set_circle_ref'
-  #   cntrl: "ppo_controller"
-  #   gainTune: False
-  #   time: 10.0
-  #   description: "circle PID"
-  
-  # - ref: 'set_hover_ref'
-  #   cntrl: "ppo_controller"
-  #   gainTune: False
-  #   time: 10.0
-  #   description: "Hover PPO"
-
-  # - ref: 'set_hover_ref'
-  #   cntrl: "bc_controller"
-  #   gainTune: False
-  #   time: 3.0
-  #   description: "Hover Behaviour"
-    
-  # - ref: 'set_hover_ref'
-  #   cntrl: "ppo_controller"
-  #   gainTune: True
-  #   time: 4.0
-  #   description: "Hover ppo GT"
+  #   adaptive : True
+  #   description: "hover adaptive PPO"
 
 rwik : hello
