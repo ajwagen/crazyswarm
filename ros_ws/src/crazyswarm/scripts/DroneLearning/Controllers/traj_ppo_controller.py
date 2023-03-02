@@ -9,12 +9,12 @@ from torch.autograd.functional import jacobian
 from stable_baselines3.common.env_util import make_vec_env
 
 class PPOController_trajectory(ControllerBackbone):
-  def __init__(self,isSim, policy_config="trajectory"):
+  def __init__(self,isSim, policy_config="trajectory",adaptive=False):
     super().__init__(isSim, policy_config, isPPO=True)
 
     self.set_policy()
 
-  def response(self, t, state, ref , ref_func, fl=1):
+  def response(self, t, state, ref , ref_func, fl=1, adaptive=False):
 
     if self.prev_t is None:
       dt = 0

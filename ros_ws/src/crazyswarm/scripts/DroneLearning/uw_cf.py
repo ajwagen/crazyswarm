@@ -534,7 +534,7 @@ if __name__=="__main__":
     parser.add_argument('--debug', action='store', type=bool, default=False)
     g = EasyDict(vars(parser.parse_args()))
 
-    x = ctrlCF("cf2",sim=g.quadsim,config_file=g.config,log_file=g.logfile, debug=g.debug)
+    x = ctrlCF("cf4",sim=g.quadsim,config_file=g.config,log_file=g.logfile, debug=g.debug)
 
     try:
         if g.quadsim:
