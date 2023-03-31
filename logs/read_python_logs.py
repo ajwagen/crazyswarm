@@ -27,6 +27,7 @@ def plot_npz(filename):
         data['cf_positions'] = saved_data['cf_positions'][st:k]
         data['ts'] = saved_data['ts'][st:k]
         data['ref_positions'] = saved_data['ref_positions'][st:k]
+        data['ref_orientation'] = saved_data['ref_orientation'][st:k]
         data['thrust_cmds'] = saved_data['thrust_cmds'][st:k]
         data['ang_vel_cmds'] = saved_data['ang_vel_cmds'][st:k]
         data['mocap_orientation'] = saved_data['motrack_orientation'][st:k]
@@ -59,8 +60,26 @@ def plot_npz(filename):
         plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 2], label=key+'_cf.position()')
         plt.plot(data_dict[key]['ts'], data_dict[key]['ref_positions'][:, 2],label=key+'_ref position')
     plt.legend()
-    plt.suptitle('PID')
+    plt.suptitle('PPO curriculum')
 
+    plt.figure(1)
+    ax1 = plt.subplot(3, 1, 1)
+    for key in data_dict.keys():
+        # plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 0], label='/cf/pose position')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_orientations'][:, 0], label='cf.position()')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['ref_orientation'][:, 0])
+    plt.subplot(3, 1, 2, sharex=ax1)
+    for key in data_dict.keys():
+        # plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 1], label='/cf/pose position')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_orientations'][:, 1], label='cf.position()')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['ref_orientation'][:, 1])
+    plt.subplot(3, 1, 3, sharex=ax1)
+    for key in data_dict.keys():
+        # plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 2], label='/cf/pose position')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_orientations'][:, 2], label=key+'_cf.position()')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['ref_orientation'][:, 2],label=key+'_ref position')
+    plt.legend()
+    plt.suptitle('PPO curriculum attitude')
     # plt.figure(1)
     # ax2 = plt.subplot(3, 1, 1)
     # plt.plot(ts, ang_vel_cmds[:, 0])
