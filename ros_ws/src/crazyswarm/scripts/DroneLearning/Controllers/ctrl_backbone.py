@@ -76,10 +76,5 @@ class ControllerBackbone():
             }
         )
         self.evalenv = self.task.env()(config=config)
-        print("*******")
-        print(self.policy_name)
-        print(SAVED_POLICY_DIR / f'{self.policy_name}.zip')
-        print("********")
-
         self.policy = self.algo_class.load(SAVED_POLICY_DIR / f'{self.policy_name}', self.env)
         self.prev_pos = 0.
