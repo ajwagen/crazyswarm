@@ -252,7 +252,7 @@ class ctrlCF():
 
         if not self.isSim:
             # Rwik :
-            LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'logs'
+            LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
             
             # Kevin : 
             # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
@@ -287,7 +287,7 @@ class ctrlCF():
         else:
 
             # Rwik :
-            LOG_DIR = Path().home() / 'sda4/drones' / 'crazyswarm' / 'sim_logs'
+            LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'sim_logs'
             
             # Kevin : 
             # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'

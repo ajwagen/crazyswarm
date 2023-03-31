@@ -51,7 +51,8 @@ class ControllerBackbone():
     # Trajectory tracking with feedforward/feedback
         if self.policy_config == "trajectory":
             self.task: DroneTask = DroneTask.TRAJFBFF
-            self.policy_name = "traj_fbff_h10_p1_3i"
+            # self.policy_name = "traj_fbff_h10_p1_3i"
+            self.policy_name = "traj_random_zigzag_curriculum"
             self.config_filename = "trajectory_latency.py"
 
     def set_policy(self,):
@@ -75,6 +76,10 @@ class ControllerBackbone():
             }
         )
         self.evalenv = self.task.env()(config=config)
+        print("*******")
+        print(self.policy_name)
+        print(SAVED_POLICY_DIR / f'{self.policy_name}.zip')
+        print("********")
 
-        self.policy = self.algo_class.load(SAVED_POLICY_DIR / f'{self.policy_name}.zip', self.env)
+        self.policy = self.algo_class.load(SAVED_POLICY_DIR / f'{self.policy_name}', self.env)
         self.prev_pos = 0.
