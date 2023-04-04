@@ -14,7 +14,7 @@ kalman_warmup: 0.0
 tasks: 
   - ref: 'set_hover_ref'
     cntrl: "PIDController"
-    time: 3.0
+    time: 10.0
     adaptive: False
     policy_config: none
     description: "Hover PID"

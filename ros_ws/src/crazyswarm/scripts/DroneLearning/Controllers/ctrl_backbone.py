@@ -1,6 +1,13 @@
 import numpy as np
+import yaml
 from quadsim.learning.train_policy import DroneTask, RLAlgo, SAVED_POLICY_DIR, import_config, CONFIG_DIR
 from stable_baselines3.common.env_util import make_vec_env
+
+# importing MPPI
+from quadrotor_torch import Quadrotor_torch
+from param_torch import Param, Timer
+import controller_torch
+
 
 class ControllerBackbone():
     def __init__(self, isSim, policy_config, isPPO = False):
@@ -8,8 +15,8 @@ class ControllerBackbone():
         self.mass = 0.032
         self.g = 9.8
         self.I = np.array([[3.144988,4.753588,4.640540],
-                    [4.753588,3.151127,4.541223],
-                    [4.640540,4.541223,7.058874]])*1e-5
+                           [4.753588,3.151127,4.541223],
+                           [4.640540,4.541223,7.058874]])*1e-5
         
         self.prev_t = None
         self.dt = None
@@ -78,3 +85,14 @@ class ControllerBackbone():
         self.evalenv = self.task.env()(config=config)
         self.policy = self.algo_class.load(SAVED_POLICY_DIR / f'{self.policy_name}', self.env)
         self.prev_pos = 0.
+    
+    def set_MPPI_cnotroller(self,):
+        config_dir = "/home/rwik/rwik_hdd/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
+        with open(config_dir + "/zigzag.yaml") as f:
+            config = yaml.load(f, Loader=yaml.FullLoader)
+        
+        self.param_MPPI = Param(config, MPPI=True)
+        env_MPPI = Quadrotor_torch(self.param_MPPI, config)
+        controller = controller_torch.MPPI_thrust_omega(env_MPPI, config)
+        
+        return controller

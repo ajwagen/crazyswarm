@@ -69,7 +69,8 @@ class Trajectories:
         
         return ref, self.ret
     
-    def zigzag_traj(self, t, T=1, D=1):
+    def zigzag_traj(self, t, T=0.5, D=1):
+        
         if (t // T) % 2 == 0:
             x = D / T * (t % T)
         else:
@@ -78,7 +79,17 @@ class Trajectories:
         ref_pos = np.array([x, 0, 0])
         ref = State_struct(pos=ref_pos)
 
-        return ref, ref_pos        
+        return ref, ref_pos   
+
+    def zigzag_guanya(self, t):
+        p = 2. # period
+        t_ = t + p / 4
+        x = 2 * np.abs(t_ / p - np.floor(t_ / p + 0.5)) - 0.5     
+
+        ref_pos = np.array([0, x, 0])
+        ref = State_struct(pos=ref_pos)
+
+        return ref, ref_pos
 
     def random_zigzag(self, t):
         ref_pos = self.random_zigzag_obj.pos(t)
