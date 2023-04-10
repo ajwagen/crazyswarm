@@ -14,7 +14,7 @@ kalman_warmup: 3.0
 tasks: 
   - ref: 'set_hover_ref'
     cntrl: "PPOController"
-    time: 5.0
+    time: 30.0
     adaptive: False
     policy_config: hover
     description: "Hover PPO"

@@ -31,12 +31,12 @@ class PIDController(ControllerBackbone):
     rot = state.rot
     p_err = pos - ref.pos
     # Updating error for integral term.
-    self.pos_err_int+=p_err*self.dt
+    self.pos_err_int += p_err * self.dt
 
     acc_des = (np.array([0, 0, self.g]) 
-              - self.kp_pos*(p_err) 
-              - self.kd_pos*(vel) 
-              - self.ki_pos*self.pos_err_int 
+              - self.kp_pos * (p_err) 
+              - self.kd_pos * (vel) 
+              - self.ki_pos * self.pos_err_int 
               + ref.acc)
 
     u_des = rot.as_matrix().T.dot(acc_des)

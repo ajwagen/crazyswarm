@@ -2,4 +2,5 @@ from Controllers.hover_ppo_controller import *
 from Controllers.bc_controller import BCController
 from Controllers.traj_ppo_controller import PPOController_trajectory
 from Controllers.pid_controller import PIDController
+from Controllers.diff_flat_pid_controller import diffFlat_PIDController
 from Controllers.mppi_controller import MPPIController

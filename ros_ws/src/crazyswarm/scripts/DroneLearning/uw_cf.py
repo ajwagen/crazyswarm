@@ -61,14 +61,25 @@ class ctrlCF():
         self.ref_func = None
         # self.state = np.zeros(14)
         # self.prev_state = np.zeros(14)
-        self.default_controller  = PIDController(isSim = self.isSim)
-        # self.default_controller  = PPOController(isSim = self.isSim, policy_config = "hover" , adaptive = False)
+        # self.default_controller  = PIDController(isSim = self.isSim)
+        with open(config_file,"r") as f:
+            self.config = yaml.full_load(f)
+        
+        if "def_cntrl" in self.config :
+            self.default_controller = (globals()[self.config["def_cntrl"][0]["cntrl"]])(isSim = self.isSim, 
+                                                                                        policy_config = self.config["def_cntrl"][0]["policy_config"],
+                                                                                        adaptive = self.config["def_cntrl"][0]["adaptive"])
+        else:
+            self.default_controller = PIDController(isSim = self.isSim)
+            # self.default_controller = PPOController(isSim = self.isSim, 
+            #                                         policy_config = "hover", 
+            #                                         adaptive = False)
+        
         self.default_controller.response(0.1, self.state, self.ref,self.ref_func,fl=0.)
 
         self.curr_controller = self.default_controller
 
-        with open(config_file,"r") as f:
-            self.config = yaml.full_load(f)
+
 
         # Reusing controllers if tasks require the exact same controller with same the same policy. 
         # keys of the dict are saved as cntrl+"_"+policy_config

@@ -37,9 +37,33 @@ class Trajectories:
         self.ret = 0
         return ref, self.ret
 
+    def set_takeoff_ref_flat(self, t, takeoff_height, takeoff_rate):
+        T = takeoff_height / takeoff_rate
+        A = takeoff_height / (T ** 3)
+        moving_pt =  A * t ** 3
+        ref_pos = self.init_pos + np.array([0., 0., min(moving_pt, takeoff_height)])
+        if moving_pt < takeoff_height :
+            ref_vel = np.array([0., 0., 3 * A * (t ** 2)])
+            ref_acc = np.array([0., 0., 6 * A * t])
+            ref_jerk = np.array([0., 0., 6 * A])
+            ref_snap = np.array([0., 0., 0.])
+        else:
+            ref_vel = np.zeros(3)
+            ref_acc = np.zeros(3)
+            ref_jerk = np.zeros(3)
+            ref_snap = np.zeros(3)
+
+        ref = State_struct(pos=ref_pos, 
+                           vel=ref_vel,
+                           acc=ref_acc,
+                           jerk=ref_jerk,
+                           snap=ref_snap)
+        self.ret = 0
+        return ref, self.ret
+
     def set_landing_ref(self, t, landing_height, landing_rate):
         ref_pos = self.last_state.pos
-        ref_rot= self.last_state.rot
+        ref_rot = self.last_state.rot
         ref_pos[-1] = max(self.last_state.pos[-1] - landing_rate * t, landing_height)
         ref_vel = np.array([0., 0., 0])
         ref = State_struct(pos=ref_pos, vel=ref_vel, rot=ref_rot)
