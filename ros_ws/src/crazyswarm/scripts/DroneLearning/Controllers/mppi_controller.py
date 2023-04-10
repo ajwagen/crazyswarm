@@ -7,6 +7,7 @@ from quadsim.visualizer import Vis
 import torch
 from torch.autograd.functional import jacobian
 from stable_baselines3.common.env_util import make_vec_env
+import time
 
 class MPPIController(ControllerBackbone):
   def __init__(self,isSim, policy_config="trajectory",adaptive=False):
@@ -35,9 +36,12 @@ class MPPIController(ControllerBackbone):
     state_torch = torch.as_tensor(noisystate, dtype=torch.float32)
     
     action = self.mppi_controller.policy_cf(state=state_torch, time=t).cpu().numpy()
-    
+
     # MPPI controller designed for output in world frame
     # World Frame -> Body Frame
     
+    st = time.time()
     action[1:] = (rot.as_matrix().T).dot(action[1:])
+    print(time.time() - st)
+    print("-------")
     return action[0], action[1:]

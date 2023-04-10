@@ -475,7 +475,7 @@ class ctrlCF():
     
     # Simulation
     def update_sim_states(self, quadsim_state):
-        quadsim_state = self.add_observation_noise(quadsim_state)
+        # quadsim_state = self.add_observation_noise(quadsim_state)
         # import pdb;pdb.set_trace()
         self.state.pos = quadsim_state.pos
         self.state.rot = quadsim_state.rot
@@ -511,7 +511,7 @@ class ctrlCF():
             if t > self.warmup_time:
                 z_acc, ang_vel = self.curr_controller.response(t - self.prev_task_time, self.state, 
                                                                self.ref, self.ref_func)                                                               
-                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=0.4, dists=None)
+                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=1.0, dists=None)
             
             # End Flight if landed
             if self.flag["land"] == 2:

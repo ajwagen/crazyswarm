@@ -17,30 +17,13 @@ class PIDController(ControllerBackbone):
 
     self.pos_err_int = np.zeros(3)
 
-    self.mppi_controller = self.set_MPPI_cnotroller()
+    # self.mppi_controller = self.set_MPPI_cnotroller()
 
   def response(self, t, state, ref, ref_func, fl=1):
 
     self.updateDt(t)
     if fl:
       self.prev_t = t
-    # MPPI
-    pos = state.pos - self.offset_pos
-    vel = state.vel
-    rot = state.rot
-    ang = np.linalg.inv(rot.as_matrix().T).dot(state.ang)
-
-    quat = rot.as_quat() 
-
-    obs = np.hstack((pos, vel, quat, ang))
-    noise = np.random.normal(scale=self.param_MPPI.noise_measurement_std)
-    noisystate = obs + noise
-    noisystate[6:10] /= np.linalg.norm(noisystate[6:10])
-
-    state_torch = torch.as_tensor(noisystate, dtype=torch.float32)
-    
-    action = self.mppi_controller.policy_cf(state=state_torch, time=t).cpu().numpy()
-    omega_d = rot.as_matrix().T.dot(action[1:]) 
 
     # PID
     pos = state.pos
@@ -67,6 +50,6 @@ class PIDController(ControllerBackbone):
     yaw_des = ref_orient[0]  # self.ref.yaw(t)
 
     omega_des = - self.kp_rot * rot_err
-    omega_des[2] = - self.yaw_gain*(yaw - yaw_des)
+    omega_des[2] = - self.yaw_gain * (yaw - yaw_des)
     # print("PID a : ", acc_des, " w : ", omega_des, "MPPI a: ", action[0], " w : ", omega_d)
     return acc_des, omega_des

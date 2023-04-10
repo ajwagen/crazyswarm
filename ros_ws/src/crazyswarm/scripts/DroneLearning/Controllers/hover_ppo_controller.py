@@ -54,7 +54,7 @@ class PPOController(ControllerBackbone):
     if self.adaptive:
 
       if self.history is None:
-        self.history = np.r_[obs[:-self.e_dims],action][None, :].T
+        self.history = np.r_[obs[:-self.e_dims], action][None, :].T
       else:
         self.history = np.c_[self.history, np.r_[obs[:-self.e_dims], action][None, :].T]
       

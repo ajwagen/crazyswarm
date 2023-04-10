@@ -20,10 +20,8 @@ tasks:
     description: "Hover PID"
 
   - ref: 'zigzag_traj'
-    cntrl: "PIDController"
+    cntrl: "PPOController_trajectory"
     time: 10.0
     adaptive: False
-    policy_config: none
+    policy_config: trajectory
     description: "Trajectory PPO"
-
-rwik : hello
