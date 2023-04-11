@@ -105,6 +105,8 @@ class diffFlat_PIDController(ControllerBackbone):
               - self.ki_pos * self.pos_err_int \
               + ref.acc
 
+    # converting to bodyframe
+    acc_des = rot.as_matrix().T.dot(acc_des)
     bodyz_acc = np.linalg.norm(acc_des)
 
     # Compute omega_des
@@ -114,10 +116,10 @@ class diffFlat_PIDController(ControllerBackbone):
     # omega_des in world frame, without yaw
     omega_des = np.cross(z_des, z_des_dot)
     # Convert to body frame
-    omega_des += rot.as_matrix().T.dot(omega_des)
+    omega_des = rot.as_matrix().T.dot(omega_des)
     rot_err = np.cross(acc_des / bodyz_acc, np.array([0, 0, 1]))
 
-    omega_op = - self.kp_rot * rot_err + rot_err
+    omega_op = - self.kp_rot * rot_err + omega_des
     
     yaw, _, _ = rot.as_euler('zyx')
     yaw_ref, _, _ = ref.rot.as_euler('zyx')

@@ -39,14 +39,19 @@ class Trajectories:
 
     def set_takeoff_ref_flat(self, t, takeoff_height, takeoff_rate):
         T = takeoff_height / takeoff_rate
-        A = takeoff_height / (T ** 3)
-        moving_pt =  A * t ** 3
+        K = np.array([[12 * T**2, 6 * T, 2],
+                      [4 * T**3, 3 * T**2, 2 * T],
+                      [T**4, T**3, T**2]])
+        Kinv = np.linalg.inv(K)
+        coeffs = Kinv.dot(np.array([0., 0., takeoff_height]).T)
+
+        moving_pt =  coeffs[0] * t ** 4 + coeffs[1] * t ** 3 + coeffs[2] * t ** 2
         ref_pos = self.init_pos + np.array([0., 0., min(moving_pt, takeoff_height)])
         if moving_pt < takeoff_height :
-            ref_vel = np.array([0., 0., 3 * A * (t ** 2)])
-            ref_acc = np.array([0., 0., 6 * A * t])
-            ref_jerk = np.array([0., 0., 6 * A])
-            ref_snap = np.array([0., 0., 0.])
+            ref_vel  = np.array([0., 0.,  4 * coeffs[0] * t ** 3 + 3 * coeffs[1] * t ** 2 + 2 * coeffs[2] * t])
+            ref_acc  = np.array([0., 0., 12 * coeffs[0] * t ** 2 + 6 * coeffs[1] * t      + 2 * coeffs[2]])
+            ref_jerk = np.array([0., 0., 24 * coeffs[0] * t      + 6 * coeffs[1]])
+            ref_snap = np.array([0., 0., 48 * coeffs[0]])
         else:
             ref_vel = np.zeros(3)
             ref_acc = np.zeros(3)

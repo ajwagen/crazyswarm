@@ -370,11 +370,11 @@ class ctrlCF():
             if self.flag["takeoff"]==0:
                 print("********* TAKEOFF **********")
                 self.flag["takeoff"] = 1
-            self.ref,_ = self.trajs.set_takeoff_ref(t-self.warmup_time,
+            self.ref,_ = self.trajs.set_takeoff_ref_flat(t-self.warmup_time,
                                                     self.config["takeoff_height"],
                                                     self.config["takeoff_rate"])
             
-            self.ref_func = self.trajs.set_takeoff_ref
+            self.ref_func = self.trajs.set_takeoff_ref_flat
 
         ###### Tasks
         # Switching to the tasks and getting the reference trajectory positions
@@ -486,7 +486,7 @@ class ctrlCF():
     
     # Simulation
     def update_sim_states(self, quadsim_state):
-        # quadsim_state = self.add_observation_noise(quadsim_state)
+        quadsim_state = self.add_observation_noise(quadsim_state)
         # import pdb;pdb.set_trace()
         self.state.pos = quadsim_state.pos
         self.state.rot = quadsim_state.rot

@@ -21,7 +21,7 @@ def_cntrl:
 tasks: 
   - ref: 'set_hover_ref'
     cntrl: "PPOController"
-    time: 30.0
+    time: 5.0
     adaptive: False
     policy_config: hover
     description: "Hover PPO"
