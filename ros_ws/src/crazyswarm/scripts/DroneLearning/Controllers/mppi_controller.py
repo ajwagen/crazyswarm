@@ -40,8 +40,8 @@ class MPPIController(ControllerBackbone):
     # MPPI controller designed for output in world frame
     # World Frame -> Body Frame
     
-    st = time.time()
+    # st = time.time()
     action[1:] = (rot.as_matrix().T).dot(action[1:])
-    print(time.time() - st)
-    print("-------")
+    # print(time.time() - st)
+    # print("-------")
     return action[0], action[1:]

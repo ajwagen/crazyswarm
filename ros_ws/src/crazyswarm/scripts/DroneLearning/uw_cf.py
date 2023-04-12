@@ -352,7 +352,7 @@ class ctrlCF():
         self.task_num is the index of self.tasks currently being completed by the drone.
         NOTE: take off and landing are not considered in this task
         '''
-        
+        self.trajs.curr_state = copy.deepcopy(self.state)
         # Iterating over the tasks
         if t >= self.takeoff_time+self.tasks_time+self.warmup_time:
             self.task_num+=1
@@ -366,15 +366,22 @@ class ctrlCF():
                 print("Taking off in 3 seconds ..... ")
 
         ###### Take off Function
-        elif t<self.takeoff_time+self.warmup_time:
+        elif t<self.takeoff_time + self.warmup_time:
             if self.flag["takeoff"]==0:
                 print("********* TAKEOFF **********")
                 self.flag["takeoff"] = 1
-            self.ref,_ = self.trajs.set_takeoff_ref_flat(t-self.warmup_time,
-                                                    self.config["takeoff_height"],
-                                                    self.config["takeoff_rate"])
+
+                final_pt = np.array([0., 0., self.config["takeoff_height"],])
+                self.trajs._goto_init(final_pt, self.config["takeoff_rate"])
+
+            # self.ref,_ = self.trajs.set_takeoff_ref_flat(t - self.warmup_time,
+            #                                         self.config["takeoff_height"],
+            #                                         self.config["takeoff_rate"])
             
-            self.ref_func = self.trajs.set_takeoff_ref_flat
+            # self.ref_func = self.trajs.set_takeoff_ref_flat
+
+            self.ref, _ = self.trajs.goto(t - self.warmup_time)
+            self.ref_func
 
         ###### Tasks
         # Switching to the tasks and getting the reference trajectory positions
@@ -386,8 +393,21 @@ class ctrlCF():
 
                 self.flag["tasks"][self.task_num] = 1 
                 self.tasks_time += self.tasks[self.task_num]["time"]
+
+                if self.tasks[self.task_num]["ref"] == "goto":
+                    self.trajs.last_state = copy.deepcopy(self.state)
+                    self.trajs.last_state.pos -= offset_pos
+
+                    
+                    if "final_pt" in  self.tasks[self.task_num] or self.tasks[self.task_num]["final_pt"] != None: 
+                        final_pt = np.array(self.tasks[self.task_num]["final_pt"])
+                    else:
+                        final_pt = np.zeros(3)
+
+                    self.trajs._goto_init(final_pt)
                 
             if t < self.takeoff_time + self.warmup_time + self.tasks_time:
+                self.trajs.curr_state.pos -= offset_pos
                 self.ref_func = getattr(self.trajs, self.tasks[self.task_num]["ref"])
                 self.ref, _ = getattr(self.trajs, self.tasks[self.task_num]["ref"])(t-self.prev_task_time)
                 self.ref.pos += offset_pos           
@@ -398,12 +418,14 @@ class ctrlCF():
                 self.trajs.last_state = copy.deepcopy(self.state)
                 print("********* LAND **********")
                 self.flag["land"] = 1
+
+                final_pt = copy.deepcopy(self.trajs.last_state.pos)
+                final_pt[2] = self.config["landing_height"]
+                self.trajs._goto_init(final_pt, self.config["landing_rate"])
             
-            self.ref,_ = self.trajs.set_landing_ref(t - self.land_start_timer, 
-                                                    self.config["landing_height"],
-                                                    self.config["landing_rate"])  
-                 
-            self.ref_func = self.trajs.set_landing_ref         
+            self.ref, _ = self.trajs.goto(t - self.land_start_timer)
+            self.ref_func = self.trajs.goto
+        
             self.land_buffer.appendleft(self.state.pos[-1])
             self.land_buffer.pop()
             if np.mean(self.land_buffer) < 0.06:
