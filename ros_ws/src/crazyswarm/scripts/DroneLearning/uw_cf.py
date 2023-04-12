@@ -374,14 +374,14 @@ class ctrlCF():
                 final_pt = np.array([0., 0., self.config["takeoff_height"],])
                 self.trajs._goto_init(final_pt, self.config["takeoff_rate"])
 
-            # self.ref,_ = self.trajs.set_takeoff_ref_flat(t - self.warmup_time,
-            #                                         self.config["takeoff_height"],
-            #                                         self.config["takeoff_rate"])
+            self.ref,_ = self.trajs.DONT_USE_set_takeoff_ref(t - self.warmup_time,
+                                                    self.config["takeoff_height"],
+                                                    self.config["takeoff_rate"])
             
-            # self.ref_func = self.trajs.set_takeoff_ref_flat
+            self.ref_func = self.trajs.DONT_USE_set_takeoff_ref
 
-            self.ref, _ = self.trajs.goto(t - self.warmup_time)
-            self.ref_func
+            # self.ref, _ = self.trajs.goto(t - self.warmup_time)
+            # self.ref_func
 
         ###### Tasks
         # Switching to the tasks and getting the reference trajectory positions
@@ -419,12 +419,17 @@ class ctrlCF():
                 print("********* LAND **********")
                 self.flag["land"] = 1
 
-                final_pt = copy.deepcopy(self.trajs.last_state.pos)
-                final_pt[2] = self.config["landing_height"]
-                self.trajs._goto_init(final_pt, self.config["landing_rate"])
-            
-            self.ref, _ = self.trajs.goto(t - self.land_start_timer)
-            self.ref_func = self.trajs.goto
+                # final_pt = copy.deepcopy(self.trajs.last_state.pos)
+                # final_pt[2] = self.config["landing_height"]
+                # self.trajs._goto_init(final_pt, self.config["landing_rate"])
+                
+            self.ref,_ = self.trajs.set_landing_ref(t - self.land_start_timer, 
+                                                    self.config["landing_height"],
+                                                    self.config["landing_rate"])  
+                 
+            self.ref_func = self.trajs.set_landing_ref
+            # self.ref, _ = self.trajs.goto(t - self.land_start_timer)
+            # self.ref_func = self.trajs.goto
         
             self.land_buffer.appendleft(self.state.pos[-1])
             self.land_buffer.pop()

@@ -60,7 +60,8 @@ class ControllerBackbone():
         if self.policy_config == "trajectory":
             self.task: DroneTask = DroneTask.TRAJFBFF
             # self.policy_name = "traj_fbff_h10_p1_3i"
-            self.policy_name = "traj_random_zigzag_curriculum"
+            # self.policy_name = "traj_random_zigzag_curriculum"
+            self.policy_name = "traj_zigzag_1D"
             self.config_filename = "trajectory_latency.py"
 
     def set_policy(self,):

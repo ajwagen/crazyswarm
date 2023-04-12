@@ -37,7 +37,7 @@ class PIDController(ControllerBackbone):
               - self.kp_pos * (p_err) 
               - self.kd_pos * (vel) 
               - self.ki_pos * self.pos_err_int 
-              + ref.acc)
+              + ref.acc * np.zeros(3))
 
     u_des = rot.as_matrix().T.dot(acc_des)
 
