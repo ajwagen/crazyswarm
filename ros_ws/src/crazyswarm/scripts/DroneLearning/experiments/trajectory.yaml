@@ -1,14 +1,19 @@
 # Take off and landig parameters
-takeoff_height: 0.4
+takeoff_height: 1.0
 takeoff_rate: 0.5
 landing_height: 0.1
-landing_rate: 0.001
+landing_rate: 0.1
 
 E_BB_width: 3.0 # emergency bounding box width limit
 E_BB_height: 1.3 # emergency bounding box width limit
 
 kalman_warmup: 3.0
 
+def_cntrl:
+  - cntrl : "diffFlat_PIDController"
+    adaptive: False
+    policy_config: none
+    
 # Run Details
 
 tasks: 

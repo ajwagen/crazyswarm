@@ -397,7 +397,6 @@ class ctrlCF():
                 if self.tasks[self.task_num]["ref"] == "goto":
                     self.trajs.last_state = copy.deepcopy(self.state)
                     self.trajs.last_state.pos -= offset_pos
-
                     
                     if "final_pt" in  self.tasks[self.task_num] or self.tasks[self.task_num]["final_pt"] != None: 
                         final_pt = np.array(self.tasks[self.task_num]["final_pt"])
@@ -416,6 +415,7 @@ class ctrlCF():
         else:
             if self.flag["land"]==0:
                 self.trajs.last_state = copy.deepcopy(self.state)
+                self.trajs.land = True
                 print("********* LAND **********")
                 self.flag["land"] = 1
 

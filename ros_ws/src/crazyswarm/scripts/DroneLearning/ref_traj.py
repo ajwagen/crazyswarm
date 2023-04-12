@@ -9,6 +9,7 @@ class Trajectories:
         self.init_pos = init_pos
         self.last_state = State_struct()
         self.curr_state = State_struct()
+        self.land = False
 
         self.ret = 0
 
@@ -68,6 +69,14 @@ class Trajectories:
             self.ret = 1
             ref = State_struct(pos = copy.deepcopy(self.final_point))
         
+        if self.land:
+            ref.pos[0:2] = copy.deepcopy(self.final_point[0:2])
+            ref.vel[0:2] *= 0 
+            ref.acc[0:2] *= 0 
+            ref.jerk[0:2] *= 0 
+            ref.snap[0:2] *= 0 
+
+
         return ref, self.ret
     
     def set_hover_ref(self, t):
