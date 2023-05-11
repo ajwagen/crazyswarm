@@ -1,4 +1,5 @@
 import numpy as np
+from Controllers.ctrl_backbone import ControllerBackbone
 
 from scipy.spatial.transform import Rotation as R
 from quadsim.learning.train_policy import DroneTask, RLAlgo, SAVED_POLICY_DIR, import_config, CONFIG_DIR
@@ -7,91 +8,49 @@ import torch
 from torch.autograd.functional import jacobian
 from stable_baselines3.common.env_util import make_vec_env
 
-from imitation.algorithms import bc
-from imitation.data.wrappers import RolloutInfoWrapper
+class BC_Controller(ControllerBackbone):
+  def __init__(self,isSim, policy_config="trajectory",adaptive=False):
+    super().__init__(isSim, policy_config, isPPO=True)
 
+    self.set_BC_policy()
 
-# from quadsim.control import Controller
-def add2npQueue(array, new):
-    array[0:-1] = array[1:]
-    array[-1] = new
-    return array
+  def response(self, t, state, ref , ref_func, fl=1, adaptive=False):
 
-class BCController():
-  def __init__(self,isSim,policy_config=None):
-    super().__init__()
-    # self.model = model
-
-    self.isSim = isSim
-    self.policy_config = policy_config
-    self.mass = 0.027
-    self.g = 9.8
-
-    self.prev_t = None
-
-    self.task: DroneTask = DroneTask.HOVER
-    self.policy_name = "bc_hover_default"
-    self.eval_steps = 1000
-    self.config_filename = "default_hover.py"
-    # viz = True
-    self.train_config = None
-
-    config = import_config(self.config_filename)
-    if self.train_config is not None:
-        self.train_config = import_config(self.train_config)
-    else:
-        self.train_config = config
-    self.env = make_vec_env(self.task.env(), n_envs=8,
-        env_kwargs={
-            'config': self.train_config
-        }
-    )
-    self.evalenv = self.task.env()(config=config)
-
-    self.policy = bc.reconstruct_policy(SAVED_POLICY_DIR / f'{self.policy_name}')
-    self.prev_pos = 0.
-
-
-  def response(self, t, state, ref ):
-    """
-        Given a time t and state state, return body z force and torque (body-frame).
-
-        State is defined in rigid_body.py and includes pos, vel, rot, and ang.
-
-        The reference is available using self.ref (defined in flatref.py)
-        and contains pos, vel, acc, jerk, snap, yaw, yawvel, and yawacc,
-        which are all functions of time.
-
-        self.model contains quadrotor model parameters such as mass, inertia, and gravity.
-        See models.py.
-
-        TODO Implement a basic quadrotor controller.
-        E.g. you may want to compute position error using something like state.pos - self.ref.pos(t).
-
-        You can test your controller by running main.py.
-    """
     if self.prev_t is None:
       dt = 0
     else:
       dt = t - self.prev_t
-    self.prev_t = t
-    pos = state.pos - ref.pos
+    
+    if fl:
+      self.prev_t = t
+    
+    pos = state.pos - self.offset_pos
     vel = state.vel
     rot = state.rot
 
     quat = rot.as_quat() 
 
-    obs = np.hstack((pos,vel,quat))
-    action, _states = self.policy.predict(obs, deterministic=True)
+    obs_ = np.hstack((pos, vel, quat))
 
-    ################################
-    # Gradient (gain) calculation for hovering
-    # th_obs,_ = self.policy.policy.obs_to_tensor(obs)
-    # j = jacobian(self.policy.policy._predict,(th_obs))
-    # j = j[0,:,0,:].detach().cpu().numpy()
-    # exit()
-    ################################
 
-    # action[0]+=self.g
+    if fl==0:
+        obs_ = np.zeros((self.time_horizon+1) * 3 + 10)
+    else:
+        # ff_pos = np.array([ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)])
+        # ff_pos_stacked = ff_pos.reshape(-1, 3)
+        # ff_vel = np.diff(ff_pos_stacked, axis=0) / (3 * dt)
+        # # pad last timestep by repeating previous value
+        # ff_vel = np.r_[ff_vel, ff_vel[-1, None]]
+        # ff_terms_stacked = np.c_[ff_pos, ff_vel]
+        # ff_terms = ff_terms_stacked.flatten()
+        # obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos, ff_terms])
+
+        ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
+        obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos] + ff_terms)
+
+
+    action, _states = self.bc_policy.predict(obs_, deterministic=True)
+
+    action[0] += self.g
     self.prev_pos = pos.copy()
     return action[0], action[1:]

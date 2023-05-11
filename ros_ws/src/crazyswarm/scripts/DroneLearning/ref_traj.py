@@ -13,7 +13,8 @@ class Trajectories:
 
         self.ret = 0
 
-        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1,0.5,0]), seed=2023)
+        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1,0.0,0]), seed= np.random.randint(10000, size=1)[0])
+        self.random_zigzag_obj.isShift = True
     
     # ESSENTIAL FUNCTIONS
     # Cubic Polynomial trajectory for Goto

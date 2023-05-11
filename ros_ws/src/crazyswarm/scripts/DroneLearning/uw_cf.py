@@ -275,6 +275,10 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
+
+            # Guanya :
+            LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
+
             
             # Kevin : 
             # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
@@ -309,8 +313,11 @@ class ctrlCF():
         else:
 
             # Rwik :
-            LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'sim_logs'
+            # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'sim_logs'
             
+            # Guanya :
+            LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
+
             # Kevin : 
             # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
         
@@ -585,6 +592,7 @@ class ctrlCF():
             time.sleep(0.001)
             # self.ppo_acc.append(z_ppo)
             # self.ppo_ang.append(ang_ppo*180/(2*np.pi))
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--quadsim', action='store_true')

@@ -30,13 +30,29 @@ class PPOController_trajectory(ControllerBackbone):
 
     quat = rot.as_quat() 
 
+
+    if self.body_frame:
+      pos = rot.inv().apply(pos)
+      vel = rot.inv().apply(vel)
+
     obs = np.hstack((pos, vel, quat))
+    obs_ = np.hstack((pos, vel, quat))
+
 
     if fl==0:
-       obs_ = np.zeros((self.time_horizon+1) * 3 + 10)
+        obs_ = np.zeros((self.time_horizon+1) * 3 + 10)
     else:
+        # ff_pos = np.array([ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)])
+        # ff_pos_stacked = ff_pos.reshape(-1, 3)
+        # ff_vel = np.diff(ff_pos_stacked, axis=0) / (3 * dt)
+        # # pad last timestep by repeating previous value
+        # ff_vel = np.r_[ff_vel, ff_vel[-1, None]]
+        # ff_terms_stacked = np.c_[ff_pos, ff_vel]
+        # ff_terms = ff_terms_stacked.flatten()
+        # obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos, ff_terms])
+
         ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
-        obs_ = np.hstack([obs, obs[0:3] - ref_func(t)[0].pos] + ff_terms)
+        obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos] + ff_terms)
 
 
     action, _states = self.policy.predict(obs_, deterministic=True)

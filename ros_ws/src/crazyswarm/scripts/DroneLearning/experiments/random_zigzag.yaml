@@ -12,15 +12,22 @@ kalman_warmup: 3.0
 # Run Details
 
 tasks: 
-  - ref: 'set_hover_ref'
-    cntrl: "PIDController"
-    time: 4.0
-    adaptive: False
-    policy_config: none
-    description: "Hover PID"
+  # - ref: 'set_hover_ref'
+  #   cntrl: "PIDController"
+  #   time: 4.0
+  #   adaptive: False
+  #   policy_config: none
+  #   description: "Hover PID"
+
+  # - ref: 'random_zigzag'
+  #   cntrl: "PPOController_trajectory"
+  #   time: 10.0
+  #   adaptive: False
+  #   policy_config: trajectory
+  #   description: "Trajectory PPO"
 
   - ref: 'random_zigzag'
-    cntrl: "PPOController_trajectory"
+    cntrl: "BC_Controller"
     time: 10.0
     adaptive: False
     policy_config: trajectory

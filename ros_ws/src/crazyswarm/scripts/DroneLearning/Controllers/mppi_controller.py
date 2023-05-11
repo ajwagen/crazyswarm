@@ -13,7 +13,7 @@ class MPPIController(ControllerBackbone):
   def __init__(self,isSim, policy_config="trajectory",adaptive=False):
     super().__init__(isSim, policy_config, isPPO=True)
 
-    self.mppi_controller = self.set_MPPI_cnotroller()
+    self.mppi_controller = self.set_MPPI_controller()
 
   def response(self, t, state, ref, ref_func, fl=1, adaptive=False):
     self.updateDt(t)

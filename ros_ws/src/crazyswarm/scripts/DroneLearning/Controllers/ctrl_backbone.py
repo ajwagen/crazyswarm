@@ -1,13 +1,14 @@
 import numpy as np
 import yaml
-from quadsim.learning.train_policy import DroneTask, RLAlgo, SAVED_POLICY_DIR, import_config, CONFIG_DIR
+from quadsim.learning.train_policy import DroneTask, RLAlgo, SAVED_POLICY_DIR, import_config, CONFIG_DIR, TEST_POLICY_DIR
 from stable_baselines3.common.env_util import make_vec_env
 
 # importing MPPI
 from quadrotor_torch import Quadrotor_torch
 from param_torch import Param, Timer
 import controller_torch
-
+from pathlib import Path
+import os
 
 class ControllerBackbone():
     def __init__(self, isSim, policy_config, isPPO = False):
@@ -61,8 +62,9 @@ class ControllerBackbone():
             self.task: DroneTask = DroneTask.TRAJFBFF
             # self.policy_name = "traj_fbff_h10_p1_3i"
             # self.policy_name = "traj_random_zigzag_curriculum"
-            self.policy_name = "traj_zigzag_1D"
+            self.policy_name = "ppo_base"
             self.config_filename = "trajectory_latency.py"
+            self.body_frame = True
 
     def set_policy(self,):
 
@@ -79,17 +81,19 @@ class ControllerBackbone():
             self.train_config = import_config(self.train_config)
         else:
             self.train_config = config
-        self.env = make_vec_env(self.task.env(), n_envs=8,
+        
+        self.env = make_vec_env(self.task.env(), n_envs=1,
             env_kwargs={
-                'config': self.train_config
+                'config': self.train_config,
+                'body_frame': self.body_frame,
             }
         )
-        self.evalenv = self.task.env()(config=config)
-        self.policy = self.algo_class.load(SAVED_POLICY_DIR / f'{self.policy_name}', self.env)
+
+        self.policy = self.algo_class.load(TEST_POLICY_DIR / f'{self.policy_name}', self.env)
         self.prev_pos = 0.
     
-    def set_MPPI_cnotroller(self,):
-        config_dir = "/home/rwik/rwik_hdd/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
+    def set_MPPI_controller(self,):
+        config_dir = "/home/guanya/rwik/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
         with open(config_dir + "/zigzag.yaml") as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
         
@@ -98,3 +102,9 @@ class ControllerBackbone():
         controller = controller_torch.MPPI_thrust_omega(env_MPPI, config)
         
         return controller
+
+    def set_BC_policy(self, ):
+        from imitation.algorithms import bc
+        bc_policy_name = 'ppo_mppi_bc'
+
+        self.bc_policy = bc.reconstruct_policy(TEST_POLICY_DIR / f'{bc_policy_name}')
