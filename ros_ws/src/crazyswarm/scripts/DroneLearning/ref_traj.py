@@ -2,6 +2,7 @@ import numpy as np
 from cf_utils.rigid_body import State_struct
 from scipy.spatial.transform import Rotation as R
 from quadsim.learning.refs.random_zigzag import RandomZigzag
+from quadsim.learning.refs.polynomial_ref import PolyRef
 import copy
 
 class Trajectories:
@@ -15,6 +16,8 @@ class Trajectories:
 
         self.random_zigzag_obj = RandomZigzag(max_D=np.array([1,0.0,0]), seed= np.random.randint(10000, size=1)[0])
         self.random_zigzag_obj.isShift = True
+
+        self.random_poly_obj = PolyRef(altitude=0.0, seed=np.random.randint(10000, size=1)[0])
     
     # ESSENTIAL FUNCTIONS
     # Cubic Polynomial trajectory for Goto
@@ -146,8 +149,14 @@ class Trajectories:
         ref = State_struct(pos=ref_pos, vel=ref_vel)
 
         return ref, self.ret
+    
+    def random_poly(self, t):
+        ref_pos = self.random_poly_obj.pos(t)
+        ref_vel = self.random_poly_obj.vel(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel)
 
-
+        return ref, self.ret
+        
 
 
     # LEGACY CODES
