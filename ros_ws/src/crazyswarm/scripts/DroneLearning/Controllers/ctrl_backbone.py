@@ -62,9 +62,12 @@ class ControllerBackbone():
             self.task: DroneTask = DroneTask.TRAJFBFF
             # self.policy_name = "traj_fbff_h10_p1_3i"
             # self.policy_name = "traj_random_zigzag_curriculum"
-            self.policy_name = "ppo_base"
+            # self.policy_name = "ppo_base"
+            # self.policy_name = "traj_mixed_reset_thresh_5000_body_frame_relative_fixed3_7500000_steps.zip"
+            self.policy_name = "rwik_test"
             self.config_filename = "trajectory_latency.py"
             self.body_frame = True
+            self.relative = True
 
     def set_policy(self,):
 
@@ -86,6 +89,7 @@ class ControllerBackbone():
             env_kwargs={
                 'config': self.train_config,
                 'body_frame': self.body_frame,
+                'relative': self.relative
             }
         )
 

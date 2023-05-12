@@ -50,9 +50,16 @@ class PPOController_trajectory(ControllerBackbone):
         # ff_terms_stacked = np.c_[ff_pos, ff_vel]
         # ff_terms = ff_terms_stacked.flatten()
         # obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos, ff_terms])
+        if self.relative:
+          # pass
+          # obs_ = np.hstack([obs_, obs_[0:3] - rot.inv().apply(self.ref.pos(self.t))] + [obs_[0:3] - rot.inv().apply(self.ref.pos(self.t + 3 * i * self.dt)) for i in range(self.time_horizon)])
+          # print(rot.inv().apply(ref_func(t)[0].pos))
+          # print([obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * self.dt)[0].pos) for i in range(self.time_horizon)])
+          obs_ = np.hstack([obs_, obs_[0:3] - rot.inv().apply(ref_func(t)[0].pos)] + [obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * dt)[0].pos) for i in range(self.time_horizon)])
 
-        ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
-        obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos] + ff_terms)
+        else:
+          ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
+          obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos] + ff_terms)
 
 
     action, _states = self.policy.predict(obs_, deterministic=True)
