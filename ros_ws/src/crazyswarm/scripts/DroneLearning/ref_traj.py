@@ -14,10 +14,10 @@ class Trajectories:
 
         self.ret = 0
 
-        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1,0.0,0]), seed= np.random.randint(10000, size=1)[0])
-        self.random_zigzag_obj.isShift = True
+        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 0.0,0]), seed=1)
+        self.random_zigzag_obj.isShift = False
 
-        self.random_poly_obj = PolyRef(altitude=0.0, seed=np.random.randint(10000, size=1)[0])
+        self.random_poly_obj = PolyRef(altitude=0.0, seed=22)
     
     # ESSENTIAL FUNCTIONS
     # Cubic Polynomial trajectory for Goto
@@ -81,14 +81,14 @@ class Trajectories:
             ref.snap[0:2] *= 0 
 
 
-        return ref, self.ret
+        return ref, self.ret, None
     
     def set_hover_ref(self, t):
         ref_pos = np.array([0., 0.0, 0.0])
         ref_vel = np.array([0., 0., 0])
         ref = State_struct(pos=ref_pos, vel=ref_vel)
         self.ret = 0
-        return ref, self.ret
+        return ref, self.ret, None
     
 
     def set_landing_ref(self, t, landing_height, landing_rate):
@@ -98,7 +98,7 @@ class Trajectories:
         ref_vel = np.array([0., 0., 0])
         ref = State_struct(pos=ref_pos, vel=ref_vel, rot=ref_rot)
         self.ret = 0
-        return ref, self.ret
+        return ref, self.ret, None
     
     # EXEPRIMENT RUN trajectories
     def yaw_rot(self,t):
@@ -109,7 +109,7 @@ class Trajectories:
         ref_rot = np.array([min(rate * t, 2 * (np.pi / 3)), 0., 0. ])
         ref = State_struct(pos=ref_pos,vel=ref_vel, rot=R.from_euler("ZYX", ref_rot))
 
-        return ref, self.ret
+        return ref, self.ret, None
 
     def set_circle_ref(self, t):
         radius = 0.5
@@ -118,7 +118,7 @@ class Trajectories:
         ref_vel = np.array([0., 0., 0])
         ref = State_struct(pos=ref_pos, vel=ref_vel)
         self.ret = 0
-        return ref, self.ret
+        return ref, self.ret, None
    
     def zigzag_traj(self, t, T=1, D=1):
         
@@ -131,7 +131,7 @@ class Trajectories:
         ref_pos = np.array([x, 0, 0])
         ref = State_struct(pos=ref_pos)
 
-        return ref, ref_pos   
+        return ref, ref_pos, None
 
     def zigzag_guanya(self, t):
         p = 2. # period
@@ -141,24 +141,22 @@ class Trajectories:
         ref_pos = np.array([x, 0, 0])
         ref = State_struct(pos=ref_pos)
 
-        return ref, ref_pos
+        return ref, ref_pos, None
 
     def random_zigzag(self, t):
         ref_pos = self.random_zigzag_obj.pos(t)
         ref_vel = self.random_zigzag_obj.vel(t)
         ref = State_struct(pos=ref_pos, vel=ref_vel)
 
-        return ref, self.ret
+        return ref, self.ret, self.random_zigzag_obj
     
     def random_poly(self, t):
         ref_pos = self.random_poly_obj.pos(t)
         ref_vel = self.random_poly_obj.vel(t)
         ref = State_struct(pos=ref_pos, vel=ref_vel)
 
-        return ref, self.ret
+        return ref, self.ret, self.random_poly_obj
         
-
-
     # LEGACY CODES
     def DONT_USE_set_takeoff_ref(self, t, takeoff_height, takeoff_rate):
         moving_pt = takeoff_rate * t
@@ -166,7 +164,7 @@ class Trajectories:
         ref_vel = np.array([0., 0., 0])
         ref = State_struct(pos=ref_pos, vel = ref_vel)
         self.ret = 0
-        return ref, self.ret
+        return ref, self.ret, None
 
     def DONT_USE_set_takeoff_ref_flat(self, t, takeoff_height, takeoff_rate):
         T = takeoff_height / takeoff_rate
@@ -195,7 +193,7 @@ class Trajectories:
                            jerk=ref_jerk,
                            snap=ref_snap)
         self.ret = 0
-        return ref, self.ret
+        return ref, self.ret, None
 
     def DONT_USE_goto_legacy(self, t, final_point):
         rate = 0.3
@@ -209,4 +207,4 @@ class Trajectories:
         ref_vel = np.array([0., 0., 0])
         ref = State_struct(pos=ref_pos, vel=ref_vel)
         
-        return ref, self.ret
+        return ref, self.ret, None

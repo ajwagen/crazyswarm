@@ -93,8 +93,9 @@ class ControllerBackbone():
         self.prev_pos = 0.
     
     def set_MPPI_controller(self,):
-        config_dir = "/home/guanya/rwik/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
-        with open(config_dir + "/zigzag.yaml") as f:
+        config_dir = "/mnt/hdd/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
+        # config_dir = "/home/guan/ya/rwik/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
+        with open(config_dir + "/hover.yaml") as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
         
         self.param_MPPI = Param(config, MPPI=True)

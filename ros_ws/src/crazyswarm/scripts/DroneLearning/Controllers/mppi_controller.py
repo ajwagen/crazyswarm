@@ -15,7 +15,17 @@ class MPPIController(ControllerBackbone):
 
     self.mppi_controller = self.set_MPPI_controller()
 
-  def response(self, t, state, ref, ref_func, fl=1, adaptive=False):
+  def ref_func_t(self, t):
+    ref_pos = self.ref_func_obj.pos(t).T
+    ref_vel = self.ref_func_obj.vel(t).T
+    ref_quat = self.ref_func_obj.quat(t).T
+    ref_angvel = self.ref_func_obj.angvel(t).T
+
+    ref = np.hstack((ref_pos, ref_vel, ref_quat, ref_angvel))
+
+    return ref
+  
+  def response(self, t, state, ref, ref_func, ref_func_obj, fl=1, adaptive=False):
     self.updateDt(t)
     if fl:
       self.prev_t = t
@@ -23,6 +33,8 @@ class MPPIController(ControllerBackbone):
     vel = state.vel
     rot = state.rot
     ang = state.ang
+
+    self.ref_func_obj = ref_func_obj
 
     quat = rot.as_quat()
     # (x,y,z,w) -> (w,x,y,z)
@@ -35,8 +47,8 @@ class MPPIController(ControllerBackbone):
 
     state_torch = torch.as_tensor(noisystate, dtype=torch.float32)
     
-    action = self.mppi_controller.policy_cf(state=state_torch, time=t).cpu().numpy()
-
+    # action = self.mppi_controller.policy_cf(state=state_torch, time=t).cpu().numpy()
+    action = self.mppi_controller.policy_with_ref_func(state=state_torch, time=t, new_ref_func=self.ref_func_t).cpu().numpy()
     # MPPI controller designed for output in world frame
     # World Frame -> Body Frame
     

@@ -19,13 +19,13 @@ class PIDController(ControllerBackbone):
 
     # self.mppi_controller = self.set_MPPI_cnotroller()
 
-  def response(self, t, state, ref, ref_func, fl=1):
+  def response(self, t, state, ref, ref_func, ref_func_obj, fl=1):
 
     self.updateDt(t)
     if fl:
       self.prev_t = t
 
-    # PID
+    # P[ID
     pos = state.pos
     vel = state.vel
     rot = state.rot

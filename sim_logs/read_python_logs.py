@@ -31,7 +31,7 @@ def plot_npz(filename):
     plt.plot(ts, ref_positions[:, 2], label='ref position')
     plt.legend()
     plt.suptitle('positions (python)')
-    plt.savefig("plots/position.jpg")
+    # plt.savefig("plots/position.jpg")
 
     pos_rmse = np.sqrt(np.mean(pose_positions - ref_positions, axis=0) ** 2)
     print("position RMSE : ", pos_rmse)
@@ -45,7 +45,7 @@ def plot_npz(filename):
     plt.plot(ts, error[:, 1])
     plt.subplot(3, 1, 3, sharex=ax)
     plt.plot(ts, error[:, 2])
-    plt.savefig('plots/error.jpg')
+    # plt.savefig('plots/error.jpg')
 
     plt.figure()
     ax2 = plt.subplot(3, 1, 1)
@@ -59,7 +59,7 @@ def plot_npz(filename):
     plt.plot(ts, pose_orientations[:, 0], color='red', label='Euler Angle (deg)')
     plt.suptitle('cf/pose orientation (python) & ang vel cmds')
     plt.legend()
-    plt.savefig("plots/angvel.jpg")
+    # plt.savefig("plots/angvel.jpg")
 
 
     # plt.figure(2)
@@ -74,7 +74,7 @@ def plot_npz(filename):
     plt.figure()
     plt.plot(ts, thrust_cmds)
     plt.title('Cmd z acc (python)')
-    plt.savefig("plots/thrust.jpg")
+    # plt.savefig("plots/thrust.jpg")
     plt.show()
 
 if __name__ == "__main__":

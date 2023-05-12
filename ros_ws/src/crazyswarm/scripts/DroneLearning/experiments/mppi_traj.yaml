@@ -33,9 +33,9 @@ tasks:
   #   policy_config: trajectory
   #   description: "Trajectory ppo"
 
-  - ref: 'zigzag_guanya'
+  - ref: 'random_zigzag'
     cntrl: "MPPIController"
-    time: 20.0
+    time: 10.0
     adaptive: False
     policy_config: none
     description: "Trajectory mppi"

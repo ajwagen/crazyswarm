@@ -36,6 +36,9 @@ from quadsim.models import IdentityModel,crazyflieModel
 
 from pathlib import Path
 
+from quadsim.learning.refs.random_zigzag import RandomZigzag
+
+
 np.set_printoptions(linewidth=np.inf)
 
 sleepRate = 50
@@ -59,6 +62,8 @@ class ctrlCF():
         self.prev_state = State_struct()
         self.ref = State_struct()
         self.ref_func = None
+        self._ref_func_obj = RandomZigzag()
+
         # self.state = np.zeros(14)
         # self.prev_state = np.zeros(14)
         # self.default_controller  = PIDController(isSim = self.isSim)
@@ -75,7 +80,7 @@ class ctrlCF():
             #                                         policy_config = "hover", 
             #                                         adaptive = False)
         
-        self.default_controller.response(0.1, self.state, self.ref,self.ref_func,fl=0.)
+        self.default_controller.response(0.1, self.state, self.ref,self.ref_func, self._ref_func_obj, fl=0.)
 
         self.curr_controller = self.default_controller
 
@@ -96,7 +101,7 @@ class ctrlCF():
                                                                                             policy_config = self.config["tasks"][i]["policy_config"],
                                                                                             adaptive = self.config["tasks"][i]["adaptive"])
                 # Warming up controller
-                self.controllers[ctrl_policy].response(0.1, self.state, self.ref, self.ref_func, fl=0.)
+                self.controllers[ctrl_policy].response(0.1, self.state, self.ref, self.ref_func, self._ref_func_obj, fl=0.)
                 # self.controller.trajectories = Trajectories
         
 
@@ -313,10 +318,10 @@ class ctrlCF():
         else:
 
             # Rwik :
-            # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'sim_logs'
+            LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'sim_logs'
             
             # Guanya :
-            LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
+            # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
 
             # Kevin : 
             # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
@@ -381,7 +386,7 @@ class ctrlCF():
                 final_pt = np.array([0., 0., self.config["takeoff_height"],])
                 self.trajs._goto_init(final_pt, self.config["takeoff_rate"])
 
-            self.ref,_ = self.trajs.DONT_USE_set_takeoff_ref(t - self.warmup_time,
+            self.ref,_ , self._ref_func_obj= self.trajs.DONT_USE_set_takeoff_ref(t - self.warmup_time,
                                                     self.config["takeoff_height"],
                                                     self.config["takeoff_rate"])
             
@@ -415,7 +420,7 @@ class ctrlCF():
             if t < self.takeoff_time + self.warmup_time + self.tasks_time:
                 self.trajs.curr_state.pos -= offset_pos
                 self.ref_func = getattr(self.trajs, self.tasks[self.task_num]["ref"])
-                self.ref, _ = getattr(self.trajs, self.tasks[self.task_num]["ref"])(t-self.prev_task_time)
+                self.ref, _, self._ref_func_obj = getattr(self.trajs, self.tasks[self.task_num]["ref"])(t-self.prev_task_time)
                 self.ref.pos += offset_pos           
 
         ###### Landing
@@ -430,7 +435,7 @@ class ctrlCF():
                 # final_pt[2] = self.config["landing_height"]
                 # self.trajs._goto_init(final_pt, self.config["landing_rate"])
                 
-            self.ref,_ = self.trajs.set_landing_ref(t - self.land_start_timer, 
+            self.ref,_ ,self._ref_func_obj= self.trajs.set_landing_ref(t - self.land_start_timer, 
                                                     self.config["landing_height"],
                                                     self.config["landing_rate"])  
                  
@@ -476,7 +481,7 @@ class ctrlCF():
                 # Sending state data to the controller
                 z_acc,ang_vel = 0.,np.array([0.,0.,0.])      
                 if t>self.warmup_time:
-                    z_acc,ang_vel = self.curr_controller.response(t-self.prev_task_time,self.state,self.ref, self.ref_func)
+                    z_acc,ang_vel = self.curr_controller.response(t-self.prev_task_time,self.state,self.ref, self.ref_func, self._ref_func_obj)
 
                 self.pose_positions.append(np.copy(self.pose_pos))
                 self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
@@ -555,7 +560,7 @@ class ctrlCF():
             z_acc, ang_vel = 0., np.array([0., 0., 0.])
             if t > self.warmup_time:
                 z_acc, ang_vel = self.curr_controller.response(t - self.prev_task_time, self.state, 
-                                                               self.ref, self.ref_func)                                                               
+                                                               self.ref, self.ref_func, self._ref_func_obj)                                                               
                 obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=1.0, dists=None)
             
             # End Flight if landed

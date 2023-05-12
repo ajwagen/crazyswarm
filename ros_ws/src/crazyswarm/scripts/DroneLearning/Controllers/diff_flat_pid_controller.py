@@ -84,7 +84,7 @@ class diffFlat_PIDController(ControllerBackbone):
   #   #   exit()
   #   return bodyz_acc, omega_output 
 
-  def response(self, t, state, ref, ref_func, fl=1):
+  def response(self, t, state, ref, ref_func, ref_func_obj, fl=1):
 
     self.updateDt(t)
     if fl:
