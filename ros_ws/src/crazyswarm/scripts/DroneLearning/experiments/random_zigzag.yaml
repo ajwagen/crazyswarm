@@ -19,18 +19,25 @@ tasks:
   #   policy_config: none
   #   description: "Hover PID"
 
+  # - ref: 'random_zigzag'
+  #   cntrl: "PPOController_trajectory"
+  #   time: 10.0
+  #   adaptive: False
+  #   policy_config: trajectory
+  #   description: "Trajectory PPO"
+
   - ref: 'random_zigzag'
-    cntrl: "PPOController_trajectory"
+    cntrl: "BC_Controller"
     time: 10.0
     adaptive: False
     policy_config: trajectory
     description: "Trajectory PPO"
 
-  # - ref: 'random_poly'
-  #   cntrl: "BC_Controller"
+  # - ref: 'random_zigzag'
+  #   cntrl: "MPPIController"
   #   time: 10.0
   #   adaptive: False
-  #   policy_config: trajectory
-  #   description: "Trajectory PPO"
+  #   policy_config: none
+  #   description: "Trajectory mppi"
 
 rwik : hello

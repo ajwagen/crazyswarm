@@ -14,7 +14,7 @@ class BC_Controller(ControllerBackbone):
 
     self.set_BC_policy()
 
-  def response(self, t, state, ref , ref_func, ref_func_objfl=1, adaptive=False):
+  def response(self, t, state, ref , ref_func, ref_func_obj, fl=1, adaptive=False):
 
     if self.prev_t is None:
       dt = 0
@@ -44,10 +44,12 @@ class BC_Controller(ControllerBackbone):
         # ff_terms_stacked = np.c_[ff_pos, ff_vel]
         # ff_terms = ff_terms_stacked.flatten()
         # obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos, ff_terms])
-
-        ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
-        obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos] + ff_terms)
-
+        if self.body_frame and self.relative:
+            ff_terms = [obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * dt)[0].pos) for i in range(self.time_horizon)]
+            obs_ = np.hstack([obs_, obs_[0:3] - rot.inv().apply(ref_func(t)[0].pos)] + ff_terms)
+        else:
+            ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
+            obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos] + ff_terms)
 
     action, _states = self.bc_policy.predict(obs_, deterministic=True)
 

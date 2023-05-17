@@ -40,7 +40,7 @@ class MPPIController(ControllerBackbone):
     # (x,y,z,w) -> (w,x,y,z)
     quat = np.roll(quat, 1)
 
-    obs = np.hstack((pos, vel, quat, ang))
+    obs = np.hstack((pos, vel, quat))
     noise = np.random.normal(scale=self.param_MPPI.noise_measurement_std)
     noisystate = obs + noise
     noisystate[6:10] /= np.linalg.norm(noisystate[6:10])

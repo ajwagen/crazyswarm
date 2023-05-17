@@ -97,7 +97,9 @@ class ControllerBackbone():
         self.prev_pos = 0.
     
     def set_MPPI_controller(self,):
-        config_dir = "/mnt/hdd/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
+        config_dir = config_dir = os.path.dirname(os.path.abspath(__file__)) + "/mppi_config"
+
+        # config_dir = "/mnt/hdd/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
         # config_dir = "/home/guan/ya/rwik/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
         with open(config_dir + "/hover.yaml") as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
@@ -110,6 +112,10 @@ class ControllerBackbone():
 
     def set_BC_policy(self, ):
         from imitation.algorithms import bc
-        bc_policy_name = 'ppo_mppi_bc'
-
+        # bc_policy_name = 'ppo_mppi_bc'
+        # bc_policy_name = 'ppo-mppi_zigzag_bc'
+        # bc_policy_name = 'ppo-mppi_zigzag_bf_rel_bc'
+        bc_policy_name = 'ppo-mppi_zigzag_xy_bf_rel_2_bc'
+        self.body_frame = True
+        self.relative = True
         self.bc_policy = bc.reconstruct_policy(TEST_POLICY_DIR / f'{bc_policy_name}')

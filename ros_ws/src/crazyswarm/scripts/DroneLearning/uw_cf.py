@@ -318,10 +318,10 @@ class ctrlCF():
         else:
 
             # Rwik :
-            LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'sim_logs'
+            # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'sim_logs'
             
             # Guanya :
-            # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
+            LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
 
             # Kevin : 
             # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'

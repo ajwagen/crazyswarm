@@ -14,7 +14,7 @@ class Trajectories:
 
         self.ret = 0
 
-        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 0.0,0]), seed=4)
+        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 0.0,0]), seed=10)
         self.random_zigzag_obj.isShift = False
 
         self.random_poly_obj = PolyRef(altitude=0.0, seed=4)
