@@ -19,12 +19,12 @@ tasks:
   #   policy_config: none
   #   description: "Trajectory PID"
 
-  - ref: 'random_zigzag'
-    cntrl: "PPOController_trajectory"
-    time: 10.0
-    adaptive: False
-    policy_config: trajectory_2d
-    description: "Trajectory PPO"
+  # - ref: 'random_zigzag'
+  #   cntrl: "PPOController_trajectory"
+  #   time: 10.0
+  #   adaptive: False
+  #   policy_config: trajectory_2d
+  #   description: "Trajectory PPO"
 
   # - ref: 'random_zigzag'
   #   cntrl: "BC_Controller"
@@ -33,11 +33,11 @@ tasks:
   #   policy_config: trajectory
   #   description: "Trajectory BC"
 
-  # - ref: 'random_zigzag'
-    # cntrl: "MPPIController"
-    # time: 10.0
-    # adaptive: False
-    # policy_config: none
-    # description: "Trajectory mppi"
+  - ref: 'random_zigzag'
+    cntrl: "MPPIController"
+    time: 10.0
+    adaptive: False
+    policy_config: none
+    description: "Trajectory mppi"
 
 rwik : hello
