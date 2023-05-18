@@ -16,10 +16,10 @@ class Trajectories:
 
         self.ret = 0
 
-        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 1.0, 0]), seed=0)
+        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 1.0, 0]), seed=2)
         self.random_zigzag_obj.isShift = False
         self.random_poly_obj = PolyRef(altitude=0.0, seed=4)
-        self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=1)
+        self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=2)
         self.circle_ref_obj = CircleRef(rad=0.5, period=2.0, altitude=0.0)
 
     

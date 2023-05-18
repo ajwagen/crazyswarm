@@ -120,8 +120,8 @@ class ControllerBackbone():
     def set_BC_policy(self, ):
         from imitation.algorithms import bc
         # bc_policy_name = 'ppo_mppi_bc'
-        # bc_policy_name = 'ppo-mppi_zigzag_bc'
         # bc_policy_name = 'ppo-mppi_zigzag_bf_rel_bc'
+        # bc_policy_name = 'ppo-mppi_zigzag_bc'
         bc_policy_name = 'ppo-mppi_zigzag_xy_bc'
         self.body_frame = False
         self.relative = False
