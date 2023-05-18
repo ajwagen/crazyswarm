@@ -23,7 +23,7 @@ def plot_npz(filename):
         st= first_nonzero(saved_data['ref_positions'],0)[0]
 
         print(saved_data['pose_positions'][st])
-        data['pose_positions'] = saved_data['pose_positions'][st:k]
+        data['pose_positions'] = saved_data['pose_positions'][st:k] - saved_data['cf_positions'][st]
         data['pose_orientations'] = saved_data['pose_orientations'][st:k]
         data['cf_positions'] = saved_data['cf_positions'][st:k] - saved_data['cf_positions'][st]
         data['ts'] = saved_data['ts'][st:k]
@@ -47,21 +47,26 @@ def plot_npz(filename):
     plt.figure(0)
     ax1 = plt.subplot(3, 1, 1)
     for key in data_dict.keys():
-        # plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 0], label='/cf/pose position')
-        plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 0], label='cf.position()')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 0], label='/cf/pose position')
+        # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 0], label='cf.position()')
         plt.plot(data_dict[key]['ts'], data_dict[key]['ref_positions'][:, 0])
     plt.subplot(3, 1, 2, sharex=ax1)
     for key in data_dict.keys():
-        # plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 1], label='/cf/pose position')
-        plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 1], label='cf.position()')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 1], label='/cf/pose position')
+        # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 1], label='cf.position()')
         plt.plot(data_dict[key]['ts'], data_dict[key]['ref_positions'][:, 1])
     plt.subplot(3, 1, 3, sharex=ax1)
     for key in data_dict.keys():
-        # plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 2], label='/cf/pose position')
-        plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 2], label=key+'_cf.position()')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 2], label='/cf/pose position')
+        # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 2], label=key+'_cf.position()')
         plt.plot(data_dict[key]['ts'], data_dict[key]['ref_positions'][:, 2],label=key+'_ref position')
     plt.legend()
     plt.suptitle('PPO curriculum')
+    
+    pos_rmse = np.sqrt(np.mean(data_dict[key]['cf_positions'] - data_dict[key]['ref_positions'], axis=0) ** 2)
+    print("position RMSE : ", pos_rmse)
+    print("total position RMSE", np.linalg.norm(pos_rmse))
+    error = data_dict[key]['ref_positions'] - data_dict[key]['cf_positions']
 
     plt.figure(1)
     ax1 = plt.subplot(3, 1, 1)

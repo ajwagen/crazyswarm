@@ -2,6 +2,7 @@
 import signal
 import sys
 import time
+import os
 sys.path.append('..')
 
 import argparse
@@ -246,7 +247,7 @@ class ctrlCF():
         # self.cf_orientation = R>from_quat()
 
         # Adding ROS subscribed data to state
-        self.state.pos = self.pos_pos
+        self.state.pos = self.pose_pos
         self.state.vel = (self.state.pos - self.prev_state.pos) / (0.02) 
         self.state.rot = R.from_quat(rot)
         self.prev_state = copy.deepcopy(self.state)
@@ -279,10 +280,11 @@ class ctrlCF():
 
         if not self.isSim:
             # Rwik :
-            LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
+            # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/"
 
             # Guanya :
-            LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
+            # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
 
             
             # Kevin : 
@@ -302,7 +304,7 @@ class ctrlCF():
             # self.ppo_acc = np.array(self.ppo_acc)
             # self.ppo_ang = np.array(self.ppo_ang)
     
-            np.savez(LOG_DIR / self.logfile, 
+            np.savez(LOG_DIR + self.logfile, 
                 pose_positions=self.pose_positions,
                 pose_orientations=self.pose_orientations,
                 motrack_orientation = self.pose_orient_mocap,
@@ -321,7 +323,8 @@ class ctrlCF():
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'sim_logs'
             
             # Guanya :
-            LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
+            # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
             # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
@@ -334,7 +337,7 @@ class ctrlCF():
             self.thrust_cmds = np.array(self.thrust_cmds)
             self.ang_vel_cmds = np.array(self.ang_vel_cmds)
     
-            np.savez(LOG_DIR / self.logfile, 
+            np.savez(LOG_DIR + self.logfile, 
                     pose_positions=self.pose_positions,
                     pose_orientations=self.pose_orientations,
                     ref_positions = self.ref_positions,

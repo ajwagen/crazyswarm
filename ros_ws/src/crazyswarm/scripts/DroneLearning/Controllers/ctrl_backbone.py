@@ -64,7 +64,14 @@ class ControllerBackbone():
             # self.policy_name = "traj_random_zigzag_curriculum"
             # self.policy_name = "ppo_base"
             # self.policy_name = "traj_mixed_reset_thresh_5000_body_frame_relative_fixed3_7500000_steps.zip"
-            self.policy_name = "rwik_test"
+            self.policy_name = "ppo-rl-zigzag_x_bf_rel.zip" # traj_mixed_reset_thresh_5000_body_frame_relative_fixed3_7500000_steps.zip
+            self.config_filename = "trajectory_latency.py"
+            self.body_frame = True
+            self.relative = True
+        
+        if self.policy_config == "trajectory_2d":
+            self.task: DroneTask = DroneTask.TRAJFBFF
+            self.policy_name = "ppo-rl-zigzag_xy_bf_rel.zip" # traj_mixed2D_reset_thresh_5000_body_frame_relative_fixed3.zip
             self.config_filename = "trajectory_latency.py"
             self.body_frame = True
             self.relative = True
@@ -115,7 +122,7 @@ class ControllerBackbone():
         # bc_policy_name = 'ppo_mppi_bc'
         # bc_policy_name = 'ppo-mppi_zigzag_bc'
         # bc_policy_name = 'ppo-mppi_zigzag_bf_rel_bc'
-        bc_policy_name = 'ppo-mppi_zigzag_xy_bf_rel_2_bc'
-        self.body_frame = True
-        self.relative = True
+        bc_policy_name = 'ppo-mppi_zigzag_xy_bc'
+        self.body_frame = False
+        self.relative = False
         self.bc_policy = bc.reconstruct_policy(TEST_POLICY_DIR / f'{bc_policy_name}')

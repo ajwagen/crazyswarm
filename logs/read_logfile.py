@@ -103,7 +103,8 @@ if __name__ == "__main__":
     data = data['fixedFrequency']  
 
     ts = data['timestamp']
-
+    
+    plt.figure()
     plt.subplot(3, 1, 1)
     plt.plot(ts, data['ctrlMel.roll_vel_des'] * 180 / np.pi)
     plt.plot(ts, data['gyro.x'], color='red')
@@ -118,6 +119,9 @@ if __name__ == "__main__":
     plt.plot('Yaw')
 
     plt.suptitle('Ang velocity')
+
+    # plt.figure()
+
     plt.show()
 
     # prefixes = defaultdict(list)

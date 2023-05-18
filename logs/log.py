@@ -172,6 +172,7 @@ except:
     pass
 try:
     plt.plot(logData['tick'], logData['ctrlRwik.ref_z'], color='green')
+    print("hello")
 except:
     pass
 plt.suptitle('position')

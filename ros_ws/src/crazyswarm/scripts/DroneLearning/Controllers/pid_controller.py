@@ -11,7 +11,7 @@ class PIDController(ControllerBackbone):
     self.kp_pos = 6.0
     self.kd_pos = 4.0
     self.ki_pos = 1.2 # 0 for sim
-    self.kp_rot =   90.0/16
+    self.kp_rot =   180.0/16
     self.yaw_gain = 220.0/16
     self.kp_ang =   16
 
@@ -25,17 +25,18 @@ class PIDController(ControllerBackbone):
     if fl:
       self.prev_t = t
 
-    # P[ID
+    # PID
     pos = state.pos
     vel = state.vel
     rot = state.rot
     p_err = pos - ref.pos
+    v_err = vel - ref.vel
     # Updating error for integral term.
     self.pos_err_int += p_err * self.dt
 
     acc_des = (np.array([0, 0, self.g]) 
               - self.kp_pos * (p_err) 
-              - self.kd_pos * (vel) 
+              - self.kd_pos * (v_err) 
               - self.ki_pos * self.pos_err_int 
               + ref.acc * np.zeros(3))
 
@@ -45,11 +46,16 @@ class PIDController(ControllerBackbone):
 
     rot_err = np.cross(u_des / acc_des, np.array([0, 0, 1]))
 
-    ref_orient = ref.rot.as_euler("ZYX")
-    yaw, _, _ = rot.as_euler('ZYX')
-    yaw_des = ref_orient[0]  # self.ref.yaw(t)
-
+    eulers = rot.as_euler("ZYX")
+    yaw = eulers[0]
     omega_des = - self.kp_rot * rot_err
-    omega_des[2] = - self.yaw_gain * (yaw - yaw_des)
+    omega_des[2] += - self.yaw_gain * (yaw - 0.0)
+
+    # ref_orient = ref.rot.as_euler("ZYX")
+    # yaw, _, _ = rot.as_euler('ZYX')
+    # yaw_des = ref_orient[0]  # self.ref.yaw(t)
+
+    # omega_des = - self.kp_rot * rot_err
+    # omega_des[2] = - self.yaw_gain * (yaw - yaw_des)
     # print("PID a : ", acc_des, " w : ", omega_des, "MPPI a: ", action[0], " w : ", omega_d)
     return acc_des, omega_des

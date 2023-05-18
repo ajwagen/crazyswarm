@@ -3,6 +3,8 @@ from cf_utils.rigid_body import State_struct
 from scipy.spatial.transform import Rotation as R
 from quadsim.learning.refs.random_zigzag import RandomZigzag
 from quadsim.learning.refs.polynomial_ref import PolyRef
+from quadsim.learning.refs.chained_poly_ref import ChainedPolyRef
+from quadsim.learning.refs.circle_ref import CircleRef
 import copy
 
 class Trajectories:
@@ -14,10 +16,12 @@ class Trajectories:
 
         self.ret = 0
 
-        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 0.0,0]), seed=10)
+        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 1.0, 0]), seed=0)
         self.random_zigzag_obj.isShift = False
-
         self.random_poly_obj = PolyRef(altitude=0.0, seed=4)
+        self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=1)
+        self.circle_ref_obj = CircleRef(rad=0.5, period=2.0, altitude=0.0)
+
     
     # ESSENTIAL FUNCTIONS
     # Cubic Polynomial trajectory for Goto
@@ -111,7 +115,7 @@ class Trajectories:
 
         return ref, self.ret, None
 
-    def set_circle_ref(self, t):
+    def DONT_USE_set_circle_ref(self, t):
         radius = 0.5
         center = np.array([-radius, 0., 0.])
         ref_pos = np.array([radius * np.cos(t * 0.6), radius * np.sin(t * 0.6), 0.0]) + center
@@ -147,7 +151,6 @@ class Trajectories:
         ref_pos = self.random_zigzag_obj.pos(t)
         ref_vel = self.random_zigzag_obj.vel(t)
         ref = State_struct(pos=ref_pos, vel=ref_vel)
-
         return ref, self.ret, self.random_zigzag_obj
     
     def random_poly(self, t):
@@ -156,7 +159,21 @@ class Trajectories:
         ref = State_struct(pos=ref_pos, vel=ref_vel)
 
         return ref, self.ret, self.random_poly_obj
-        
+    
+    def random_chained_poly(self, t):
+        ref_pos = self.random_chained_poly_obj.pos(t)
+        ref_vel = self.random_chained_poly_obj.vel(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel)
+
+        return ref, self.ret, self.random_chained_poly_obj
+
+    def circle_ref(self, t):
+        ref_pos = self.circle_ref_obj.pos(t)
+        ref_vel = self.circle_ref_obj.vel(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel)
+
+        return ref, self.ret, self.circle_ref_obj
+    
     # LEGACY CODES
     def DONT_USE_set_takeoff_ref(self, t, takeoff_height, takeoff_rate):
         moving_pt = takeoff_rate * t
