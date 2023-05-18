@@ -32,7 +32,8 @@ def plot_npz(filename, files_n_types, args):
 
         data['ts'] = saved_data['ts'][t_mask]
         data['pose_positions'] = saved_data['pose_positions'][t_mask] #- saved_data['pose_positions'][st]
-        data['pose_positions'] -= data["pose_positions"][0]
+        data['pose_positions'][:, :2] -= data["pose_positions"][0, :2]
+        data['pose_positions'][:, 2] -= 1.0
         data['pose_orientations'] = saved_data['pose_orientations'][t_mask]
 
         # data['cf_positions'] = saved_data['cf_positions'][t_mask] - saved_data['cf_positions'][st]
