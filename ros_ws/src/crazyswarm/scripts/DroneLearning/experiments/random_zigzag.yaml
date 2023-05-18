@@ -12,12 +12,12 @@ kalman_warmup: 3.0
 # Run Details
 
 tasks: 
-  # - ref: 'random_zigzag'
-  #   cntrl: "PIDController"
-  #   time: 10.0
-  #   adaptive: False
-  #   policy_config: none
-  #   description: "Trajectory PID"
+  - ref: 'set_hover_ref'
+    cntrl: "PIDController"
+    time: 3.0
+    adaptive: False
+    policy_config: none
+    description: "hover init"
 
   # - ref: 'random_zigzag'
   #   cntrl: "PPOController_trajectory"
@@ -35,7 +35,7 @@ tasks:
 
   - ref: 'random_zigzag'
     cntrl: "MPPIController"
-    time: 10.0
+    time: 11.0
     adaptive: False
     policy_config: none
     description: "Trajectory mppi"
