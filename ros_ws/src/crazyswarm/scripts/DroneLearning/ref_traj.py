@@ -16,7 +16,7 @@ class Trajectories:
 
         self.ret = 0
 
-        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 1.0, 0]), seed=0)
+        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 0.0, 0]), seed=2)
         self.random_zigzag_obj.isShift = False
         self.random_poly_obj = PolyRef(altitude=0.0, seed=4)
         self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=2)
@@ -163,7 +163,8 @@ class Trajectories:
     def random_chained_poly(self, t):
         ref_pos = self.random_chained_poly_obj.pos(t)
         ref_vel = self.random_chained_poly_obj.vel(t)
-        ref = State_struct(pos=ref_pos, vel=ref_vel)
+        ref_acc = self.random_chained_poly_obj.acc(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel, acc=ref_acc)
 
         return ref, self.ret, self.random_chained_poly_obj
 

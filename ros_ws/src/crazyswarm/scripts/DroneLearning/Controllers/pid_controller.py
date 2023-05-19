@@ -9,9 +9,9 @@ class PIDController(ControllerBackbone):
     super().__init__(isSim, policy_config)
 
     self.kp_pos = 6.0
-    self.kd_pos = 4.0
+    self.kd_pos = 6.0
     self.ki_pos = 1.2 # 0 for sim
-    self.kp_rot =   180.0/16
+    self.kp_rot =   150.0/16
     self.yaw_gain = 220.0/16
     self.kp_ang =   16
 
@@ -38,7 +38,7 @@ class PIDController(ControllerBackbone):
               - self.kp_pos * (p_err) 
               - self.kd_pos * (v_err) 
               - self.ki_pos * self.pos_err_int 
-              + ref.acc * np.zeros(3))
+              + 0.5 * ref.acc)
 
     u_des = rot.as_matrix().T.dot(acc_des)
 

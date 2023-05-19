@@ -16,6 +16,7 @@ class MPPIController(ControllerBackbone):
     self.mppi_controller = self.set_MPPI_controller()
 
   def ref_func_t(self, t):
+    # import pdb;pdb.set_trace()
     ref_pos = self.ref_func_obj.pos(t).T
     ref_vel = self.ref_func_obj.vel(t).T
     ref_quat = self.ref_func_obj.quat(t).T
