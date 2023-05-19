@@ -26,7 +26,7 @@ def plot_npz(filename, files_n_types, args):
         for key in saved_data.keys():
             saved_data[key] = saved_data[key][:minimum_len]
 
-        t_mask = (saved_data['ts'] > 5) * (saved_data['ts'] < args.runtime + 5)
+        t_mask = (saved_data['ts'] > 5 + args.hovertime) * (saved_data['ts'] < args.runtime + 5 + args.hovertime)
 
         st= first_nonzero(saved_data['ref_positions'],0)[0]
 
@@ -87,7 +87,7 @@ def plot_npz(filename, files_n_types, args):
         plt.suptitle(args.title + '   Position \n Sim RMSE {} \n Real RMSE {}'.format(np.round(sim_rmse, 3), np.round(real_rmse,3)))
         if args.showgraph:
             plt.savefig('temp', dpi=199)
-            os.rename('temp.png', args.exp_date + '/plots/' + args.simtag + '.png')
+            os.rename('temp.png',  'plots/' + args.simtag + '.png')
         
         plt.figure(1)
         ax1 = plt.subplot(3, 1, 1)
@@ -145,6 +145,7 @@ if __name__ == "__main__":
     parser.add_argument("--showgraph", type=int, default=0)
     parser.add_argument("--runtime", type=float, default=10)
     parser.add_argument("--title", type=str, default="")
+    parser.add_argument("--hovertime",type=float,default=0)
     args = parser.parse_args()
 
     exp_date = args.exp_date
