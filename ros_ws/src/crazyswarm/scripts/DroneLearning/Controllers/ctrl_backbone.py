@@ -1,6 +1,8 @@
 import numpy as np
 import yaml
+import torch
 from quadsim.learning.train_policy import DroneTask, RLAlgo, SAVED_POLICY_DIR, import_config, CONFIG_DIR, TEST_POLICY_DIR
+from quadsim.learning.utils.adaptation_network import AdaptationNetwork
 from stable_baselines3.common.env_util import make_vec_env
 
 # importing MPPI
@@ -11,10 +13,11 @@ from pathlib import Path
 import os
 
 class ControllerBackbone():
-    def __init__(self, isSim, policy_config, isPPO = False):
+    def __init__(self, isSim, policy_config, isPPO = False, adaptive=False):
         self.isSim = isSim
-        self.mass = 0.032
+        self.mass = 0.034
         self.g = 9.8
+        self.adaptive = adaptive
         # self.I = np.array([[3.144988, 4.753588, 4.640540],
         #                    [4.753588, 3.151127, 4.541223],
         #                    [4.640540, 4.541223, 7.058874]])*1e-5
@@ -38,7 +41,7 @@ class ControllerBackbone():
             self.dt = 0
 
     def select_policy_configs(self,):
-
+        self.log_scale = False
     # Naive Setpoint Tracking
         # No Adaptive Module
         if self.policy_config=="hover":
@@ -75,32 +78,39 @@ class ControllerBackbone():
             self.config_filename = "trajectory_latency.py"
             self.body_frame = True
             self.relative = True
+        
+               
+        if self.policy_config == "trajectory_2d_mass_adaptive":
+            self.task: DroneTask = DroneTask.TRAJFBFF
+            self.policy_name = "traj_mixed2D_mass_adaptive_symlog.zip"
+            self.adaptive_policy_name = 'RMA_mass_nowind.pth'
+            self.config_filename = "trajectory_mass_adaptive_low.py"
+            self.body_frame = True
+            self.relative = True
+            self.log_scale = True
 
     def set_policy(self,):
 
         self.select_policy_configs()
 
         self.algo = RLAlgo.PPO
-        self.eval_steps = 1000
-        self.train_config = None
+        # self.config = None
 
         self.algo_class = self.algo.algo_class()
 
         config = import_config(self.config_filename)
-        if self.train_config is not None:
-            self.train_config = import_config(self.train_config)
-        else:
-            self.train_config = config
-        
-        self.env = make_vec_env(self.task.env(), n_envs=1,
-            env_kwargs={
-                'config': self.train_config,
-                'body_frame': self.body_frame,
-                'relative': self.relative
-            }
+        # self.config = config
+        self.env = self.task.env()(
+            config=config,
+            log_scale = self.log_scale,
+            body_frame = self.body_frame,
+            relative = self.relative
         )
 
         self.policy = self.algo_class.load(TEST_POLICY_DIR / f'{self.policy_name}', self.env)
+        if self.adaptive == True:
+            self.adaptive_policy = AdaptationNetwork(10, 1)
+            self.adaptive_policy.load_state_dict(torch.load(TEST_POLICY_DIR / f'{self.adaptive_policy_name}'))
         self.prev_pos = 0.
     
     def set_MPPI_controller(self,):
