@@ -5,10 +5,12 @@ from quadsim.learning.refs.random_zigzag import RandomZigzag
 from quadsim.learning.refs.polynomial_ref import PolyRef
 from quadsim.learning.refs.chained_poly_ref import ChainedPolyRef
 from quadsim.learning.refs.circle_ref import CircleRef
+from quadsim.learning.refs import gen_trajectory
+
 import copy
 
 class Trajectories:
-    def __init__(self, init_pos=np.array([0.,0.,0.])):
+    def __init__(self, init_pos=np.array([0.,0.,0.]), gui = False):
         self.init_pos = init_pos
         self.last_state = State_struct()
         self.curr_state = State_struct()
@@ -21,6 +23,10 @@ class Trajectories:
         self.random_poly_obj = PolyRef(altitude=0.0, seed=4)
         self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=2)
         self.circle_ref_obj = CircleRef(rad=0.5, period=2.0, altitude=0.0)
+        
+        self.gui = gui
+        if self.gui:
+            self.gui_traj = gen_trajectory.main_loop()
 
     
     # ESSENTIAL FUNCTIONS
@@ -174,6 +180,16 @@ class Trajectories:
         ref = State_struct(pos=ref_pos, vel=ref_vel)
 
         return ref, self.ret, self.circle_ref_obj
+
+    def gui_traj_ref(self, t):
+        if self.gui:
+            ref_pos = self.gui_traj.pos(t)
+            ref_vel = self.gui_traj.vel(t)
+            ref = State_struct(pos=ref_pos, vel=ref_vel)
+            return ref, self.ret, self.gui_traj
+        
+        else:
+            return self.set_hover_ref(t)
     
     # LEGACY CODES
     def DONT_USE_set_takeoff_ref(self, t, takeoff_height, takeoff_rate):

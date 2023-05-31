@@ -51,13 +51,14 @@ class ctrlCF():
                  sim=False,
                  config_file="experiments/cf_config.yaml", 
                  log_file='log.npz', 
-                 debug=False):
+                 debug=False, 
+                 gui=False):
         
         self.cfName = cfName
         self.isSim = sim
         self.logfile = log_file
         self.debug = debug
-
+        self.gui = gui
         self.initialized = False
         self.state = State_struct()
         self.prev_state = State_struct()
@@ -182,10 +183,10 @@ class ctrlCF():
             self.tasks = self.config["tasks"]
 
         self.flag= {
-                    "takeoff":0,
-                    "land":0,
-                    "warmup":0,
-                    "tasks":[0]*len(self.tasks)}
+                    "takeoff": 0,
+                    "land": 0,
+                    "warmup": 0,
+                    "tasks":[0] * len(self.tasks)}
 
         self.task_num = -1
 
@@ -204,7 +205,7 @@ class ctrlCF():
                             and drone stops
         '''
         # All tasks are done taking the offset position (point after takeoff) as the origin
-        self.trajs = Trajectories(self.init_pos)
+        self.trajs = Trajectories(self.init_pos, self.gui)
 
         # Making a landing position buffer
         self.land_buffer = deque([0.]*5)
@@ -324,7 +325,8 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/may_18/sim/"
+            # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/may_18/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
             # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
@@ -607,13 +609,15 @@ if __name__ == "__main__":
     parser.add_argument('--config', action='store', type=str, default="experiments/hello_world.yaml")
     parser.add_argument('--logfile', action='store', type=str, default='log.npz')
     parser.add_argument('--debug', action='store', type=bool, default=False)
+    parser.add_argument('-gui', type=bool, default=False)
     g = EasyDict(vars(parser.parse_args()))
 
     x = ctrlCF(cfName="cf4", 
                sim=g.quadsim,
                config_file=g.config,
                log_file=g.logfile,
-               debug=g.debug)
+               debug=g.debug,
+               gui=g.gui)
 
     try:
         if g.quadsim:
