@@ -23,7 +23,7 @@ tasks:
     cntrl: "PPOController_trajectory"
     time: 10.0
     adaptive: False
-    policy_config: trajectory
+    policy_config: trajectory_2d
     description: "Trajectory mppi"
     seed : 20
     maxes : [1.0, 1.0, 0.0]

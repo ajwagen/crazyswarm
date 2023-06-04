@@ -23,7 +23,7 @@ tasks:
     cntrl: "PPOController_trajectory_adaptive"
     time: 10.0
     adaptive: True
-    policy_config: trajectory_2d_mass_wind_adaptive_ustruct
+    policy_config: trajectory_2d_mass_wind_adaptive
     description: "Trajectory PPO"
     maxes : [1.0, 1.0 ,0.0]
     seed : 0

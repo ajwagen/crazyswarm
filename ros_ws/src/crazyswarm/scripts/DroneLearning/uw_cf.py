@@ -293,7 +293,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_01/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_04/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -336,8 +336,8 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/may_18/sim/"
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_04/sim/"
+            # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
             # LOG_DIR = Path().home() / 'Drones' / 'crazyswarm_new' / 'logs'
@@ -349,7 +349,7 @@ class ctrlCF():
             self.ts = np.array(self.ts)
             self.thrust_cmds = np.array(self.thrust_cmds)
             self.ang_vel_cmds = np.array(self.ang_vel_cmds)
-    
+            print(LOG_DIR + self.logfile)
             np.savez(LOG_DIR + self.logfile, 
                     pose_positions=self.pose_positions,
                     pose_orientations=self.pose_orientations,

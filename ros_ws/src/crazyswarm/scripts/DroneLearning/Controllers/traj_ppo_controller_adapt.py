@@ -13,7 +13,7 @@ class PPOController_trajectory_adaptive(ControllerBackbone):
     super().__init__(isSim, policy_config, isPPO=True, adaptive=adaptive, pseudo_adapt = pseudo_adapt)
     # self.e_dims = e_dims
     self.set_policy()
-    self.obs_history = np.zeros((100, 14))
+    self.obs_history = np.zeros((50, 14))
 
   def response(self, t, state, ref , ref_func, ref_func_obj, fl=1, adaptive=1):
 

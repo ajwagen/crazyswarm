@@ -50,15 +50,17 @@ def plot_npz(filename, files_n_types, args):
     sim_key = list(data_dict.keys())[0]
     # pos_rmse = np.sqrt(np.mean((data_dict[sim_key]['pose_positions'] - data_dict[sim_key]['ref_positions']) ** 2, axis=0))
     sim_rmse = rmse(data_dict[sim_key]['ref_positions'], data_dict[sim_key]['pose_positions'])
-    print("sim RMSE : ", sim_rmse)
+    print("sim RMSE : ", list(sim_rmse))
 
     real_rmse = []
     for key in list(data_dict.keys())[1:] :
         pos_rmse = rmse(data_dict[key]['ref_positions'], data_dict[key]['pose_positions']) 
         real_rmse.append(pos_rmse)
 
+    print(real_rmse)
     real_rmse = np.mean(real_rmse, axis=0)
-    print("real RMSE : ", real_rmse)
+    print(real_rmse)
+    print("real RMSE : ", list(real_rmse))
 
     if args.showgraph:
         plt.figure(0)
@@ -162,7 +164,7 @@ if __name__ == "__main__":
     files_n_types = {exp_date + "/sim/" + simtag + ".npz" : "sim"}
 
     # real
-    for i in range(3):
+    for i in range(4):
         if os.path.exists(exp_date + "/real/" + simtag + "_{}.npz".format(i)):
             files.append(exp_date + "/real/" + simtag + "_{}.npz".format(i))
             files_n_types[exp_date + "/real/" + simtag + "_{}.npz".format(i)] = "real_{}".format(i)

@@ -22,6 +22,7 @@ def select_policy_config_(policy_config):
     config_filename = None
     e_dims = 0
     adaptive_policy_name = None
+    u_struct = False
 
     DIR = 'PPO'
     RMA = 'RMA'
@@ -106,7 +107,7 @@ def select_policy_config_(policy_config):
     if policy_config == "trajectory_2d_mass_wind_adaptive":
         task: DroneTask = DroneTask.TRAJFBFF
         policy_name =DIR + '/' + "traj_mixed2D_mass_wind_adaptive_low.zip"
-        adaptive_policy_name =  RMA + '/' + 'RMA_mass_wind_ustruct_2D.pth'
+        adaptive_policy_name =  RMA + '/' + 'mass_wind_noisy_adaptation_net_9000'
         config_filename = "trajectory_mass_wind_adaptive.py"
         e_dims = 4
         body_frame = True
@@ -114,10 +115,10 @@ def select_policy_config_(policy_config):
         log_scale = False
 
     if policy_config == "trajectory_2d_mass_wind_adaptive_ustruct":
-        print("yoooooooooo")
         task: DroneTask = DroneTask.TRAJFBFF
-        policy_name =DIR + '/' + "rwik_mixed2D_ustruct_0.4_12500000_steps.zip"
-        adaptive_policy_name =  RMA + '/' + 'RMA_mass_wind_ustruct_2D.pth'
+        # policy_name =DIR + '/' + "rwik_mixed2D_ustruct_0.4_12500000_steps.zip"
+        policy_name = DIR + "/" + "rwik_mixed2D_ustruct_mass_wind_0.4_noisy_20000000_steps.zip"
+        adaptive_policy_name =  RMA + '/' + 'rwik_adapt_2_4500'
         config_filename = "trajectory_mass_wind_adaptive.py"
         e_dims = 4
         body_frame = True
@@ -128,7 +129,7 @@ def select_policy_config_(policy_config):
     if policy_config == "trajectory_2d_mass_wind_adaptive_noise":
         task: DroneTask = DroneTask.TRAJFBFF
         policy_name  = DIR + '/' + 'traj_mixed2D_mass_wind_adaptive_symlog_noisy.zip'
-        adaptive_policy_name =  RMA + '/' + 'RMA_mass_nowind.pth'
+        adaptive_policy_name =  RMA + '/' + 'mass_wind_noisy_adaptation_net_9000'
         config_filename = "trajectory_mass_wind_adaptive.py"
         e_dims = 4
         body_frame = True

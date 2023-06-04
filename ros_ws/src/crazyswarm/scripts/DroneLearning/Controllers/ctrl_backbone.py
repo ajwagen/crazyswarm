@@ -83,7 +83,7 @@ class ControllerBackbone():
         
         self.policy = self.algo_class.load(TEST_POLICY_DIR / f'{self.policy_name}', self.env)
         if self.adaptive == True and self.pseudo_adapt == False:
-            self.adaptive_policy = AdaptationNetwork(10, self.e_dims)
+            self.adaptive_policy = AdaptationNetwork(14, self.e_dims)
             self.adaptive_policy.load_state_dict(torch.load(TEST_POLICY_DIR / f'{self.adaptive_policy_name}', map_location='cuda:0'))
         self.prev_pos = 0.
     
