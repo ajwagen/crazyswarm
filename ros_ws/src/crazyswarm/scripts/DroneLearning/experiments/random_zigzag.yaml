@@ -23,7 +23,7 @@ tasks:
     cntrl: "PPOController_trajectory"
     time: 10.0
     adaptive: False
-    policy_config: trajectory_2d
+    policy_config: trajectory_2o
     description: "Trajectory PPO"
 
   # - ref: 'random_chained_poly'

@@ -142,6 +142,15 @@ plt.plot(ts, logData['ctrlRwik.angVel_z'][~zero_norms], label='Cmd Ang Vel (deg/
 plt.ylabel('Z')
 plt.legend()
 
+save_data = {
+    'ts' : ts,
+    'ang_x' : logData['ctrlRwik.angVel_x'][~zero_norms],
+    'ang_y' : logData['ctrlRwik.angVel_y'][~zero_norms],
+    'ang_z' : logData['ctrlRwik.angVel_z'][~zero_norms],
+}
+
+np.savez("delay_model", **save_data)
+
 plt.suptitle('Orientation and Des ang vel')
 
 plt.figure(2)
@@ -172,7 +181,6 @@ except:
     pass
 try:
     plt.plot(logData['tick'], logData['ctrlRwik.ref_z'], color='green')
-    print("hello")
 except:
     pass
 plt.suptitle('position')

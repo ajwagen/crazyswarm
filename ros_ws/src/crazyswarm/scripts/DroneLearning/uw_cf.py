@@ -52,7 +52,9 @@ class ctrlCF():
                  config_file="experiments/cf_config.yaml", 
                  log_file='log.npz', 
                  debug=False, 
-                 gui=False):
+                 gui=False,
+                 def_seed=None,
+                 pseudo_adapt=False):
         
         self.cfName = cfName
         self.isSim = sim
@@ -65,6 +67,8 @@ class ctrlCF():
         self.ref = State_struct()
         self.ref_func = None
         self._ref_func_obj = RandomZigzag()
+
+        self.def_seed = def_seed
 
         # self.state = np.zeros(14)
         # self.prev_state = np.zeros(14)
@@ -99,9 +103,16 @@ class ctrlCF():
             if ctrl_policy in self.controllers.keys():
                 pass
             else:
-                self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
+
+                try:
+                    self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
                                                                                             policy_config = self.config["tasks"][i]["policy_config"],
-                                                                                            adaptive = self.config["tasks"][i]["adaptive"])
+                                                                                            adaptive = self.config["tasks"][i]["adaptive"],
+                                                                                            pseudo_adapt = pseudo_adapt)
+                except:
+                    self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
+                                                                        policy_config = self.config["tasks"][i]["policy_config"],
+                                                                        adaptive = self.config["tasks"][i]["adaptive"])
                 # Warming up controller
                 self.controllers[ctrl_policy].response(0.1, self.state, self.ref, self.ref_func, self._ref_func_obj, fl=0.)
                 # self.controller.trajectories = Trajectories
@@ -115,8 +126,8 @@ class ctrlCF():
             self.cf = self.swarm.allcfs.crazyflies[0]
 
         else:
-            model = crazyflieModel()
-            # model = IdentityModel()
+            # model = crazyflieModel()
+            model = IdentityModel()
             self.cf = QuadSim(model, name=self.cfName)
             eu = np.array([0., 0., 0.])
             rot = R.from_euler('xyz', eu)
@@ -282,7 +293,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/may_18/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_01/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -410,6 +421,21 @@ class ctrlCF():
 
                 self.flag["tasks"][self.task_num] = 1 
                 self.tasks_time += self.tasks[self.task_num]["time"]
+                
+                try:
+                    init_ref_func = getattr(self.trajs, self.tasks[self.task_num]["ref"]+"_")
+                    seed = self.def_seed
+                    if seed is None:
+                        seed = self.tasks[self.task_num]["seed"]
+                    try:
+                        maxes = self.tasks[self.task_num]["maxes"]
+                    except:
+                        maxes = None
+                    init_ref_func(seed, maxes)
+                except:
+                    pass
+
+                self.ref_func = getattr(self.trajs, self.tasks[self.task_num]["ref"])
 
                 if self.tasks[self.task_num]["ref"] == "goto":
                     self.trajs.last_state = copy.deepcopy(self.state)
@@ -424,8 +450,7 @@ class ctrlCF():
                 
             if t < self.takeoff_time + self.warmup_time + self.tasks_time:
                 self.trajs.curr_state.pos -= offset_pos
-                self.ref_func = getattr(self.trajs, self.tasks[self.task_num]["ref"])
-                self.ref, _, self._ref_func_obj = getattr(self.trajs, self.tasks[self.task_num]["ref"])(t-self.prev_task_time)
+                self.ref, _, self._ref_func_obj = self.ref_func(t-self.prev_task_time)
                 self.ref.pos += offset_pos           
 
         ###### Landing
@@ -610,6 +635,9 @@ if __name__ == "__main__":
     parser.add_argument('--logfile', action='store', type=str, default='log.npz')
     parser.add_argument('--debug', action='store', type=bool, default=False)
     parser.add_argument('-gui', type=bool, default=False)
+    parser.add_argument('-seed', type=int, default=None, help='try not use this and use the yaml file to send the seeds')
+    parser.add_argument('-ps','--pseudo', type=bool, default=False, help='pseudo adapt')
+
     g = EasyDict(vars(parser.parse_args()))
 
     x = ctrlCF(cfName="cf4", 
@@ -617,7 +645,9 @@ if __name__ == "__main__":
                config_file=g.config,
                log_file=g.logfile,
                debug=g.debug,
-               gui=g.gui)
+               gui=g.gui,
+               def_seed=g.seed,
+               pseudo_adapt=g.pseudo)
 
     try:
         if g.quadsim:

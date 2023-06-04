@@ -64,6 +64,10 @@ class PPOController_trajectory(ControllerBackbone):
 
     action, _states = self.policy.predict(obs_, deterministic=True)
 
-    action[0] += self.g
+    if self.log_scale:
+      action[0] = np.sinh(action[0])
+    else:
+      action[0] += self.g
+
     self.prev_pos = pos.copy()
     return action[0], action[1:]

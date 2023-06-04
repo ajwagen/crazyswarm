@@ -17,11 +17,11 @@ class Trajectories:
         self.land = False
 
         self.ret = 0
-
-        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 0.0, 0]), seed=2)
+      
+        self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 1.0, 0.0]), seed=0)
         self.random_zigzag_obj.isShift = False
-        self.random_poly_obj = PolyRef(altitude=0.0, seed=4)
-        self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=2)
+        self.random_poly_obj = PolyRef(altitude=0.0, seed=0)
+        self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=0)
         self.circle_ref_obj = CircleRef(rad=0.5, period=2.0, altitude=0.0)
         
         self.gui = gui
@@ -143,22 +143,25 @@ class Trajectories:
 
         return ref, ref_pos, None
 
-    def zigzag_guanya(self, t):
-        p = 2. # period
-        t_ = t
-        x = 2 * np.abs(t_ / p - np.floor(t_ / p + 0.5))
+    # def zigzag_guanya(self, t):
+    #     p = 2. # period
+    #     t_ = t
+    #     x = 2 * np.abs(t_ / p - np.floor(t_ / p + 0.5))
 
-        ref_pos = np.array([x, 0, 0])
-        ref = State_struct(pos=ref_pos)
+    #     ref_pos = np.array([x, 0, 0])
+    #     ref = State_struct(pos=ref_pos)
 
-        return ref, ref_pos, None
-
+    #     return ref, ref_pos, None
+    def random_zigzag_(self, seed, maxes):
+        self.random_zigzag_obj = RandomZigzag(max_D=np.array(maxes), seed=seed)
     def random_zigzag(self, t):
         ref_pos = self.random_zigzag_obj.pos(t)
         ref_vel = self.random_zigzag_obj.vel(t)
         ref = State_struct(pos=ref_pos, vel=ref_vel)
         return ref, self.ret, self.random_zigzag_obj
     
+    def random_poly_(self, seed, maxes):
+        self.random_poly_obj = PolyRef(altitude=0., seed=seed)
     def random_poly(self, t):
         ref_pos = self.random_poly_obj.pos(t)
         ref_vel = self.random_poly_obj.vel(t)
@@ -166,6 +169,8 @@ class Trajectories:
 
         return ref, self.ret, self.random_poly_obj
     
+    def random_chained_poly_(self, seed, maxes):
+        self.random_chained_poly_obj = ChainedPolyRef(altitude=0, use_y=True, seed=seed)
     def random_chained_poly(self, t):
         ref_pos = self.random_chained_poly_obj.pos(t)
         ref_vel = self.random_chained_poly_obj.vel(t)

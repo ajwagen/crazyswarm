@@ -9,9 +9,9 @@ from torch.autograd.functional import jacobian
 from stable_baselines3.common.env_util import make_vec_env
 
 class PPOController_trajectory_adaptive(ControllerBackbone):
-  def __init__(self,isSim, policy_config="trajectory", adaptive=True, e_dims = 1):
-    super().__init__(isSim, policy_config, isPPO=True, adaptive=adaptive)
-    self.e_dims = e_dims
+  def __init__(self,isSim, policy_config="trajectory", adaptive=True, pseudo_adapt=False):
+    super().__init__(isSim, policy_config, isPPO=True, adaptive=adaptive, pseudo_adapt = pseudo_adapt)
+    # self.e_dims = e_dims
     self.set_policy()
     self.obs_history = np.zeros((100, 14))
 
@@ -38,9 +38,15 @@ class PPOController_trajectory_adaptive(ControllerBackbone):
 
     obs = np.hstack((pos, vel, quat))
     
-    adaptation_term = self.adaptive_policy(torch.tensor(self.obs_history.transpose(1, 0)[None, : ]).float()).flatten()
-    adaptation_term = (adaptation_term * 0.8 + 0.6)
-    obs_ = np.hstack((obs, adaptation_term.detach().cpu().numpy()))
+    if self.pseudo_adapt==False:
+      adaptation_term = self.adaptive_policy(torch.tensor(self.obs_history.transpose(1, 0)[None, : ]).float()).flatten()
+      obs_ = np.hstack((obs, adaptation_term.detach().cpu().numpy()))
+    else:
+      pseudo_adapt_term =  np.ones(self.e_dims)
+      pseudo_adapt_term[1:] *= 0 # mass -> 1, wind-> 0
+      obs_ = np.hstack((obs, pseudo_adapt_term))
+    # obs_ = np.hstack((obs, 1.0))
+
 
     if fl==0:
         obs_ = np.zeros((self.time_horizon+1) * 3 + 10 + self.e_dims)
@@ -55,7 +61,11 @@ class PPOController_trajectory_adaptive(ControllerBackbone):
 
 
     action, _states = self.policy.predict(obs_, deterministic=True)
-    action[0] = np.sinh(action[0])
+
+    if self.log_scale:
+      action[0] = np.sinh(action[0])
+    else:
+      action[0] += self.g
 
     new_obs = np.hstack((obs, action))
     self.obs_history[0:-1] = self.obs_history[1:]

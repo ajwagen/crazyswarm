@@ -17,20 +17,20 @@ class PPOController(ControllerBackbone):
 
     self.set_policy()
 
-    self.adaptive = adaptive
-    if adaptive:
-      self.init_adaptive_network()
+    # self.adaptive = adaptive
+    # if adaptive:
+    #   self.init_adaptive_network()
 
-  def init_adaptive_network(self,):
-    self.e_dims = 1
-    self.history = None
-    self.time_horizon = 50
-    self.e_pred = np.zeros(self.e_dims)[None, :]
+  # def init_adaptive_network(self,):
+  #   self.e_dims = 1
+  #   self.history = None
+  #   self.time_horizon = 50
+  #   self.e_pred = np.zeros(self.e_dims)[None, :]
 
-    adaptation_network_policy_name = "hover_latency_adaptive_adapt"
-    self.adaptation_network = AdaptationNetwork(input_dims=14, e_dims=self.e_dims)
-    adaptation_network_state_dict = torch.load(Path().absolute() / 'saved_policies'/ adaptation_network_policy_name)
-    self.adaptation_network.load_state_dict(adaptation_network_state_dict)
+  #   adaptation_network_policy_name = "hover_latency_adaptive_adapt"
+  #   self.adaptation_network = AdaptationNetwork(input_dims=14, e_dims=self.e_dims)
+  #   adaptation_network_state_dict = torch.load(Path().absolute() / 'saved_policies'/ adaptation_network_policy_name)
+  #   self.adaptation_network.load_state_dict(adaptation_network_state_dict)
 
   def response(self, t, state, ref , ref_func, ref_func_obj, fl=1):
     self.updateDt(t)
@@ -44,23 +44,27 @@ class PPOController(ControllerBackbone):
     rot = state.rot
     quat = rot.as_quat() 
 
-    obs = np.hstack((pos,vel,quat))
 
     if self.adaptive:
       obs = np.r_[obs, self.e_pred[0]]
 
+    if self.body_frame:
+      pos = rot.inv().apply(pos)
+      vel = rot.inv().apply(vel)
+
+    obs = np.hstack((pos,vel,quat))
     action, _states = self.policy.predict(obs, deterministic=True)
 
-    if self.adaptive:
+    # if self.adaptive:
 
-      if self.history is None:
-        self.history = np.r_[obs[:-self.e_dims], action][None, :].T
-      else:
-        self.history = np.c_[self.history, np.r_[obs[:-self.e_dims], action][None, :].T]
+    #   if self.history is None:
+    #     self.history = np.r_[obs[:-self.e_dims], action][None, :].T
+    #   else:
+    #     self.history = np.c_[self.history, np.r_[obs[:-self.e_dims], action][None, :].T]
       
-      if self.history.shape[1] >= self.time_horizon:
-        self.e_pred = self.adaptation_network(torch.from_numpy(self.history[None, ..., -self.time_horizon :]).type(torch.FloatTensor)).detach().numpy()
-        print(self.e_pred)
+    #   if self.history.shape[1] >= self.time_horizon:
+    #     self.e_pred = self.adaptation_network(torch.from_numpy(self.history[None, ..., -self.time_horizon :]).type(torch.FloatTensor)).detach().numpy()
+    #     print(self.e_pred)
     ################################
     # # Gradient (gain) calculation for hovering
     # th_obs,_ = self.policy.policy.obs_to_tensor(obs)
