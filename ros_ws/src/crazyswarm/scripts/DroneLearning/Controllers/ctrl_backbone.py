@@ -21,6 +21,8 @@ class ControllerBackbone():
         self.e_dims = 0
         self.adaptive = adaptive
         self.pseudo_adapt = pseudo_adapt
+        self.adaptation_terms = np.zeros(4)
+        self.adaptation_mean = np.zeros((1, 4))
         # self.I = np.array([[3.144988, 4.753588, 4.640540],
         #                    [4.753588, 3.151127, 4.541223],
         #                    [4.640540, 4.541223, 7.058874]])*1e-5
@@ -54,6 +56,7 @@ class ControllerBackbone():
         self.log_scale = policy_dict["log_scale"]
         self.e_dims = policy_dict["e_dims"]
         self.u_struct = policy_dict["u_struct"]
+        self.adaptation_warmup = policy_dict['adaptation_warmup']
 
     def set_policy(self,):
 

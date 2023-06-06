@@ -3,6 +3,8 @@ from Controllers.bc_controller import BC_Controller
 from Controllers.traj_ppo_controller import PPOController_trajectory
 from Controllers.traj_ppo_controller_adapt import PPOController_trajectory_adaptive
 from Controllers.traj_ppo_controller_ustruct import PPOController_trajectory_ustruct
+from Controllers.yawflip_ppo import PPOController_yawflip
+
 
 
 from Controllers.pid_controller import PIDController

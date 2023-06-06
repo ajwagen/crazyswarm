@@ -26,7 +26,7 @@ tasks:
 
   - ref: 'gui_traj_ref'
     cntrl: "PPOController_trajectory_adaptive"
-    time: 10.0
+    time: 15.0
     adaptive: True
     policy_config: trajectory_2d_mass_wind_adaptive_noise
     description: "Trajectory mass wind adapt"

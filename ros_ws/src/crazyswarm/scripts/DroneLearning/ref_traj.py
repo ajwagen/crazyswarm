@@ -5,6 +5,12 @@ from quadsim.learning.refs.random_zigzag import RandomZigzag
 from quadsim.learning.refs.polynomial_ref import PolyRef
 from quadsim.learning.refs.chained_poly_ref import ChainedPolyRef
 from quadsim.learning.refs.circle_ref import CircleRef
+from quadsim.learning.refs.pointed_star import NPointedStar
+from quadsim.learning.refs.M_star import M_zigzag
+from quadsim.learning.refs.triangle_ref import Triangle
+from quadsim.learning.refs.closed_polygon import ClosedPoly
+
+
 from quadsim.learning.refs import gen_trajectory
 
 import copy
@@ -152,6 +158,7 @@ class Trajectories:
     #     ref = State_struct(pos=ref_pos)
 
     #     return ref, ref_pos, None
+    
     def random_zigzag_(self, seed, maxes):
         self.random_zigzag_obj = RandomZigzag(max_D=np.array(maxes), seed=seed)
     def random_zigzag(self, t):
@@ -195,6 +202,42 @@ class Trajectories:
         
         else:
             return self.set_hover_ref(t)
+        
+    def N_pointed_star_ref_(self, seed, maxes):
+        self.Nstar_ref_obj = NPointedStar(n_points=seed, speed=1.0, radius=1.0)
+    def N_pointed_star_ref(self,t):
+        ref_pos = self.Nstar_ref_obj.pos(t)
+        ref_vel = self.Nstar_ref_obj.vel(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel)
+
+        return ref, self.ret, self.Nstar_ref_obj
+    
+    def M_zigzag_ref_(self, seed, maxes):
+        self.M_zigzag_ref_obj = M_zigzag(speed=1.0, amplitude=1.0)
+    def M_zigzag_ref(self,t):
+        ref_pos = self.M_zigzag_ref_obj.pos(t)
+        ref_vel = self.M_zigzag_ref_obj.vel(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel)
+
+        return ref, self.ret, self.M_zigzag_ref_obj
+    
+    def Triangle_ref_(self, seed, maxes):
+        self.Triangle_ref_obj = Triangle(speed=1.0, side_len = 2.0)
+    def Triangle_ref(self,t):
+        ref_pos = self.Triangle_ref_obj.pos(t)
+        ref_vel = self.Triangle_ref_obj.vel(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel)
+
+        return ref, self.ret, self.Triangle_ref_obj
+
+    def Closed_polygon_ref_(self, seed, maxes):
+        self.closed_polygon_ref_obj = ClosedPoly()
+    def Closed_polygon_ref(self,t):
+        ref_pos = self.closed_polygon_ref_obj.pos(t)
+        ref_vel = self.closed_polygon_ref_obj.vel(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel)
+
+        return ref, self.ret, self.closed_polygon_ref_obj
     
     # LEGACY CODES
     def DONT_USE_set_takeoff_ref(self, t, takeoff_height, takeoff_rate):

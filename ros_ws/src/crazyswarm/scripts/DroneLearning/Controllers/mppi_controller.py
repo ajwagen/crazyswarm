@@ -10,7 +10,7 @@ from stable_baselines3.common.env_util import make_vec_env
 import time
 
 class MPPIController(ControllerBackbone):
-  def __init__(self,isSim, policy_config="trajectory",adaptive=False):
+  def __init__(self,isSim, policy_config="trajectory",adaptive=False, adaptation_mean_value=np.zeros(4)):
     super().__init__(isSim, policy_config, isPPO=True)
 
     self.mppi_controller = self.set_MPPI_controller()
@@ -26,7 +26,7 @@ class MPPIController(ControllerBackbone):
 
     return ref
   
-  def response(self, t, state, ref, ref_func, ref_func_obj, fl=1, adaptive=False):
+  def response(self, t, state, ref, ref_func, ref_func_obj, fl=1, adaptive=False, adaptation_mean_value=np.zeros(4)):
     self.updateDt(t)
     if fl:
       self.prev_t = t
@@ -49,7 +49,9 @@ class MPPIController(ControllerBackbone):
     state_torch = torch.as_tensor(noisystate, dtype=torch.float32)
     
     # action = self.mppi_controller.policy_cf(state=state_torch, time=t).cpu().numpy()
+    start = time.time()
     action = self.mppi_controller.policy_with_ref_func(state=state_torch, time=t, new_ref_func=self.ref_func_t).cpu().numpy()
+    print(time.time() - start)
     # MPPI controller designed for output in world frame
     # World Frame -> Body Frame
     

@@ -7,6 +7,7 @@ from quadsim.visualizer import Vis
 import torch
 from torch.autograd.functional import jacobian
 from stable_baselines3.common.env_util import make_vec_env
+import time
 
 class PPOController_trajectory(ControllerBackbone):
   def __init__(self,isSim, policy_config="trajectory",adaptive=False):
@@ -14,7 +15,7 @@ class PPOController_trajectory(ControllerBackbone):
 
     self.set_policy()
 
-  def response(self, t, state, ref , ref_func, ref_func_obj, fl=1, adaptive=False):
+  def response(self, t, state, ref , ref_func, ref_func_obj, fl=1, adaptive=False, adaptation_mean_value=np.zeros(4)):
 
     if self.prev_t is None:
       dt = 0
@@ -35,26 +36,14 @@ class PPOController_trajectory(ControllerBackbone):
       pos = rot.inv().apply(pos)
       vel = rot.inv().apply(vel)
 
-    obs = np.hstack((pos, vel, quat))
-    obs_ = np.hstack((pos, vel, quat))
+    # obs = np.hstack((pos, vel, quat))
 
 
     if fl==0:
         obs_ = np.zeros((self.time_horizon+1) * 3 + 10)
     else:
-        # ff_pos = np.array([ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)])
-        # ff_pos_stacked = ff_pos.reshape(-1, 3)
-        # ff_vel = np.diff(ff_pos_stacked, axis=0) / (3 * dt)
-        # # pad last timestep by repeating previous value
-        # ff_vel = np.r_[ff_vel, ff_vel[-1, None]]
-        # ff_terms_stacked = np.c_[ff_pos, ff_vel]
-        # ff_terms = ff_terms_stacked.flatten()
-        # obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos, ff_terms])
+        obs_ = np.hstack((pos, vel, quat))
         if self.relative:
-          # pass
-          # obs_ = np.hstack([obs_, obs_[0:3] - rot.inv().apply(self.ref.pos(self.t))] + [obs_[0:3] - rot.inv().apply(self.ref.pos(self.t + 3 * i * self.dt)) for i in range(self.time_horizon)])
-          # print(rot.inv().apply(ref_func(t)[0].pos))
-          # print([obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * self.dt)[0].pos) for i in range(self.time_horizon)])
           obs_ = np.hstack([obs_, obs_[0:3] - rot.inv().apply(ref_func(t)[0].pos)] + [obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * dt)[0].pos) for i in range(self.time_horizon)])
 
         else:

@@ -23,6 +23,7 @@ def select_policy_config_(policy_config):
     e_dims = 0
     adaptive_policy_name = None
     u_struct = False
+    adaptation_warmup = False
 
     DIR = 'PPO'
     RMA = 'RMA'
@@ -37,6 +38,7 @@ def select_policy_config_(policy_config):
         relative = False
         log_scale =False
         u_struct = False
+        
 
     if policy_config == "trajectory":
         task: DroneTask = DroneTask.TRAJFBFF
@@ -128,13 +130,24 @@ def select_policy_config_(policy_config):
     
     if policy_config == "trajectory_2d_mass_wind_adaptive_noise":
         task: DroneTask = DroneTask.TRAJFBFF
-        policy_name  = DIR + '/' + 'traj_mixed2D_mass_wind_adaptive_symlog_noisy.zip'
-        adaptive_policy_name =  RMA + '/' + 'mass_wind_noisy_adaptation_net_9000'
+        policy_name  = DIR + '/' + 'traj_mixed2D_mass_wind_adaptive_best.zip'
+        adaptive_policy_name =  RMA + '/' + 'hi_mass_low_wind_adaptation_net_REAL'
         config_filename = "trajectory_mass_wind_adaptive.py"
         e_dims = 4
         body_frame = True
         relative = True
-        log_scale = True
+        log_scale = False
+    
+    if policy_config == "trajectory_2d_mass_wind_adaptive_noise_warmup":
+        task: DroneTask = DroneTask.TRAJFBFF
+        policy_name  = DIR + '/' + 'traj_mixed2D_mass_wind_adaptive_best.zip'
+        adaptive_policy_name =  RMA + '/' + 'hi_mass_low_wind_adaptation_net_REAL'
+        config_filename = "trajectory_mass_wind_adaptive.py"
+        e_dims = 4
+        body_frame = True
+        relative = True
+        log_scale = False
+        adaptation_warmup = True
     
     if policy_config == "trajectory_2o":
         task: DroneTask = DroneTask.TRAJFBFF
@@ -142,6 +155,14 @@ def select_policy_config_(policy_config):
         config_filename = "trajectory_latency_0404.py"
         body_frame = True
         relative = True
+        log_scale = False
+    
+    if policy_config == "yawflip":
+        task: DroneTask = DroneTask.YAWFLIP
+        policy_name =DIR + '/' + "yawflip_high_latency_2.zip"
+        config_filename = "yawflip_latency.py"
+        body_frame = False
+        relative = False
         log_scale = False
     
     policy_dict = {"task":task,
@@ -152,6 +173,7 @@ def select_policy_config_(policy_config):
                    "relative":relative,
                    "log_scale":log_scale,
                    "e_dims":e_dims,
-                   'u_struct':u_struct}
+                   'u_struct':u_struct,
+                   'adaptation_warmup':adaptation_warmup}
     
     return policy_dict

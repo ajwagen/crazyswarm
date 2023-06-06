@@ -1,6 +1,7 @@
 import numpy as np
 import argparse
 import matplotlib.pyplot as plt
+from plt_utils import load_cf_data
 
 def first_nonzero(arr, axis, invalid_val=-1):
     mask = arr!=0
@@ -8,39 +9,16 @@ def first_nonzero(arr, axis, invalid_val=-1):
 
 def plot_npz(filename):
 
-    data_dict={}
-    # minimum_len={}
-    for i in filename:
-        data = {}
-        saved_data = dict(np.load(i) )
-    # saved_data = np.load(filename)
+    data_dict = load_cf_data(filenames, args)
 
-        minimum_len = np.inf
-        for key in saved_data.keys():
-            k = len(saved_data[key])
-            if k<minimum_len:
-                minimum_len = k
-        st= first_nonzero(saved_data['ref_positions'],0)[0]
-
-        print(saved_data['pose_positions'][st])
-        data['pose_positions'] = saved_data['pose_positions'][st:k] - saved_data['pose_positions'][st]
-        data['pose_orientations'] = saved_data['pose_orientations'][st:k]
-        # data['cf_positions'] = saved_data['cf_positions'][st:k] - saved_data['cf_positions'][st]
-        data['ts'] = saved_data['ts'][st:k]
-        data['ref_positions'] = saved_data['ref_positions'][st:k] - saved_data['ref_positions'][st]
-        data['ref_orientation'] = saved_data['ref_orientation'][st:k]
-        data['thrust_cmds'] = saved_data['thrust_cmds'][st:k]
-        data['ang_vel_cmds'] = saved_data['ang_vel_cmds'][st:k]
-        # data['mocap_orientation'] = saved_data['motrack_orientation'][st:k]
-
-        data_dict[i] = data
-    # print(pose_orientations.shape)
-    # print(np.diff(pose_orientations).shape)
-    # ang_vels = np.diff(pose_orientations,axis=-1)/ts
-    # ang_vels = np.append(ang_vels,ang_vels[-1],axis=0)
-    # offs = mocap_orientation[0] - pose_orientations[0]
-
-    
+    plt.figure(5)
+    plt.plot(data_dict[filename[0]]['ref_positions'][:, 0], data_dict[filename[0]]['ref_positions'][:, 1])
+    for key in data_dict.keys():
+        plt.plot(data_dict[key]['pose_positions'][:,0], data_dict[key]['pose_positions'][:, 1], label=key)
+    plt.legend()
+    ax = plt.gca()
+    ax.set_aspect('equal', 'box')
+    plt.show()
 
     # print(pose_orientations.shape, pose_orientations.shape, cf_positions.shape, ts.shape, thrust_cmds.shape)
     
@@ -125,24 +103,38 @@ def plot_npz(filename):
     # plt.suptitle('cf/pose orientation (python) & ang vel cmds')
     # plt.legend()
 
-    # # plt.figure(2)
-    # # ax3 = plt.subplot(3, 1, 1)
-    # # plt.plot(ts, cf_positions[:, 0])
-    # # plt.subplot(3, 1, 2, sharex=ax3)
-    # # plt.plot(ts, cf_positions[:, 1])
-    # # plt.subplot(3, 1, 3, sharex=ax3)
-    # # plt.plot(ts, cf_positions[:, 2])
-    # # plt.suptitle('cf.position() (python)')
+    # plt.figure(2)
+    # ax3 = plt.subplot(3, 1, 1)
+    # plt.plot(ts, cf_positions[:, 0])
+    # plt.subplot(3, 1, 2, sharex=ax3)
+    # plt.plot(ts, cf_positions[:, 1])
+    # plt.subplot(3, 1, 3, sharex=ax3)
+    # plt.plot(ts, cf_positions[:, 2])
+    # plt.suptitle('cf.position() (python)')
 
-    # plt.figure(3)
-    # plt.plot(ts, thrust_cmds)
-    # plt.title('Cmd z acc (python)')
+    plt.figure(3)
+    for key in data_dict.keys():
+        plt.plot(data_dict[key]['ts'], data_dict[key]['thrust_cmds'])
+    plt.title('Cmd z acc (python)')
+
+    # try:
+    plt.figure(4)
+    for key in data_dict.keys():
+        # print(data_dict[key]['adaptation_terms'])
+        plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'])
+    plt.title('adaptation term')
+    # except:
+    #     pass
 
     plt.show()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("filename", nargs="+")
+    parser.add_argument("--runtime", type=float, default=10)
+    parser.add_argument("--hovertime",type=float,default=0)
+    parser.add_argument("-bh", "--baseheight", type=float, default=1.0)
+    parser.add_argument("-tt", "--takeofftime",type=float,default=5.0)
 
     args = parser.parse_args()
     filenames = args.filename

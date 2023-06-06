@@ -14,7 +14,7 @@ class BC_Controller(ControllerBackbone):
 
     self.set_BC_policy()
 
-  def response(self, t, state, ref , ref_func, ref_func_obj, fl=1, adaptive=False):
+  def response(self, t, state, ref , ref_func, ref_func_obj, fl=1, adaptive=False, adaptation_mean_value=np.zeros(4)):
 
     if self.prev_t is None:
       dt = 0

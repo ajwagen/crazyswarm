@@ -3,6 +3,7 @@ from Controllers.ctrl_backbone import ControllerBackbone
 from scipy.spatial.transform import Rotation as R
 from cf_utils.rigid_body import State_struct
 import torch
+import time
 
 class PIDController(ControllerBackbone):
   def __init__(self,isSim, policy_config=None, adaptive = False):
@@ -19,7 +20,7 @@ class PIDController(ControllerBackbone):
 
     # self.mppi_controller = self.set_MPPI_cnotroller()
 
-  def response(self, t, state, ref, ref_func, ref_func_obj, fl=1):
+  def response(self, t, state, ref, ref_func, ref_func_obj, fl=1, adaptation_mean_value=np.zeros(4)):
 
     self.updateDt(t)
     if fl:

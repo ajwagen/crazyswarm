@@ -23,7 +23,7 @@ def plot_npz(filename):
         st= first_nonzero(saved_data['ref_positions'],0)[0]
         # st = 0
 
-        print(saved_data['pose_positions'][st])
+        # print(saved_data['pose_positions'][st])
         data['pose_positions'] = saved_data['pose_positions'][st:k] - saved_data['pose_positions'][st]
         data['pose_orientations'] = saved_data['pose_orientations'][st:k]
         data['pose_positions'] = saved_data['pose_positions'][st:k] - saved_data['pose_positions'][st]

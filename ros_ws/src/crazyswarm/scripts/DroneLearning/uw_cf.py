@@ -54,7 +54,9 @@ class ctrlCF():
                  debug=False, 
                  gui=False,
                  def_seed=None,
-                 pseudo_adapt=False):
+                 pseudo_adapt=False,
+                 adapt_warmup=False,
+                 adapt_smooth=False):
         
         self.cfName = cfName
         self.isSim = sim
@@ -62,6 +64,10 @@ class ctrlCF():
         self.debug = debug
         self.gui = gui
         self.initialized = False
+        self.adapt_warmup = adapt_warmup
+        self.adaptation_smoothing = adapt_smooth
+        self.adaptation_warmup_value = np.zeros(4)
+
         self.state = State_struct()
         self.prev_state = State_struct()
         self.ref = State_struct()
@@ -108,7 +114,8 @@ class ctrlCF():
                     self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
                                                                                             policy_config = self.config["tasks"][i]["policy_config"],
                                                                                             adaptive = self.config["tasks"][i]["adaptive"],
-                                                                                            pseudo_adapt = pseudo_adapt)
+                                                                                            pseudo_adapt = pseudo_adapt,
+                                                                                            adapt_smooth = self.adaptation_smoothing)
                 except:
                     self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
                                                                         policy_config = self.config["tasks"][i]["policy_config"],
@@ -182,6 +189,8 @@ class ctrlCF():
         self.ts = []
         self.thrust_cmds = []
         self.ang_vel_cmds = []
+        self.adaptation_terms = []
+        # self.ref_vel = []
 
         self.pose_orient_mocap=[]
 
@@ -293,7 +302,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_04/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_06/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -310,8 +319,10 @@ class ctrlCF():
             self.ts = np.array(self.ts)
             self.thrust_cmds = np.array(self.thrust_cmds)
             self.ang_vel_cmds = np.array(self.ang_vel_cmds)
+            # self.ref_vel = np.array(self.ref_vel)
 
             self.pose_orient_mocap = np.array(self.pose_orient_mocap)
+            self.adaptation_terms = np.array(self.adaptation_terms)
     
             # self.ppo_acc = np.array(self.ppo_acc)
             # self.ppo_ang = np.array(self.ppo_ang)
@@ -326,6 +337,7 @@ class ctrlCF():
                 ang_vel_cmds=self.ang_vel_cmds,
                 ts=self.ts,
                 thrust_cmds=self.thrust_cmds,
+                adaptation_terms = self.adaptation_terms
                 # ppo_ang = self.ppo_ang,
                 # ppo_acc = self.ppo_acc,
             )
@@ -336,7 +348,7 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_04/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_06/sim/"
             # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
@@ -349,6 +361,8 @@ class ctrlCF():
             self.ts = np.array(self.ts)
             self.thrust_cmds = np.array(self.thrust_cmds)
             self.ang_vel_cmds = np.array(self.ang_vel_cmds)
+            self.adaptation_terms = np.array(self.adaptation_terms)
+            # self.ref_vel = np.array(self.ref_vel)
             print(LOG_DIR + self.logfile)
             np.savez(LOG_DIR + self.logfile, 
                     pose_positions=self.pose_positions,
@@ -357,7 +371,8 @@ class ctrlCF():
                     ref_orientation = self.ref_orientation,
                     ang_vel_cmds=self.ang_vel_cmds,
                     ts=self.ts,
-                    thrust_cmds=self.thrust_cmds,)
+                    thrust_cmds=self.thrust_cmds,
+                    adaptation_terms = self.adaptation_terms)
     
     def switch_controller(self,offset_pos):
         ###### Setting the controller for the particular task
@@ -513,6 +528,14 @@ class ctrlCF():
                 if t>self.warmup_time:
                     z_acc,ang_vel = self.curr_controller.response(t-self.prev_task_time,self.state,self.ref, self.ref_func, self._ref_func_obj)
 
+                self.adaptation_terms.append(self.curr_controller.adaptation_terms)
+                try:
+                    if self.adapt_warmup and self.curr_controller.adaptation_warmup:
+                        self.adaptation_warmup_value = np.mean(self.curr_controller.adaptation_mean, axis=0)
+                        print(self.adaptation_warmup_value)
+                except:
+                    pass
+
                 self.pose_positions.append(np.copy(self.pose_pos))
                 self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
                 self.pose_orient_mocap.append(self.motrack_orientation.as_euler("ZYX",degrees=True))
@@ -590,8 +613,10 @@ class ctrlCF():
             z_acc, ang_vel = 0., np.array([0., 0., 0.])
             if t > self.warmup_time:
                 z_acc, ang_vel = self.curr_controller.response(t - self.prev_task_time, self.state, 
-                                                               self.ref, self.ref_func, self._ref_func_obj)                                                               
-                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=1.0, dists=None)
+                                                               self.ref, self.ref_func, self._ref_func_obj, 
+                                                               adaptation_mean_value=self.adaptation_warmup_value)    
+                                                                           
+                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=0.4, dists=None)
             
             # End Flight if landed
             if self.flag["land"] == 2:
@@ -607,13 +632,21 @@ class ctrlCF():
                 self.update_sim_states(obs_state)
 
             self.cf.vis.set_state(quadsim_state.pos, quadsim_state.rot)
-                    
+
+            self.adaptation_terms.append(self.curr_controller.adaptation_terms)
+            try:
+                if self.adapt_warmup and self.curr_controller.adaptation_warmup:
+                    self.adaptation_warmup_value = np.mean(self.curr_controller.adaptation_mean, axis=0)
+            except:
+                pass
+                # print(np.zeros(4)) 
             # Logging
             self.pose_positions.append(np.copy(self.state.pos))
             self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
             self.ref_positions.append(np.copy(self.ref.pos))
             self.ref_orientation.append(self.ref.rot.as_euler('ZYX', degrees=True))
             self.ts.append(t)
+            # self.ref_vel.append()
             self.thrust_cmds.append(z_acc)
             self.ang_vel_cmds.append(ang_vel * 180 / (2 * np.pi))
 
@@ -624,7 +657,7 @@ class ctrlCF():
             if self.flag["land"] == 2:
                 break
 
-            time.sleep(0.001)
+            time.sleep(0.01)
             # self.ppo_acc.append(z_ppo)
             # self.ppo_ang.append(ang_ppo*180/(2*np.pi))
 
@@ -637,17 +670,23 @@ if __name__ == "__main__":
     parser.add_argument('-gui', type=bool, default=False)
     parser.add_argument('-seed', type=int, default=None, help='try not use this and use the yaml file to send the seeds')
     parser.add_argument('-ps','--pseudo', type=bool, default=False, help='pseudo adapt')
+    parser.add_argument('-aw','--adapt_warmup', type=bool, default=False, help='adaptation warmup')
+    parser.add_argument('-as','--adapt_smoothing', type=bool, default=False, help='adaptation smoothing')
+
+
 
     g = EasyDict(vars(parser.parse_args()))
 
-    x = ctrlCF(cfName="cf4", 
+    x = ctrlCF(cfName="cf5", 
                sim=g.quadsim,
                config_file=g.config,
                log_file=g.logfile,
                debug=g.debug,
                gui=g.gui,
                def_seed=g.seed,
-               pseudo_adapt=g.pseudo)
+               pseudo_adapt=g.pseudo,
+               adapt_warmup = g.adapt_warmup,
+               adapt_smooth =g.adapt_smoothing)
 
     try:
         if g.quadsim:
