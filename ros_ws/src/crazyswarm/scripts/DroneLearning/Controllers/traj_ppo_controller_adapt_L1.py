@@ -14,34 +14,49 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
 
     self.set_policy()
 
-    self.history = np.zeros((1, 14, 50))
+    self.history = np.zeros((1, 14, 5))
+    
+    # Override L1 params
+    # # naive params
+    # self.lamb = 0.2
 
-    self.adaptation_history = np.zeros((1, 4))
-    self.adaptation_history_len = 100
-    self.lamb = 0.2
-    self.v_prev = 0
-    self.adapt_term = np.zeros(3)
-    self.count = 0
+    # # L1 params
+    # self.runL1 = True # L1 v/s naive toggle
+    # self.filter_coeff = 5
+    # self.A = -0.2
+    # self.count = 0
+
+    self.runL1 = False
 
   def _response(self, fl = 1, **response_inputs):
 
     t = response_inputs.get('t')
     state = response_inputs.get('state')
-    ref = response_inputs.get('ref')
     ref_func = response_inputs.get('ref_func')
-    ref_func_obj = response_inputs.get('ref_func_obj')
 
     if self.prev_t is None:
-      dt = 0
+      dt = 0.02
     else:
       dt = t - self.prev_t
     
     if fl:
       self.prev_t = t
     
+    # States
     pos = state.pos - self.offset_pos
     vel = state.vel
     rot = state.rot
+
+    # Acceleration Estimation
+    if self.count > 2:
+      v_t = state.vel
+      a_t = (v_t - self.v_prev) / dt
+    else:
+      a_t = np.array([0, 0, 0]) 
+
+    # Previous thrust action. f_t is in m / s**2
+    unity_mass = 1
+    f_t = rot.apply(np.array([0, 0, self.history[0, 10, 0]])) * unity_mass
 
     quat = rot.as_quat() 
 
@@ -53,41 +68,44 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
 
     obs = np.hstack((pos, vel, quat))
     
-    if fl!=0.0:
-    # if self.pseudo_adapt==False and fl!=0.0:
-
-      # if self.adaptation_warmup:
-      # adaptation_term = self.adaptive_policy(self.history).detach().cpu().numpy()[0]
-      # self.adaptation_mean = np.vstack((self.adaptation_mean, self.adaptation_terms[None, :]))
-      adaptation_term = np.ones(4)
-      adaptation_term[1:] *= 0
-
-      v_t = 0
-      v_t_prev = 0
+    if self.pseudo_adapt== False and fl!=0.0:
       if self.count > 2:
         v_t = state.vel
-        v_t_prev = self.v_prev
-        a_t = (v_t - v_t_prev) / dt
+        a_t = (v_t - self.v_prev) / dt
       else:
-        a_t = np.array([0, 0, 0])
-        
+        a_t = np.array([0, 0, 0])        
 
-      mass = 1
-      cf_mass = 0.04
 
-      f_t = rot.apply(np.array([0, 0, self.history[0, 10, 0]])) * mass
-      z_w = np.array([0, 0, -1])
-      adapt_term = mass * a_t - mass * z_w * 9.8 - f_t
-      self.adapt_term = (1 - self.lamb) * self.adapt_term + self.lamb * adapt_term
-            
-      self.adaptation_terms = self.adapt_term
-      obs_ = np.hstack((obs, self.adapt_term))
+
+      # # Naive Adaptation
+      # adapt_term = mass * a_t - mass * g_vec - f_t
+      # self.wind_adapt_term = (1 - self.lamb) * self.wind_adapt_term + self.lamb * adapt_term
+      
+      # L1 Adaptation
+      # alpha = np.exp(-dt * self.filter_coeff)
+      # phi = 1 / self.A * (np.exp(self.A * dt) - 1)
+
+      # a_t_hat = g_vec + f_t / mass + self.wind_adapt_term + self.A * self.wind_adapt_term
+      
+      # self.v_hat += a_t_hat * dt
+      # v_tilde = self.v_hat - v_t
+      
+      # adapt_term = -1 / phi * np.exp(self.A * dt) * v_tilde
+      # self.wind_adapt_term = (1 - alpha) * adapt_term + self.lamb * self.wind_adapt_term 
+      
+      if self.runL1:
+        # L1 adaptation update
+        self.L1_adaptation(dt, v_t, f_t)
+      else:
+        self.naive_adaptation(a_t, f_t)
+      
+      self.adaptation_terms[1: ] = self.wind_adapt_term
+      obs_ = np.hstack((obs, self.wind_adapt_term))
 
     else:
       pseudo_adapt_term =  np.ones(self.e_dims) * 1.0
       pseudo_adapt_term[1:] *= 0 # mass -> 1, wind-> 0
       obs_ = np.hstack((obs, pseudo_adapt_term))
-    # obs_ = np.hstack((obs, 1.0))
 
     if fl==0:
         obs_ = np.zeros((self.time_horizon+1) * 3 + 10 + self.e_dims)
@@ -100,7 +118,6 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
           ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
           obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos] + ff_terms)
 
-    # import pdb;pdb.set_trace()
 
     action, _states = self.policy.predict(obs_, deterministic=True)
 
@@ -116,9 +133,9 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
     if fl!=0.0:
       self.history = np.concatenate((adaptation_input[None, :, None], self.history[:, :, :-1]), axis=2)
 
-    self.dt_prev = dt
     self.count += 1
     self.v_prev = state.vel
+
     # new_obs = np.hstack((obs, action))
     # self.obs_history[1:] = self.obs_history[0:-1]
     # self.obs_history[0] = new_obs

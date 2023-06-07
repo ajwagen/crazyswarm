@@ -43,6 +43,20 @@ class ControllerBackbone():
 
         self.time_horizon = 10
         self.policy_config = policy_config
+        
+        # Classical adaptation
+        self.v_prev = np.zeros(3)
+        self.v_hat = np.zeros(3)
+        self.wind_adapt_term = np.zeros(3)
+
+        # naive params
+        self.lamb = 0.2
+
+        # L1 params
+        self.runL1 = True # L1 v/s naive toggle
+        self.filter_coeff = 5
+        self.A = -0.2
+        self.count = 0
 
     def updateDt(self,t):
 
@@ -124,9 +138,33 @@ class ControllerBackbone():
         self.relative = False
         self.bc_policy = bc.reconstruct_policy(TEST_POLICY_DIR / f'{bc_policy_name}')
     
+
     def _response(self, fl1, response_inputs):
         raise NotImplementedError
     
     def response(self, fl=1, **kwargs):
         return self._response(fl, **kwargs)
+    
+    # Classical Adaptation techniques
+    def naive_adaptation(self, a_t, f_t):
+        unity_mass = 1
+        g_vec = np.array([0, 0, -1]) * self.g
+
+        adapt_term = unity_mass * a_t - unity_mass * g_vec - f_t
+
+        self.wind_adapt_term = (1 - self.lamb) * self.wind_adapt_term + self.lamb * adapt_term
+
+    def L1_adaptation(self, dt, v_t, f_t):
+        unit_mass = 1
+        g_vec = np.array([0, 0, -1]) * self.g
+        alpha = np.exp(-dt * self.filter_coeff)
+        phi = 1 / self.A * (np.exp(self.A * dt) - 1)
+
+        a_t_hat = g_vec + f_t / unit_mass + self.wind_adapt_term + self.A * self.wind_adapt_term
+        
+        self.v_hat += a_t_hat * dt
+        v_tilde = self.v_hat - v_t
+        
+        adapt_term = -1 / phi * np.exp(self.A * dt) * v_tilde
+        self.wind_adapt_term = (1 - alpha) * adapt_term + self.lamb * self.wind_adapt_term 
 

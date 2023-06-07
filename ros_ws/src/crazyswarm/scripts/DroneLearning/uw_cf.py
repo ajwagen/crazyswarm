@@ -570,7 +570,7 @@ class ctrlCF():
     
     # Simulation
     def update_sim_states(self, quadsim_state):
-        quadsim_state = self.add_observation_noise(quadsim_state)
+        # quadsim_state = self.add_observation_noise(quadsim_state)
         # import pdb;pdb.set_trace()
         self.state.pos = quadsim_state.pos
         self.state.rot = quadsim_state.rot
@@ -604,7 +604,7 @@ class ctrlCF():
             # Send controller commands to the simulator and simulate the dynamics
             z_acc, ang_vel = 0., np.array([0., 0., 0.])
 
-            dist = [ConstantForce(scale=np.array([0.0, 0, 0]))]
+            dist = [ConstantForce(scale=np.array([0, 0, 0]))]
             if t > self.warmup_time:
 
                 z_acc, ang_vel = self.curr_controller.response(t = t - self.prev_task_time, 
@@ -615,7 +615,7 @@ class ctrlCF():
                                                                adaptation_mean_value=self.adaptation_warmup_value,
                                                                )    
                                                                            
-                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=0.4, dists=dist)
+                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=1.0, dists=dist)
             
             # End Flight if landed
             if self.flag["land"] == 2:
