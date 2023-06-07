@@ -1,6 +1,6 @@
 # Take off and landig parameters
-takeoff_height: 1.0
-takeoff_rate: 0.3
+takeoff_height: 1.5
+takeoff_rate: 0.5
 landing_height: 0.1
 landing_rate: 0.001
 
@@ -14,14 +14,14 @@ kalman_warmup: 3.0
 tasks: 
   - ref: 'set_hover_ref'
     cntrl: "PIDController"
-    time: 5.0
+    time: 6.5
     adaptive: False
     policy_config: none
     description: "hover init"
 
-  - ref: 'random_zigzag'
+  - ref: 'N_pointed_star_ref'
     cntrl: "PPOController_trajectory"
-    time: 10.0
+    time: 8.5
     adaptive: False
     policy_config: trajectory_2d
     description: "Trajectory PPO"

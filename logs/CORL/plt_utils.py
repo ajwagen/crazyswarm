@@ -46,7 +46,7 @@ def load_cf_data(filenames, args):
 
         # data['cf_positions'] = saved_data['cf_positions'][t_mask] - saved_data['cf_positions'][st]
         data['ref_positions'] = saved_data['ref_positions'][t_mask] #- saved_data['ref_positions'][st]
-        # data['ref_positions'][:, :2] -= data['ref_positions'][0, :2]
+        data['ref_positions'][:, :2] -= data['ref_positions'][0, :2]
         data['ref_positions'][:, -1] -= args.baseheight
 
         data['ref_orientation'] = saved_data['ref_orientation'][t_mask]

@@ -99,9 +99,7 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
 
     action, _states = self.policy.predict(obs_, deterministic=True)
 
-    print("action : ", action)
     # adaptation_input = torch.from_numpy(adaptation_input).to("cuda:0").float()
-
 
       # import pdb;pdb.set_trace()
     if self.log_scale:

@@ -53,7 +53,8 @@ class PIDController(ControllerBackbone):
               - self.kp_pos * (p_err) 
               - self.kd_pos * (v_err) 
               - self.ki_pos * self.pos_err_int 
-              + 0.5 * ref.acc)
+              + 0.5 * ref.acc
+              - 0 * self.adapt_term)
 
     u_des = rot.as_matrix().T.dot(acc_des)
 
@@ -67,38 +68,30 @@ class PIDController(ControllerBackbone):
     omega_des[2] += - self.yaw_gain * (yaw - 0.0)
 
 
-    # v_t = 0
-    # v_t_prev = 0
-    # if self.count > 2:
-    #   v_t = state.vel
-    #   v_t_prev = self.v_prev
-    #   a_t = (v_t - v_t_prev) / dt
-    # else:
-    #   a_t = np.array([0, 0, 0])
+    v_t = 0
+    v_t_prev = 0
+    if self.count > 2:
+      v_t = state.vel
+      v_t_prev = self.v_prev
+      a_t = (v_t - v_t_prev) / dt
+    else:
+      a_t = np.array([0, 0, 0])
       
-
-    # adaptation_term = np.ones(4)
-    # adaptation_term[1:] *= 0
-    # mass = 0.04
-    # f_t = rot.apply(np.array([0, 0, self.history[0, 10, 0]])) * mass
-    # z_w = np.array([0, 0, -1])
-    # adapt_term = mass * a_t - mass * z_w * 9.8 - f_t
-    # self.adapt_term = (1 - self.lamb) * self.adapt_term + self.lamb * adapt_term
+    mass = 1
+    cf_mass = 0.04
+    adaptation_term = np.ones(4)
+    adaptation_term[1:] *= 0
+    f_t = rot.apply(np.array([0, 0, self.history[0, 10, 0]])) * mass
+    z_w = np.array([0, 0, -1])
+    adapt_term = mass * a_t - mass * z_w * 9.8 - f_t
+    self.adapt_term = (1 - self.lamb) * self.adapt_term + self.lamb * adapt_term
     
-    
-    # print(self.count, self.adapt_term / 9.8 * 1000)
-    # # import pdb;pdb.set_trace()
+    self.adaptation_terms[1:] = self.adapt_term * cf_mass
 
-    # adaptation_input = np.r_[obs, acc_des, omega_des]
-    # if fl!=0.0:
-    #   self.history = np.concatenate((adaptation_input[None, :, None], self.history[:, :, :-1]), axis=2)
-    # # ref_orient = ref.rot.as_euler("ZYX")
-    # # yaw, _, _ = rot.as_euler('ZYX')
-    # # yaw_des = ref_orient[0]  # self.ref.yaw(t)
+    adaptation_input = np.r_[obs, acc_des, omega_des]
+    if fl!=0.0:
+      self.history = np.concatenate((adaptation_input[None, :, None], self.history[:, :, :-1]), axis=2)
 
-    # # omega_des = - self.kp_rot * rot_err
-    # # omega_des[2] = - self.yaw_gain * (yaw - yaw_des)
-    # # print("PID a : ", acc_des, " w : ", omega_des, "MPPI a: ", action[0], " w : ", omega_d)
-    # self.count += 1
-    # self.v_prev = state.vel
+    self.count += 1
+    self.v_prev = state.vel
     return acc_des, omega_des

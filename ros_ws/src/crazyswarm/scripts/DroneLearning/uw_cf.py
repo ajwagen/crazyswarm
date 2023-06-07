@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 
 from cf_utils.rigid_body import State_struct
 from ref_traj import Trajectories
+from quadsim.dist import WindField, ConstantForce
 
 # import controller 
 # from Controllers.pid_controller import PIDController
@@ -613,12 +614,14 @@ class ctrlCF():
 
             # Send controller commands to the simulator and simulate the dynamics
             z_acc, ang_vel = 0., np.array([0., 0., 0.])
+
+            dist = [ConstantForce(scale=np.array([0.0, 0, 0]))]
             if t > self.warmup_time:
                 z_acc, ang_vel = self.curr_controller.response(t - self.prev_task_time, self.state, 
                                                                self.ref, self.ref_func, self._ref_func_obj, 
                                                                adaptation_mean_value=self.adaptation_warmup_value)    
                                                                            
-                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=0.4, dists=None)
+                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=0.4, dists=dist)
             
             # End Flight if landed
             if self.flag["land"] == 2:
