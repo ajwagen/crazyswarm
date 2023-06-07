@@ -12,8 +12,8 @@ from quadsim.learning.utils.adaptation_network import AdaptationNetwork
 from quadsim.control import Controller
 
 class PPOController(ControllerBackbone):
-  def __init__(self,isSim, policy_config="hover", adaptive=False):
-    super().__init__(isSim, policy_config)
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
 
     self.set_policy()
 

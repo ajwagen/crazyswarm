@@ -9,15 +9,13 @@ from torch.autograd.functional import jacobian
 from stable_baselines3.common.env_util import make_vec_env
 
 class PPOController_trajectory_L1_adaptive(ControllerBackbone):
-  def __init__(self,isSim, policy_config="trajectory", adaptive=True, pseudo_adapt=False, adapt_smooth=False):
-    super().__init__(isSim, policy_config, isPPO=True, adaptive=adaptive, pseudo_adapt = pseudo_adapt)
-    # self.e_dims = e_dims
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
+
     self.set_policy()
-    # self.obs_history = np.zeros((50, 14))
-    # self.history = torch.zeros((14, 50))./to("cuda:0")
+
     self.history = np.zeros((1, 14, 50))
 
-    self.adapt_smooth = adapt_smooth
     self.adaptation_history = np.zeros((1, 4))
     self.adaptation_history_len = 100
     self.lamb = 0.2
@@ -25,7 +23,13 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
     self.adapt_term = np.zeros(3)
     self.count = 0
 
-  def response(self, t, state, ref , ref_func, ref_func_obj, fl=1, adaptation_mean_value=np.zeros(4)):
+  def _response(self, fl = 1, **response_inputs):
+
+    t = response_inputs.get('t')
+    state = response_inputs.get('state')
+    ref = response_inputs.get('ref')
+    ref_func = response_inputs.get('ref_func')
+    ref_func_obj = response_inputs.get('ref_func_obj')
 
     if self.prev_t is None:
       dt = 0

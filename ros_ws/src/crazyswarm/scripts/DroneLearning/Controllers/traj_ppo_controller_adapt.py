@@ -23,20 +23,24 @@ from stable_baselines3.common.env_util import make_vec_env
 #     return np.array(smooth_arr) / scale
 
 class PPOController_trajectory_adaptive(ControllerBackbone):
-  def __init__(self,isSim, policy_config="trajectory", adaptive=True, pseudo_adapt=False, adapt_smooth=False):
-    super().__init__(isSim, policy_config, isPPO=True, adaptive=adaptive, pseudo_adapt = pseudo_adapt)
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
     # self.e_dims = e_dims
     self.set_policy()
-    # self.obs_history = np.zeros((50, 14))
-    # self.history = torch.zeros((14, 50))./to("cuda:0")
+
     self.history = torch.zeros((1, 14, 50)).to("cuda:0")
 
-    self.adapt_smooth = adapt_smooth
     self.adaptation_history = np.zeros((1, 4))
     self.adaptation_history_len = 100
 
-  def response(self, t, state, ref , ref_func, ref_func_obj, fl=1, adaptation_mean_value=np.zeros(4)):
-
+  def _response(self, fl=1, **response_inputs):
+    
+    t = response_inputs.get('t')
+    state = response_inputs.get('state')
+    ref = response_inputs.get('ref')
+    ref_func = response_inputs.get('ref_func')
+    ref_func_obj = response_inputs.get('ref_func_obj')
+                                       
     if self.prev_t is None:
       dt = 0
     else:

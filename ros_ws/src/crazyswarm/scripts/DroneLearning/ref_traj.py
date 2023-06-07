@@ -151,18 +151,10 @@ class Trajectories:
         ref = State_struct(pos=ref_pos)
 
         return ref, ref_pos, None
-
-    # def zigzag_guanya(self, t):
-    #     p = 2. # period
-    #     t_ = t
-    #     x = 2 * np.abs(t_ / p - np.floor(t_ / p + 0.5))
-
-    #     ref_pos = np.array([x, 0, 0])
-    #     ref = State_struct(pos=ref_pos)
-
-    #     return ref, ref_pos, None
     
-    def random_zigzag_(self, seed, maxes):
+    def random_zigzag_(self, **traj_defs):
+        seed = traj_defs.get('seed', 0)
+        maxes = traj_defs.get('maxes', [1.0, 1.0, 0.0])
         self.random_zigzag_obj = RandomZigzag(max_D=np.array(maxes), seed=seed)
     def random_zigzag(self, t):
         ref_pos = self.random_zigzag_obj.pos(t)
@@ -170,7 +162,8 @@ class Trajectories:
         ref = State_struct(pos=ref_pos, vel=ref_vel)
         return ref, self.ret, self.random_zigzag_obj
     
-    def random_poly_(self, seed, maxes):
+    def random_poly_(self, **traj_defs):
+        seed = traj_defs.get('seed', 0)
         self.random_poly_obj = PolyRef(altitude=0., seed=seed)
     def random_poly(self, t):
         ref_pos = self.random_poly_obj.pos(t)
@@ -179,7 +172,8 @@ class Trajectories:
 
         return ref, self.ret, self.random_poly_obj
     
-    def random_chained_poly_(self, seed, maxes):
+    def random_chained_poly_(self, **traj_defs):
+        seed = traj_defs.get('seed', 0)
         self.random_chained_poly_obj = ChainedPolyRef(altitude=0, use_y=True, seed=seed)
     def random_chained_poly(self, t):
         ref_pos = self.random_chained_poly_obj.pos(t)
@@ -206,8 +200,9 @@ class Trajectories:
         else:
             return self.set_hover_ref(t)
         
-    def N_pointed_star_ref_(self, seed, maxes):
-        self.Nstar_ref_obj = NPointedStar(n_points=seed, speed=1.0, radius=0.7)
+    def N_pointed_star_ref_(self, **traj_defs):
+        n_points = traj_defs.get('seed', 5)
+        self.Nstar_ref_obj = NPointedStar(n_points=n_points, speed=1.0, radius=0.7)
     def N_pointed_star_ref(self,t):
         ref_pos = self.Nstar_ref_obj.pos(t)
         ref_vel = self.Nstar_ref_obj.vel(t)
@@ -215,7 +210,7 @@ class Trajectories:
 
         return ref, self.ret, self.Nstar_ref_obj
     
-    def M_zigzag_ref_(self, seed, maxes):
+    def M_zigzag_ref_(self, **traj_defs):
         self.M_zigzag_ref_obj = M_zigzag(speed=1.0, amplitude=1.0)
     def M_zigzag_ref(self,t):
         ref_pos = self.M_zigzag_ref_obj.pos(t)
@@ -224,7 +219,7 @@ class Trajectories:
 
         return ref, self.ret, self.M_zigzag_ref_obj
     
-    def Triangle_ref_(self, seed, maxes):
+    def Triangle_ref_(self, **traj_defs):
         self.Triangle_ref_obj = Triangle(speed=1.0, side_len = 1.0)
     def Triangle_ref(self,t):
         ref_pos = self.Triangle_ref_obj.pos(t)
@@ -233,7 +228,7 @@ class Trajectories:
 
         return ref, self.ret, self.Triangle_ref_obj
 
-    def Closed_polygon_ref_(self, seed, maxes):
+    def Closed_polygon_ref_(self, **traj_defs):
         self.closed_polygon_ref_obj = ClosedPoly()
     def Closed_polygon_ref(self,t):
         ref_pos = self.closed_polygon_ref_obj.pos(t)
@@ -241,6 +236,9 @@ class Trajectories:
         ref = State_struct(pos=ref_pos, vel=ref_vel)
 
         return ref, self.ret, self.closed_polygon_ref_obj
+    
+
+
     
     # LEGACY CODES
     def DONT_USE_set_takeoff_ref(self, t, takeoff_height, takeoff_rate):

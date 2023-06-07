@@ -9,12 +9,15 @@ from torch.autograd.functional import jacobian
 from stable_baselines3.common.env_util import make_vec_env
 
 class BC_Controller(ControllerBackbone):
-  def __init__(self,isSim, policy_config="trajectory",adaptive=False):
-    super().__init__(isSim, policy_config, isPPO=True)
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
 
     self.set_BC_policy()
 
-  def response(self, t, state, ref , ref_func, ref_func_obj, fl=1, adaptive=False, adaptation_mean_value=np.zeros(4)):
+  def _response(self, fl=1, **response_inputs):
+    t = response_inputs.get('t')
+    state = response_inputs.get('state')
+    ref_func = response_inputs.get('ref_func')
 
     if self.prev_t is None:
       dt = 0

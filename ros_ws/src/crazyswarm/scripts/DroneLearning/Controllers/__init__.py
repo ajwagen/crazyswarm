@@ -1,11 +1,9 @@
-from Controllers.hover_ppo_controller import *
+# from Controllers.hover_ppo_controller import *
 from Controllers.bc_controller import BC_Controller
 from Controllers.traj_ppo_controller import PPOController_trajectory
 from Controllers.traj_ppo_controller_adapt import PPOController_trajectory_adaptive
 from Controllers.traj_ppo_controller_ustruct import PPOController_trajectory_ustruct
-from Controllers.yawflip_ppo import PPOController_yawflip
 from Controllers.traj_ppo_controller_adapt_L1 import PPOController_trajectory_L1_adaptive
 
 from Controllers.pid_controller import PIDController
-from Controllers.diff_flat_pid_controller import diffFlat_PIDController
 from Controllers.mppi_controller import MPPIController

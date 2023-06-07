@@ -14,15 +14,22 @@ import os
 from Controllers.ctrl_config import select_policy_config_
 
 class ControllerBackbone():
-    def __init__(self, isSim, policy_config, isPPO = False, adaptive=False, pseudo_adapt=False):
+    def __init__(self, isSim, 
+                 policy_config='trajectory', 
+                 adaptive=False, 
+                 pseudo_adapt=False,
+                 adapt_smooth = False):
+        
         self.isSim = isSim
         self.mass = 0.04
         self.g = 9.8
         self.e_dims = 0
         self.adaptive = adaptive
+
         self.pseudo_adapt = pseudo_adapt
         self.adaptation_terms = np.zeros(4)
         self.adaptation_mean = np.zeros((1, 4))
+        self.adapt_smooth = adapt_smooth
         # self.I = np.array([[3.144988, 4.753588, 4.640540],
         #                    [4.753588, 3.151127, 4.541223],
         #                    [4.640540, 4.541223, 7.058874]])*1e-5
@@ -116,3 +123,10 @@ class ControllerBackbone():
         self.body_frame = False
         self.relative = False
         self.bc_policy = bc.reconstruct_policy(TEST_POLICY_DIR / f'{bc_policy_name}')
+    
+    def _response(self, fl1, response_inputs):
+        raise NotImplementedError
+    
+    def response(self, fl=1, **kwargs):
+        return self._response(fl, **kwargs)
+

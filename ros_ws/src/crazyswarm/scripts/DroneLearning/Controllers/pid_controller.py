@@ -6,8 +6,8 @@ import torch
 import time
 
 class PIDController(ControllerBackbone):
-  def __init__(self,isSim, policy_config=None, adaptive = False):
-    super().__init__(isSim, policy_config)
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
 
     self.kp_pos = 6.0
     self.kd_pos = 4.0
@@ -27,7 +27,12 @@ class PIDController(ControllerBackbone):
 
     # self.mppi_controller = self.set_MPPI_cnotroller()
 
-  def response(self, t, state, ref, ref_func, ref_func_obj, fl=1, adaptation_mean_value=np.zeros(4)):
+  def _response(self, fl=1, **response_inputs ):
+    
+    t = response_inputs.get('t')
+    state = response_inputs.get('state')
+    ref = response_inputs.get('ref')
+
 
     self.updateDt(t)
     # if fl:

@@ -79,9 +79,6 @@ class ctrlCF():
 
         self.def_seed = def_seed
 
-        # self.state = np.zeros(14)
-        # self.prev_state = np.zeros(14)
-        # self.default_controller  = PIDController(isSim = self.isSim)
         with open(config_file,"r") as f:
             self.config = yaml.full_load(f)
         
@@ -95,7 +92,14 @@ class ctrlCF():
             #                                         policy_config = "hover", 
             #                                         adaptive = False)
         
-        self.default_controller.response(0.1, self.state, self.ref,self.ref_func, self._ref_func_obj, fl=0.)
+        warmup_inputs = {
+            't' : 0.1, 
+            'state' : self.state, 
+            'ref' : self.ref, 
+            'ref_func' : self.ref_func, 
+            'ref_func_obj' : self._ref_func_obj
+        }
+        self.default_controller.response(fl=0., **warmup_inputs)
 
         self.curr_controller = self.default_controller
 
@@ -112,19 +116,15 @@ class ctrlCF():
             if ctrl_policy in self.controllers.keys():
                 pass
             else:
-
-                try:
-                    self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
-                                                                                            policy_config = self.config["tasks"][i]["policy_config"],
-                                                                                            adaptive = self.config["tasks"][i]["adaptive"],
-                                                                                            pseudo_adapt = pseudo_adapt,
-                                                                                            adapt_smooth = self.adaptation_smoothing)
-                except:
-                    self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
-                                                                        policy_config = self.config["tasks"][i]["policy_config"],
-                                                                        adaptive = self.config["tasks"][i]["adaptive"])
+                    
+                self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
+                                                                                        policy_config = self.config["tasks"][i]["policy_config"],
+                                                                                        adaptive = self.config["tasks"][i]["adaptive"],
+                                                                                        pseudo_adapt = pseudo_adapt,
+                                                                                        adapt_smooth = self.adaptation_smoothing)
                 # Warming up controller
-                self.controllers[ctrl_policy].response(0.1, self.state, self.ref, self.ref_func, self._ref_func_obj, fl=0.)
+
+                self.controllers[ctrl_policy].response(fl = 0, **warmup_inputs)
                 # self.controller.trajectories = Trajectories
         
 
@@ -443,13 +443,14 @@ class ctrlCF():
                 try:
                     init_ref_func = getattr(self.trajs, self.tasks[self.task_num]["ref"]+"_")
                     seed = self.def_seed
+                    ref_kwargs = {'seed':seed}
                     if seed is None:
-                        seed = self.tasks[self.task_num]["seed"]
-                    try:
-                        maxes = self.tasks[self.task_num]["maxes"]
-                    except:
-                        maxes = None
-                    init_ref_func(seed, maxes)
+                        if 'seed' in self.tasks[self.task_num].keys(): 
+                            ref_kwargs['seed'] = self.tasks[self.task_num]["seed"]
+                        if 'maxes' in self.tasks[self.task_num].keys(): 
+                            ref_kwargs['maxes'] = self.tasks[self.task_num]["maxes"]
+
+                    init_ref_func(**ref_kwargs)
                 except:
                     pass
 
@@ -478,18 +479,13 @@ class ctrlCF():
                 self.trajs.land = True
                 print("********* LAND **********")
                 self.flag["land"] = 1
-
-                # final_pt = copy.deepcopy(self.trajs.last_state.pos)
-                # final_pt[2] = self.config["landing_height"]
-                # self.trajs._goto_init(final_pt, self.config["landing_rate"])
                 
             self.ref,_ ,self._ref_func_obj= self.trajs.set_landing_ref(t - self.land_start_timer, 
                                                     self.config["landing_height"],
                                                     self.config["landing_rate"])  
                  
             self.ref_func = self.trajs.set_landing_ref
-            # self.ref, _ = self.trajs.goto(t - self.land_start_timer)
-            # self.ref_func = self.trajs.goto
+
         
             self.land_buffer.appendleft(self.state.pos[-1])
             self.land_buffer.pop()
@@ -529,15 +525,14 @@ class ctrlCF():
                 # Sending state data to the controller
                 z_acc,ang_vel = 0.,np.array([0.,0.,0.])      
                 if t>self.warmup_time:
-                    z_acc,ang_vel = self.curr_controller.response(t-self.prev_task_time,self.state,self.ref, self.ref_func, self._ref_func_obj)
+                    z_acc,ang_vel = self.curr_controller.response(t = t - self.prev_task_time, 
+                                                                state = self.state, 
+                                                                ref = self.ref, 
+                                                                ref_func = self.ref_func, 
+                                                                ref_func_obj = self._ref_func_obj, 
+                                                                adaptation_mean_value=self.adaptation_warmup_value,)
 
                 self.adaptation_terms.append(self.curr_controller.adaptation_terms)
-                try:
-                    if self.adapt_warmup and self.curr_controller.adaptation_warmup:
-                        self.adaptation_warmup_value = np.mean(self.curr_controller.adaptation_mean, axis=0)
-                        print(self.adaptation_warmup_value)
-                except:
-                    pass
 
                 self.pose_positions.append(np.copy(self.pose_pos))
                 self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
@@ -617,9 +612,14 @@ class ctrlCF():
 
             dist = [ConstantForce(scale=np.array([0.0, 0, 0]))]
             if t > self.warmup_time:
-                z_acc, ang_vel = self.curr_controller.response(t - self.prev_task_time, self.state, 
-                                                               self.ref, self.ref_func, self._ref_func_obj, 
-                                                               adaptation_mean_value=self.adaptation_warmup_value)    
+
+                z_acc, ang_vel = self.curr_controller.response(t = t - self.prev_task_time, 
+                                                               state = self.state, 
+                                                               ref = self.ref, 
+                                                               ref_func = self.ref_func, 
+                                                               ref_func_obj = self._ref_func_obj, 
+                                                               adaptation_mean_value=self.adaptation_warmup_value,
+                                                               )    
                                                                            
                 obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=0.4, dists=dist)
             
@@ -639,11 +639,6 @@ class ctrlCF():
             self.cf.vis.set_state(quadsim_state.pos, quadsim_state.rot)
 
             self.adaptation_terms.append(self.curr_controller.adaptation_terms)
-            try:
-                if self.adapt_warmup and self.curr_controller.adaptation_warmup:
-                    self.adaptation_warmup_value = np.mean(self.curr_controller.adaptation_mean, axis=0)
-            except:
-                pass
                 # print(np.zeros(4)) 
             # Logging
             self.pose_positions.append(np.copy(self.state.pos))
