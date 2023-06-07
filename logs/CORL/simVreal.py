@@ -24,7 +24,6 @@ def plot_npz(filenames, files_n_types, args):
             pos_rmse = rmse(data_dict[key]['ref_positions'], data_dict[key]['pose_positions']) 
             real_rmse.append(pos_rmse)
 
-        print(real_rmse)
         real_rmse = np.mean(real_rmse, axis=0)
         print(real_rmse)
         print("real RMSE : ", list(real_rmse))

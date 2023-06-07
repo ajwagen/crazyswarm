@@ -25,6 +25,8 @@ from Controllers import *
 # from Controllers.traj_ppo_controller import PPOController_trajectory
 
 
+from quadsim.learning.refs.gen_trajectory import Trajectory
+
 # Actual Drone
 import rospy
 from geometry_msgs.msg import PoseStamped
@@ -133,8 +135,8 @@ class ctrlCF():
             self.cf = self.swarm.allcfs.crazyflies[0]
 
         else:
-            # model = crazyflieModel()
-            model = IdentityModel()
+            model = crazyflieModel()
+            # model = IdentityModel()
             self.cf = QuadSim(model, name=self.cfName)
             eu = np.array([0., 0., 0.])
             rot = R.from_euler('xyz', eu)
@@ -406,7 +408,7 @@ class ctrlCF():
         if t<self.warmup_time:
             if self.warmup_time-t<3 and self.flag["warmup"]==0:
                 self.flag["warmup"]=1
-                print("Taking off in 3 seconds ..... ")
+                print("Taking off in 10 seconds ..... ")
 
         ###### Take off Function
         elif t<self.takeoff_time + self.warmup_time:

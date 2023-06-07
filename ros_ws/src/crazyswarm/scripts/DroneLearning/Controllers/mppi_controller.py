@@ -49,9 +49,9 @@ class MPPIController(ControllerBackbone):
     state_torch = torch.as_tensor(noisystate, dtype=torch.float32)
     
     # action = self.mppi_controller.policy_cf(state=state_torch, time=t).cpu().numpy()
-    start = time.time()
+    # start = time.time()
     action = self.mppi_controller.policy_with_ref_func(state=state_torch, time=t, new_ref_func=self.ref_func_t).cpu().numpy()
-    print(time.time() - start)
+    # print(time.time() - start)
     # MPPI controller designed for output in world frame
     # World Frame -> Body Frame
     

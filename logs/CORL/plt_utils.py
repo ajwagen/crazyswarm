@@ -20,6 +20,7 @@ def smoothing(arr, scale=5):
 def load_cf_data(filenames, args):
     data_dict={}
     # minimum_len={}
+    plt.figure(9)
     for i in filenames:
         data = {}
         saved_data = dict(np.load(i, allow_pickle=True))
@@ -45,6 +46,7 @@ def load_cf_data(filenames, args):
 
         # data['cf_positions'] = saved_data['cf_positions'][t_mask] - saved_data['cf_positions'][st]
         data['ref_positions'] = saved_data['ref_positions'][t_mask] #- saved_data['ref_positions'][st]
+        # data['ref_positions'][:, :2] -= data['ref_positions'][0, :2]
         data['ref_positions'][:, -1] -= args.baseheight
 
         data['ref_orientation'] = saved_data['ref_orientation'][t_mask]
@@ -55,10 +57,10 @@ def load_cf_data(filenames, args):
             if isinstance(saved_data['adaptation_terms'][0], torch.Tensor):
                 saved_data['adaptation_terms'] = [saved_data['adaptation_terms'][i].numpy() for i in range(len(saved_data['adaptation_terms']))]
             data['adaptation_terms'] = saved_data['adaptation_terms'][t_mask]
-            if 'real' not in i:
-                plt.plot(saved_data['ts'], np.array(saved_data['adaptation_terms'])[:, 0], label=i)
-            else:
-                plt.plot(saved_data['ts'], np.array(saved_data['adaptation_terms'])[:, 0] / 1.3, label=i)
+            # if 'real' not in i:
+            plt.plot(saved_data['ts'], np.array(saved_data['adaptation_terms'])[:, 0], label=i)
+            # else:
+                # plt.plot(saved_data['ts'], np.array(saved_data['adaptation_terms'])[:, 0] / 1.3, label=i)
 
         except:
             pass
@@ -67,12 +69,12 @@ def load_cf_data(filenames, args):
     plt.legend()
     # plt.show()
 
-    plt.figure(0)
+    plt.figure(10)
     ax1 = plt.subplot(3, 1, 1)
     # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['adaptation_terms'][:, 1])
     for key in data_dict.keys():
-        if 'real' in key:
-            data_dict[key]['adaptation_terms'][:, 1] = smoothing(data_dict[key]['adaptation_terms'][:, 1])
+        # if 'real' in key:
+            # data_dict[key]['adaptation_terms'][:, 1] = smoothing(data_dict[key]['adaptation_terms'][:, 1])
         plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 1])
         # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 0], label='cf.position()')
     plt.grid()
@@ -80,8 +82,8 @@ def load_cf_data(filenames, args):
     plt.subplot(3, 1, 2, sharex=ax1)
     # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['ref_positions'][:, 1])
     for key in data_dict.keys():
-        if 'real' in key:
-            data_dict[key]['adaptation_terms'][:, 2] = smoothing(data_dict[key]['adaptation_terms'][:, 2])
+        # if 'real' in key:
+            # data_dict[key]['adaptation_terms'][:, 2] = smoothing(data_dict[key]['adaptation_terms'][:, 2])
         plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 2])
         # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 1], label='cf.position()')
     plt.grid()
@@ -89,15 +91,15 @@ def load_cf_data(filenames, args):
     plt.subplot(3, 1, 3, sharex=ax1)
     # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['ref_positions'][:, 2],label='ref')
     for key in data_dict.keys():
-        if 'real' in key:
-            data_dict[key]['adaptation_terms'][:, 3] = smoothing(data_dict[key]['adaptation_terms'][:, 3])
+        # if 'real' in key:
+            # data_dict[key]['adaptation_terms'][:, 3] = smoothing(data_dict[key]['adaptation_terms'][:, 3])
         plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 3], label=key)
         # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 2], label=key+'_cf.position()')
     plt.grid()
 
     plt.legend()
-    plt.show()
+    # plt.show()
 
-    exit()
+    # exit()
     
     return data_dict

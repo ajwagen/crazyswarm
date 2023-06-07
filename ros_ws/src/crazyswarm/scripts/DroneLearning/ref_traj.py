@@ -9,7 +9,8 @@ from quadsim.learning.refs.pointed_star import NPointedStar
 from quadsim.learning.refs.M_star import M_zigzag
 from quadsim.learning.refs.triangle_ref import Triangle
 from quadsim.learning.refs.closed_polygon import ClosedPoly
-
+import os
+from pathlib import Path
 
 from quadsim.learning.refs import gen_trajectory
 
@@ -32,7 +33,9 @@ class Trajectories:
         
         self.gui = gui
         if self.gui:
-            self.gui_traj = gen_trajectory.main_loop()
+            parent = Path('.')
+            # print(parent)
+            self.gui_traj = gen_trajectory.main_loop(x_min=-3, x_max=3, y_min=-3, y_max=3, saved_traj='test_ref_7', parent=parent, overwrite=False)
 
     
     # ESSENTIAL FUNCTIONS
@@ -204,7 +207,7 @@ class Trajectories:
             return self.set_hover_ref(t)
         
     def N_pointed_star_ref_(self, seed, maxes):
-        self.Nstar_ref_obj = NPointedStar(n_points=seed, speed=1.0, radius=1.0)
+        self.Nstar_ref_obj = NPointedStar(n_points=seed, speed=1.0, radius=0.7)
     def N_pointed_star_ref(self,t):
         ref_pos = self.Nstar_ref_obj.pos(t)
         ref_vel = self.Nstar_ref_obj.vel(t)
@@ -222,7 +225,7 @@ class Trajectories:
         return ref, self.ret, self.M_zigzag_ref_obj
     
     def Triangle_ref_(self, seed, maxes):
-        self.Triangle_ref_obj = Triangle(speed=1.0, side_len = 2.0)
+        self.Triangle_ref_obj = Triangle(speed=1.0, side_len = 1.0)
     def Triangle_ref(self,t):
         ref_pos = self.Triangle_ref_obj.pos(t)
         ref_vel = self.Triangle_ref_obj.vel(t)

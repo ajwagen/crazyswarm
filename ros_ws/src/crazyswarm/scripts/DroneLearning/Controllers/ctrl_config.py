@@ -53,7 +53,8 @@ def select_policy_config_(policy_config):
     
     if policy_config == "trajectory_2d":
         task: DroneTask = DroneTask.TRAJFBFF
-        policy_name =DIR + '/' + "ppo-rl-zigzag_xy_bf_rel.zip" # traj_mixed2D_reset_thresh_5000_body_frame_relative_fixed3.zip
+        # policy_name =DIR + '/' + "ppo-rl-zigzag_xy_bf_rel.zip" # traj_mixed2D_reset_thresh_5000_body_frame_relative_fixed3.zip
+        policy_name = DIR + '/' + 'traj_mixed2D_all_refs_diffaxis2_17500000_steps.zip'
         # policy_name = DIR + '/' + "traj_mixed2D_symlog_noisy.zip"
         config_filename = "trajectory_latency.py"
         body_frame = True
@@ -131,7 +132,7 @@ def select_policy_config_(policy_config):
     if policy_config == "trajectory_2d_mass_wind_adaptive_noise":
         task: DroneTask = DroneTask.TRAJFBFF
         policy_name  = DIR + '/' + 'traj_mixed2D_mass_wind_adaptive_best.zip'
-        adaptive_policy_name =  RMA + '/' + 'hi_mass_low_wind_adaptation_net_REAL'
+        adaptive_policy_name =  RMA + '/' + 'mass_wind_adaptation_net_noisy'
         config_filename = "trajectory_mass_wind_adaptive.py"
         e_dims = 4
         body_frame = True

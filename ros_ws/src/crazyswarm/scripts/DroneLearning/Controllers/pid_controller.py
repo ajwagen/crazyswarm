@@ -17,14 +17,25 @@ class PIDController(ControllerBackbone):
     self.kp_ang =   16
 
     self.pos_err_int = np.zeros(3)
+    self.count = 0
+    self.lamb = 0.2
+    self.v_prev = np.zeros(3)
+    self.adapt_term = np.zeros(3)
+
+    self.history = np.zeros((1, 14, 50))
+    
 
     # self.mppi_controller = self.set_MPPI_cnotroller()
 
   def response(self, t, state, ref, ref_func, ref_func_obj, fl=1, adaptation_mean_value=np.zeros(4)):
 
     self.updateDt(t)
-    if fl:
-      self.prev_t = t
+    # if fl:
+    if self.prev_t != None:
+      dt = t - self.prev_t
+    else:
+      dt = 0.02
+    #   self.prev_t = t
 
     # PID
     pos = state.pos
@@ -32,6 +43,9 @@ class PIDController(ControllerBackbone):
     rot = state.rot
     p_err = pos - ref.pos
     v_err = vel - ref.vel
+    quat = rot.as_quat() 
+
+    obs = np.hstack((pos, vel, quat))
     # Updating error for integral term.
     self.pos_err_int += p_err * self.dt
 
@@ -52,11 +66,39 @@ class PIDController(ControllerBackbone):
     omega_des = - self.kp_rot * rot_err
     omega_des[2] += - self.yaw_gain * (yaw - 0.0)
 
-    # ref_orient = ref.rot.as_euler("ZYX")
-    # yaw, _, _ = rot.as_euler('ZYX')
-    # yaw_des = ref_orient[0]  # self.ref.yaw(t)
 
-    # omega_des = - self.kp_rot * rot_err
-    # omega_des[2] = - self.yaw_gain * (yaw - yaw_des)
-    # print("PID a : ", acc_des, " w : ", omega_des, "MPPI a: ", action[0], " w : ", omega_d)
+    # v_t = 0
+    # v_t_prev = 0
+    # if self.count > 2:
+    #   v_t = state.vel
+    #   v_t_prev = self.v_prev
+    #   a_t = (v_t - v_t_prev) / dt
+    # else:
+    #   a_t = np.array([0, 0, 0])
+      
+
+    # adaptation_term = np.ones(4)
+    # adaptation_term[1:] *= 0
+    # mass = 0.04
+    # f_t = rot.apply(np.array([0, 0, self.history[0, 10, 0]])) * mass
+    # z_w = np.array([0, 0, -1])
+    # adapt_term = mass * a_t - mass * z_w * 9.8 - f_t
+    # self.adapt_term = (1 - self.lamb) * self.adapt_term + self.lamb * adapt_term
+    
+    
+    # print(self.count, self.adapt_term / 9.8 * 1000)
+    # # import pdb;pdb.set_trace()
+
+    # adaptation_input = np.r_[obs, acc_des, omega_des]
+    # if fl!=0.0:
+    #   self.history = np.concatenate((adaptation_input[None, :, None], self.history[:, :, :-1]), axis=2)
+    # # ref_orient = ref.rot.as_euler("ZYX")
+    # # yaw, _, _ = rot.as_euler('ZYX')
+    # # yaw_des = ref_orient[0]  # self.ref.yaw(t)
+
+    # # omega_des = - self.kp_rot * rot_err
+    # # omega_des[2] = - self.yaw_gain * (yaw - yaw_des)
+    # # print("PID a : ", acc_des, " w : ", omega_des, "MPPI a: ", action[0], " w : ", omega_d)
+    # self.count += 1
+    # self.v_prev = state.vel
     return acc_des, omega_des

@@ -19,7 +19,7 @@ tasks:
   #   policy_config: none
   #   description: "hover init"
 
-  - ref: 'Closed_polygon_ref'
+  - ref: 'set_hover_ref'
     cntrl: "PIDController"
     time: 6.0
     adaptive: False

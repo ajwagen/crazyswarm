@@ -29,6 +29,8 @@ class ControllerBackbone():
         self.I = np.array([16.571710e-6, 16.655602e-6, 29.261652e-6])
         
         self.prev_t = None
+        self.dt_prev = None
+        
         self.dt = None
         self.offset_pos = np.zeros(3)
 

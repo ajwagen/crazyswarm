@@ -32,7 +32,8 @@ class PPOController_trajectory_adaptive(ControllerBackbone):
     self.history = torch.zeros((1, 14, 50)).to("cuda:0")
 
     self.adapt_smooth = adapt_smooth
-    self.adaptation_history = np.zeros((5, 4))
+    self.adaptation_history = np.zeros((1, 4))
+    self.adaptation_history_len = 100
 
   def response(self, t, state, ref , ref_func, ref_func_obj, fl=1, adaptation_mean_value=np.zeros(4)):
 
@@ -64,23 +65,22 @@ class PPOController_trajectory_adaptive(ControllerBackbone):
       self.adaptation_mean = np.vstack((self.adaptation_mean, self.adaptation_terms[None, :]))
       
       if self.adapt_smooth:
-        self.adaptation_history = np.vstack((adaptation_term[None, :], self.adaptation_history[:-1]))
-        adaptation_term[0] = np.clip(adaptation_term[0], 0.5, 1.5)
-        adaptation_term[1] = np.mean(self.adaptation_history[1]) / 3
-        adaptation_term[2] = np.mean(self.adaptation_history[2]) / 3
-        adaptation_term[3] = np.mean(self.adaptation_history[3]) / 3
+        if len(self.adaptation_history) >= self.adaptation_history_len: 
+          self.adaptation_history = np.vstack((adaptation_term[None, :], self.adaptation_history[:-1]))
+        else:
+          self.adaptation_history = np.vstack((adaptation_term[None, :], self.adaptation_history))
+
+        adaptation_term[0] = np.clip(np.mean(self.adaptation_history[:, 0]), 0.0, 10.0)
+        adaptation_term[1] = np.mean(self.adaptation_history[:, 1]) / 3
+        adaptation_term[2] = np.mean(self.adaptation_history[:, 2]) / 3
+        adaptation_term[3] = np.mean(self.adaptation_history[:, 3]) / 3
 
       self.adaptation_terms = adaptation_term
 
       obs_ = np.hstack((obs, adaptation_term))
-      # else:
-        # adaptation_term = torch.from_numpy(adaptation_mean_value)
-        # self.adaptation_terms = adaptation_term
-        # obs_ = np.hstack((obs, adaptation_term))
-      
-      # import pdb;pdb.set_trace()
+
     else:
-      pseudo_adapt_term =  np.ones(self.e_dims) * 1
+      pseudo_adapt_term =  np.ones(self.e_dims) * 1.0
       pseudo_adapt_term[1:] *= 0 # mass -> 1, wind-> 0
       obs_ = np.hstack((obs, pseudo_adapt_term))
     # obs_ = np.hstack((obs, 1.0))
