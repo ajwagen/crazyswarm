@@ -117,12 +117,12 @@ def plot_npz(filename):
         plt.plot(data_dict[key]['ts'], data_dict[key]['thrust_cmds'])
     plt.title('Cmd z acc (python)')
 
-    # try:
-    plt.figure(4)
-    for key in data_dict.keys():
-        # print(data_dict[key]['adaptation_terms'])
-        plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'])
-    plt.title('adaptation term')
+    # # try:
+    # plt.figure(4)
+    # for key in data_dict.keys():
+    #     # print(data_dict[key]['adaptation_terms'])
+    #     plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'])
+    # plt.title('adaptation term')
     # except:
     #     pass
 

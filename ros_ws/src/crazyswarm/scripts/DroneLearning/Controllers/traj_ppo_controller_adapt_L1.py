@@ -49,7 +49,8 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
 
     obs = np.hstack((pos, vel, quat))
     
-    if self.pseudo_adapt==False and fl!=0.0:
+    if fl!=0.0:
+    # if self.pseudo_adapt==False and fl!=0.0:
 
       # if self.adaptation_warmup:
       # adaptation_term = self.adaptive_policy(self.history).detach().cpu().numpy()[0]
@@ -67,16 +68,16 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
         a_t = np.array([0, 0, 0])
         
 
-      mass = 0.04
+      mass = 1
+      cf_mass = 0.04
+
       f_t = rot.apply(np.array([0, 0, self.history[0, 10, 0]])) * mass
-      z_w = np.array([0, 0, 1])
-      adapt_term = mass * a_t + mass * z_w * 9.8 - f_t
+      z_w = np.array([0, 0, -1])
+      adapt_term = mass * a_t - mass * z_w * 9.8 - f_t
       self.adapt_term = (1 - self.lamb) * self.adapt_term + self.lamb * adapt_term
-      
-      print(self.count, self.adapt_term / 9.8 * 1000)
-      import pdb;pdb.set_trace()
-      self.adaptation_terms = adaptation_term
-      obs_ = np.hstack((obs, adaptation_term))
+            
+      self.adaptation_terms = self.adapt_term
+      obs_ = np.hstack((obs, self.adapt_term))
 
     else:
       pseudo_adapt_term =  np.ones(self.e_dims) * 1.0

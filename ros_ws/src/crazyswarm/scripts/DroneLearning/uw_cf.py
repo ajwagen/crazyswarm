@@ -682,7 +682,7 @@ if __name__ == "__main__":
 
     g = EasyDict(vars(parser.parse_args()))
 
-    x = ctrlCF(cfName="cf5", 
+    x = ctrlCF(cfName="cf3", 
                sim=g.quadsim,
                config_file=g.config,
                log_file=g.logfile,

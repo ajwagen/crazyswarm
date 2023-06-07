@@ -69,35 +69,38 @@ def load_cf_data(filenames, args):
     plt.legend()
     # plt.show()
 
-    plt.figure(10)
-    ax1 = plt.subplot(3, 1, 1)
-    # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['adaptation_terms'][:, 1])
-    for key in data_dict.keys():
-        # if 'real' in key:
-            # data_dict[key]['adaptation_terms'][:, 1] = smoothing(data_dict[key]['adaptation_terms'][:, 1])
-        plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 1])
-        # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 0], label='cf.position()')
-    plt.grid()
-    
-    plt.subplot(3, 1, 2, sharex=ax1)
-    # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['ref_positions'][:, 1])
-    for key in data_dict.keys():
-        # if 'real' in key:
-            # data_dict[key]['adaptation_terms'][:, 2] = smoothing(data_dict[key]['adaptation_terms'][:, 2])
-        plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 2])
-        # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 1], label='cf.position()')
-    plt.grid()
-    
-    plt.subplot(3, 1, 3, sharex=ax1)
-    # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['ref_positions'][:, 2],label='ref')
-    for key in data_dict.keys():
-        # if 'real' in key:
-            # data_dict[key]['adaptation_terms'][:, 3] = smoothing(data_dict[key]['adaptation_terms'][:, 3])
-        plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 3], label=key)
-        # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 2], label=key+'_cf.position()')
-    plt.grid()
+    try :
+        plt.figure(10)
+        ax1 = plt.subplot(3, 1, 1)
+        # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['adaptation_terms'][:, 1])
+        for key in data_dict.keys():
+            # if 'real' in key:
+                # data_dict[key]['adaptation_terms'][:, 1] = smoothing(data_dict[key]['adaptation_terms'][:, 1])
+            plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 1])
+            # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 0], label='cf.position()')
+        plt.grid()
+        
+        plt.subplot(3, 1, 2, sharex=ax1)
+        # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['ref_positions'][:, 1])
+        for key in data_dict.keys():
+            # if 'real' in key:
+                # data_dict[key]['adaptation_terms'][:, 2] = smoothing(data_dict[key]['adaptation_terms'][:, 2])
+            plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 2])
+            # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 1], label='cf.position()')
+        plt.grid()
+        
+        plt.subplot(3, 1, 3, sharex=ax1)
+        # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['ref_positions'][:, 2],label='ref')
+        for key in data_dict.keys():
+            # if 'real' in key:
+                # data_dict[key]['adaptation_terms'][:, 3] = smoothing(data_dict[key]['adaptation_terms'][:, 3])
+            plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 3], label=key)
+            # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 2], label=key+'_cf.position()')
+        plt.grid()
 
-    plt.legend()
+        plt.legend()
+    except:
+        pass
     # plt.show()
 
     # exit()

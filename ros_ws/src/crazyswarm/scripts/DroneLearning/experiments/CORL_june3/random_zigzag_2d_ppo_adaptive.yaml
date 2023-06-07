@@ -14,16 +14,16 @@ kalman_warmup: 3.0
 tasks: 
   - ref: 'set_hover_ref'
     cntrl: "PIDController"
-    time: 3.0
+    time: 2.0
     adaptive: False
     policy_config: none
     description: "hover init"
 
   - ref: 'random_zigzag'
-    cntrl: "PPOController_trajectory_adaptive"
+    cntrl: "PPOController_trajectory_L1_adaptive"
     time: 10.0
     adaptive: True
-    policy_config: trajectory_2d_mass_wind_adaptive
+    policy_config: trajectory_2d_wind_adaptive
     description: "Trajectory PPO"
     maxes : [1.0, 1.0 ,0.0]
     seed : 0

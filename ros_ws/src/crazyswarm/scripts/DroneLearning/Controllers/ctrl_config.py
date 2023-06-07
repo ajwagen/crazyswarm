@@ -139,6 +139,16 @@ def select_policy_config_(policy_config):
         relative = True
         log_scale = False
     
+    if policy_config == "trajectory_2d_wind_adaptive":
+        task: DroneTask = DroneTask.TRAJFBFF
+        policy_name  = DIR + '/' + 'traj_mixed2D_wind_adaptive2_REAL.zip'
+        adaptive_policy_name =  RMA + '/' + 'mass_wind_adaptation_net_noisy'
+        config_filename = "trajectory_wind_adaptive.py"
+        e_dims = 3
+        body_frame = True
+        relative = True
+        log_scale = False
+    
     if policy_config == "trajectory_2d_mass_wind_adaptive_noise_warmup":
         task: DroneTask = DroneTask.TRAJFBFF
         policy_name  = DIR + '/' + 'traj_mixed2D_mass_wind_adaptive_best.zip'
