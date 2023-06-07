@@ -49,27 +49,21 @@ sleepRate = 50
 
 class ctrlCF():
     
-    def __init__(self, 
-                 cfName,
-                 sim=False,
-                 config_file="experiments/cf_config.yaml", 
-                 log_file='log.npz', 
-                 debug=False, 
-                 gui=False,
-                 def_seed=None,
-                 pseudo_adapt=False,
-                 adapt_warmup=False,
-                 adapt_smooth=False):
+    def __init__(self,
+                 run_args,
+                 cfName='cf0'):
         
         self.cfName = cfName
-        self.isSim = sim
-        self.logfile = log_file
-        self.debug = debug
-        self.gui = gui
-        self.initialized = False
-        self.adapt_warmup = adapt_warmup
-        self.adaptation_smoothing = adapt_smooth
+        self.isSim = run_args.quadsim
+        self.logfile = run_args.logfile
+        self.debug = run_args.debug
+        self.gui = run_args.gui
+        self.adapt_warmup = run_args.adapt_warmup
+        self.adaptation_smoothing = run_args.adapt_smoothing
+        self.viz_sim = run_args.viz
         self.adaptation_warmup_value = np.zeros(4)
+
+        self.initialized = False
 
         self.state = State_struct()
         self.prev_state = State_struct()
@@ -77,9 +71,9 @@ class ctrlCF():
         self.ref_func = None
         self._ref_func_obj = RandomZigzag()
 
-        self.def_seed = def_seed
+        self.def_seed = run_args.seed
 
-        with open(config_file,"r") as f:
+        with open(run_args.config,"r") as f:
             self.config = yaml.full_load(f)
         
         if "def_cntrl" in self.config :
@@ -120,7 +114,7 @@ class ctrlCF():
                 self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
                                                                                         policy_config = self.config["tasks"][i]["policy_config"],
                                                                                         adaptive = self.config["tasks"][i]["adaptive"],
-                                                                                        pseudo_adapt = pseudo_adapt,
+                                                                                        pseudo_adapt = run_args.pseudo,
                                                                                         adapt_smooth = self.adaptation_smoothing)
                 # Warming up controller
 
@@ -636,8 +630,6 @@ class ctrlCF():
             else:
                 self.update_sim_states(obs_state)
 
-            self.cf.vis.set_state(quadsim_state.pos, quadsim_state.rot)
-
             self.adaptation_terms.append(self.curr_controller.adaptation_terms)
                 # print(np.zeros(4)) 
             # Logging
@@ -656,14 +648,15 @@ class ctrlCF():
 
             if self.flag["land"] == 2:
                 break
-
-            time.sleep(0.01)
-            # self.ppo_acc.append(z_ppo)
-            # self.ppo_ang.append(ang_ppo*180/(2*np.pi))
+            
+            if self.viz_sim:
+                self.cf.vis.set_state(quadsim_state.pos, quadsim_state.rot)
+                time.sleep(0.01)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument('--quadsim', action='store_true')
+    parser.add_argument('-v', '--viz', type = bool, default=False)
     parser.add_argument('--config', action='store', type=str, default="experiments/hello_world.yaml")
     parser.add_argument('--logfile', action='store', type=str, default='log.npz')
     parser.add_argument('--debug', action='store', type=bool, default=False)
@@ -675,23 +668,13 @@ if __name__ == "__main__":
 
 
 
-    g = EasyDict(vars(parser.parse_args()))
+    run_args = EasyDict(vars(parser.parse_args()))
 
-    x = ctrlCF(cfName="cf3", 
-               sim=g.quadsim,
-               config_file=g.config,
-               log_file=g.logfile,
-               debug=g.debug,
-               gui=g.gui,
-               def_seed=g.seed,
-               pseudo_adapt=g.pseudo,
-               adapt_warmup = g.adapt_warmup,
-               adapt_smooth =g.adapt_smoothing)
+    x = ctrlCF(run_args, cfName="cf3")
 
     try:
-        if g.quadsim:
+        if run_args.quadsim:
             x.main_loop_sim()
-            # x.learning_loop()
         else:
             x.main_loop_cf()
     except KeyboardInterrupt:
