@@ -299,7 +299,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_06/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_07_data/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -345,7 +345,7 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_06/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_07_data/sim/"
             # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
@@ -526,7 +526,7 @@ class ctrlCF():
                                                                 ref_func_obj = self._ref_func_obj, 
                                                                 adaptation_mean_value=self.adaptation_warmup_value,)
 
-                self.adaptation_terms.append(self.curr_controller.adaptation_terms)
+                self.adaptation_terms.append(np.copy(self.curr_controller.adaptation_terms))
 
                 self.pose_positions.append(np.copy(self.pose_pos))
                 self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
@@ -548,8 +548,10 @@ class ctrlCF():
             if self.debug:
                 z_acc = 0.0
                 ang_vel = np.zeros(3)
-                print('MT : ', self.motrack_orientation.as_euler('ZYX', degrees=True), "time",t)
-                print('CF : ', self.state.rot.as_euler('ZYX', degrees=True), "time",t , '\n')
+                # print('MT : ', self.motrack_orientation.as_euler('ZYX', degrees=True), "time",t)
+                # print('CF : ', self.state.rot.as_euler('ZYX', degrees=True), "time",t , '\n')
+                # print('MT : ', self.motrack_p, "time",t)
+                print('CF : ', self.state.pos, "time",t , '\n')
                 self.pose_positions.append(np.copy(self.pose_pos))
                 self.pose_orientations.append(np.copy(self.state.rot.as_euler('ZYX', degrees=True)))
                 self.pose_orient_mocap.append(np.copy(self.motrack_orientation.as_euler("ZYX",degrees=True)))
@@ -613,12 +615,14 @@ class ctrlCF():
                                                                ref_func = self.ref_func, 
                                                                ref_func_obj = self._ref_func_obj, 
                                                                adaptation_mean_value=self.adaptation_warmup_value,
-                                                               )    
-                                                                           
+                                                               )   
+                self.adaptation_terms.append(np.copy(self.curr_controller.adaptation_terms))
+                                                                            
                 obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=1.0, dists=dist)
             
             # End Flight if landed
             if self.flag["land"] == 2:
+                import pdb;pdb.set_trace()
                 z_acc, ang_vel = 0., np.zeros(3)
             if self.flag["land"] == 0:
                 self.land_start_timer = t
@@ -629,9 +633,12 @@ class ctrlCF():
                 self.update_sim_states(quadsim_state)
             else:
                 self.update_sim_states(obs_state)
+            
 
-            self.adaptation_terms.append(self.curr_controller.adaptation_terms)
-                # print(np.zeros(4)) 
+
+            # if t > self.warmup_time:
+            #     import pdb;pdb.set_trace()
+            # import pdb;pdb.set_trace()
             # Logging
             self.pose_positions.append(np.copy(self.state.pos))
             self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))

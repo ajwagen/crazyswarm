@@ -21,12 +21,10 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
     # self.lamb = 0.2
 
     # # L1 params
-    # self.runL1 = True # L1 v/s naive toggle
+    self.runL1 = True # L1 v/s naive toggle
     # self.filter_coeff = 5
     # self.A = -0.2
     # self.count = 0
-
-    self.runL1 = False
 
   def _response(self, fl = 1, **response_inputs):
 
@@ -48,6 +46,7 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
     rot = state.rot
 
     # Acceleration Estimation
+    v_t = state.vel
     if self.count > 2:
       v_t = state.vel
       a_t = (v_t - self.v_prev) / dt
@@ -74,24 +73,6 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
         a_t = (v_t - self.v_prev) / dt
       else:
         a_t = np.array([0, 0, 0])        
-
-
-
-      # # Naive Adaptation
-      # adapt_term = mass * a_t - mass * g_vec - f_t
-      # self.wind_adapt_term = (1 - self.lamb) * self.wind_adapt_term + self.lamb * adapt_term
-      
-      # L1 Adaptation
-      # alpha = np.exp(-dt * self.filter_coeff)
-      # phi = 1 / self.A * (np.exp(self.A * dt) - 1)
-
-      # a_t_hat = g_vec + f_t / mass + self.wind_adapt_term + self.A * self.wind_adapt_term
-      
-      # self.v_hat += a_t_hat * dt
-      # v_tilde = self.v_hat - v_t
-      
-      # adapt_term = -1 / phi * np.exp(self.A * dt) * v_tilde
-      # self.wind_adapt_term = (1 - alpha) * adapt_term + self.lamb * self.wind_adapt_term 
       
       if self.runL1:
         # L1 adaptation update
@@ -99,10 +80,12 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
       else:
         self.naive_adaptation(a_t, f_t)
       
+      # print(self.wind_adapt_term)
       self.adaptation_terms[1: ] = self.wind_adapt_term
-      obs_ = np.hstack((obs, self.wind_adapt_term))
+      obs_ = np.hstack((obs, self.mass * self.wind_adapt_term))
 
     else:
+      self.naive_adaptation(a_t, f_t)
       pseudo_adapt_term =  np.ones(self.e_dims) * 1.0
       pseudo_adapt_term[1:] *= 0 # mass -> 1, wind-> 0
       obs_ = np.hstack((obs, pseudo_adapt_term))

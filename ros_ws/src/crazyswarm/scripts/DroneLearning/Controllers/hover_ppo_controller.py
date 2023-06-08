@@ -32,7 +32,13 @@ class PPOController(ControllerBackbone):
   #   adaptation_network_state_dict = torch.load(Path().absolute() / 'saved_policies'/ adaptation_network_policy_name)
   #   self.adaptation_network.load_state_dict(adaptation_network_state_dict)
 
-  def response(self, t, state, ref , ref_func, ref_func_obj, fl=1):
+  def response(self, fl=1, **response_inputs):
+
+    t = response_inputs.get('t')
+    state = response_inputs.get('state')
+    ref = response_inputs.get('ref')
+    ref_func = response_inputs.get('ref_func')
+
     self.updateDt(t)
 
     if fl:

@@ -60,13 +60,13 @@ with open('out.txt') as f:
             real.append(line)
 
 sim_mean = np.mean(sim, axis=0)
-for i in sim_mean:
-   print(i)
+# for i in sim_mean:
+#    print(i)
 # print(np.mean(sim, axis=0))
-print(np.mean(sim))
+print(np.mean(sim) * np.sqrt(3))
 print("")
 real_mean = np.mean(real, axis=0)
-for i in real_mean:
-   print(i)
+# for i in real_mean:
+#    print(i)
 # print(np.mean(real, axis=0))
-print(np.mean(real))
+print(np.mean(real) * np.sqrt(3))

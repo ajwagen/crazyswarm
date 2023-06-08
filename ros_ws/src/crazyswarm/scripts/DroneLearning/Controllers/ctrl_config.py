@@ -99,7 +99,9 @@ def select_policy_config_(policy_config):
     
     if policy_config == "trajectory_2d_wind_adaptive":
         task: DroneTask = DroneTask.TRAJFBFF
-        policy_name =DIR + '/' + "traj_mixed2D_wind_adaptive2_REAL"
+        # policy_name =DIR + '/' + "traj_mixed2D_wind_adaptive2_REAL"
+        policy_name =DIR + '/' + "traj_mixed2D_wind_high_wind"
+
         adaptive_policy_name =  RMA + '/' + 'RMA_mass_nowind.pth'
         config_filename = "trajectory_wind_adaptive.py"
         e_dims = 3

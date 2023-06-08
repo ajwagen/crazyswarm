@@ -50,7 +50,7 @@ class ControllerBackbone():
         self.wind_adapt_term = np.zeros(3)
 
         # naive params
-        self.lamb = 0.2
+        self.lamb = 0.1
 
         # L1 params
         self.runL1 = True # L1 v/s naive toggle
@@ -157,7 +157,9 @@ class ControllerBackbone():
     def L1_adaptation(self, dt, v_t, f_t):
         unit_mass = 1
         g_vec = np.array([0, 0, -1]) * self.g
-        alpha = np.exp(-dt * self.filter_coeff)
+        # alpha = np.exp(-dt * self.filter_coeff)
+        alpha = 0.9
+        # print(alpha)
         phi = 1 / self.A * (np.exp(self.A * dt) - 1)
 
         a_t_hat = g_vec + f_t / unit_mass + self.wind_adapt_term + self.A * self.wind_adapt_term
@@ -166,5 +168,5 @@ class ControllerBackbone():
         v_tilde = self.v_hat - v_t
         
         adapt_term = -1 / phi * np.exp(self.A * dt) * v_tilde
-        self.wind_adapt_term = (1 - alpha) * adapt_term + self.lamb * self.wind_adapt_term 
+        self.wind_adapt_term = (1 - alpha) * adapt_term + alpha * self.wind_adapt_term 
 

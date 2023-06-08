@@ -25,10 +25,10 @@ def plot_npz(filenames, files_n_types, args):
             real_rmse.append(pos_rmse)
 
         real_rmse = np.mean(real_rmse, axis=0)
-        print(real_rmse)
         print("real RMSE : ", list(real_rmse))
     except:
         pass
+
 
     # plt.plot(data_dict[filenames[0]]['ref_positions'][:, 0], data_dict[filenames[0]]['ref_positions'][:, 1])
     # plt.show()

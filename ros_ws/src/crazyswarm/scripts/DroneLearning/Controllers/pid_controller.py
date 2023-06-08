@@ -50,6 +50,21 @@ class PIDController(ControllerBackbone):
     v_err = vel - ref.vel
     quat = rot.as_quat() 
 
+    v_t = state.vel
+    if self.count > 2:
+      v_t = state.vel
+      a_t = (v_t - self.v_prev) / dt
+    else:
+      a_t = np.array([0, 0, 0])
+
+    unity_mass = 1
+    f_t = rot.apply(np.array([0, 0, self.history[0, 10, 0]])) * unity_mass
+    if self.runL1:
+        # L1 adaptation update
+      self.L1_adaptation(dt, v_t, f_t)
+    else:
+        self.naive_adaptation(a_t, f_t)
+
     obs = np.hstack((pos, vel, quat))
     # Updating error for integral term.
     self.pos_err_int += p_err * self.dt
@@ -71,27 +86,9 @@ class PIDController(ControllerBackbone):
     yaw = eulers[0]
     omega_des = - self.kp_rot * rot_err
     omega_des[2] += - self.yaw_gain * (yaw - 0.0)
-
-
-    v_t = 0
-    v_t_prev = 0
-    if self.count > 2:
-      v_t = state.vel
-      v_t_prev = self.v_prev
-      a_t = (v_t - v_t_prev) / dt
-    else:
-      a_t = np.array([0, 0, 0])
       
-    mass = 1
-    cf_mass = 0.04
-    adaptation_term = np.ones(4)
-    adaptation_term[1:] *= 0
-    f_t = rot.apply(np.array([0, 0, self.history[0, 10, 0]])) * mass
-    z_w = np.array([0, 0, -1])
-    adapt_term = mass * a_t - mass * z_w * 9.8 - f_t
-    self.adapt_term = (1 - self.lamb) * self.adapt_term + self.lamb * adapt_term
-    
-    self.adaptation_terms[1:] = self.adapt_term * cf_mass
+
+    self.adaptation_terms[1:] = self.adapt_term
 
     adaptation_input = np.r_[obs, acc_des, omega_des]
     if fl!=0.0:
