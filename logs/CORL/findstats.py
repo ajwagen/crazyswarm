@@ -1,72 +1,42 @@
 import numpy as np
-import ast
+import argparse
+import matplotlib.pyplot as plt
+from plt_utils import load_cf_data
 
-# def convert_string_to_list(string):
-#   """Converts a string of numbers into a list of numbers.
+def rmse(ref, act):
+    return np.sqrt(np.mean((ref - act) ** 2, axis=0))
 
-#   Args:
-#     string: The string of numbers to convert.
+def plot_npz(filename):
 
-#   Returns:
-#     A list of numbers.
-#   """
+    data_dict = load_cf_data(filenames, args)
 
-#   list_of_numbers = []
-#   for number in string.strip().split():
-#     if number.isdigit():
-#       list_of_numbers.append(int(number))
+    overall_mean_error = []
+    ovr_std = []
+    for key in list(data_dict.keys()):
+        mean_error = np.mean(np.linalg.norm(data_dict[key]['ref_positions'] - data_dict[key]['pose_positions'], axis=1))
+        std_error = np.std(np.linalg.norm(data_dict[key]['ref_positions'] - data_dict[key]['pose_positions'], axis=1))
+        # pos_rmse = rmse(data_dict[key]['ref_positions'], data_dict[key]['pose_positions']) 
+        overall_mean_error.append(mean_error)
+        ovr_std.append(std_error)
 
-#   return list_of_numbers
+    overall_mean_error = np.mean(overall_mean_error)
+    ovr_std = np.mean(ovr_std)
+    print(list(data_dict.keys())[0])
+    print("overall error : ", overall_mean_error, 'std : ', ovr_std)
 
 
-# if __name__ == "__main__":
-#   string = "[0  1  2]"
-#   list_of_numbers = convert_string_to_list(string)
-#   print(list_of_numbers)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("filename", nargs="+")
+    parser.add_argument("--runtime", type=float, default=10)
+    parser.add_argument("--hovertime",type=float,default=0)
+    parser.add_argument("-bh", "--baseheight", type=float, default=1.0)
+    parser.add_argument("-tt", "--takeofftime",type=float,default=5.0)
 
-sim = []
-real = []
+    args = parser.parse_args()
+    filenames = args.filename
+    # print(filename)
+    # exit()
 
-def convert_string_to_list(string):
-  """Converts a string of numbers into a list of numbers.
-
-  Args:
-    string: The string of numbers to convert.
-
-  Returns:
-    A list of numbers.
-  """
-
-  list_of_numbers = []
-  for number in string.split():
-    if number.isdigit():
-      list_of_numbers.append(int(number))
-
-  return list_of_numbers
-
-with open('out.txt') as f:
-    lines = f.readlines()
-
-    for line in lines:
-        if "sim" in line:
-            line = line.strip('\n')
-            line = line.strip('sim RMSE :  ')
-            line = ast.literal_eval(line)
-            sim.append(line)
-        if "real" in line:
-            line = line.strip('\n')
-            line = line.strip('real RMSE :  ')
-            line = ast.literal_eval(line)
-            real.append(line)
-
-sim_mean = np.mean(sim, axis=0)
-# for i in sim_mean:
-#    print(i)
-# print(np.mean(sim, axis=0))
-print(np.mean(sim) * np.sqrt(3))
-print("")
-real_mean = np.mean(real, axis=0)
-# for i in real_mean:
-#    print(i)
-# print(np.mean(real, axis=0))
-print(np.mean(real) * np.sqrt(3))
+    plot_npz(filenames)
+    

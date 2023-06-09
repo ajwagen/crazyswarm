@@ -7,6 +7,7 @@ from quadsim.visualizer import Vis
 import torch
 from torch.autograd.functional import jacobian
 from stable_baselines3.common.env_util import make_vec_env
+import time
 
 class PPOController_trajectory_L1_adaptive(ControllerBackbone):
   def __init__(self, **kwargs):
@@ -67,6 +68,7 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
 
     obs = np.hstack((pos, vel, quat))
     
+    st = time.time()
     if self.pseudo_adapt== False and fl!=0.0:
       if self.count > 2:
         v_t = state.vel
@@ -89,7 +91,7 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
       pseudo_adapt_term =  np.ones(self.e_dims) * 1.0
       pseudo_adapt_term[1:] *= 0 # mass -> 1, wind-> 0
       obs_ = np.hstack((obs, pseudo_adapt_term))
-
+    mid = time.time() - st
     if fl==0:
         obs_ = np.zeros((self.time_horizon+1) * 3 + 10 + self.e_dims)
     else:
@@ -101,8 +103,9 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
           ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
           obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos] + ff_terms)
 
-
+    midt = time.time()
     action, _states = self.policy.predict(obs_, deterministic=True)
+    print(time.time() - midt + mid)
 
     # adaptation_input = torch.from_numpy(adaptation_input).to("cuda:0").float()
 
