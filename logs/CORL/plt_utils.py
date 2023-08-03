@@ -75,39 +75,56 @@ def load_cf_data(filenames, args):
     # plt.legend()
     # plt.show()
 
-    # try :
-    #     plt.figure(10)
-    #     ax1 = plt.subplot(3, 1, 1)
-    #     # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['adaptation_terms'][:, 1])
-    #     for key in data_dict.keys():
-    #         # if 'real' in key:
-    #             # data_dict[key]['adaptation_terms'][:, 1] = smoothing(data_dict[key]['adaptation_terms'][:, 1])
-    #         plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 1])
-    #         # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 0], label='cf.position()')
-    #     plt.grid()
-        
-    #     plt.subplot(3, 1, 2, sharex=ax1)
-    #     # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['ref_positions'][:, 1])
-    #     for key in data_dict.keys():
-    #         # if 'real' in key:
-    #             # data_dict[key]['adaptation_terms'][:, 2] = smoothing(data_dict[key]['adaptation_terms'][:, 2])
-    #         plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 2])
-    #         # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 1], label='cf.position()')
-    #     plt.grid()
-        
-    #     plt.subplot(3, 1, 3, sharex=ax1)
-    #     # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['ref_positions'][:, 2],label='ref')
-    #     for key in data_dict.keys():
-    #         # if 'real' in key:
-    #             # data_dict[key]['adaptation_terms'][:, 3] = smoothing(data_dict[key]['adaptation_terms'][:, 3])
-    #         plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 3], label=key)
-    #         # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 2], label=key+'_cf.position()')
-    #     plt.grid()
+    try :
+        plt.figure(10)
+        ax0 = plt.subplot(2, 1, 1)
+        # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['adaptation_terms'][:, 1])
+        for key in data_dict.keys():
 
-    #     plt.legend()
-    # except:
-    #     pass
+            plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 1])
+            # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 0], label='cf.position()')
+        # plt.grid()
+        ax0.set(ylabel='X (m / s^2)')
+        ax1 = plt.subplot(2, 1, 2, sharex=ax0)
+        # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['ref_positions'][:, 1])
+        for key in data_dict.keys():
+            lab = 'without wind'
+            if "wind" in key:
+                lab = 'with wind'
+            plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 2], label=lab)
+            # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 1], label='cf.position()')
+        # plt.grid()
+        ax1.set(ylabel='Y (m / s^2)')
+        # plt.subplot(3, 1, 3, sharex=ax1)
+        # # plt.plot(data_dict[filenames[0]]['ts'], data_dict[filenames[0]]['ref_positions'][:, 2],label='ref')
+        # for key in data_dict.keys():
+        #     # if 'real' in key:
+        #         # data_dict[key]['adaptation_terms'][:, 3] = smoothing(data_dict[key]['adaptation_terms'][:, 3])
+        #     plt.plot(data_dict[key]['ts'], data_dict[key]['adaptation_terms'][:, 3], label=key)
+            # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 2], label=key+'_cf.position()')
+        # plt.grid()
+        box = ax1.get_position()
+        ax1.set_position([box.x0, box.y0 + box.height * 0.1,
+                        box.width, box.height * 0.9])
+
+        # Put a legend below current axis
+        ax1.legend(loc='upper center', bbox_to_anchor=(0.5, -0.3),
+                fancybox=False, shadow=False, ncol=5, frameon=False)
+
+        # AXES_SIZE = 20
+        # LEGEND_SIZE = 20
+        # plt.rc('legend', fontsize=LEGEND_SIZE)
+        # plt.rc('axes', labelsize=AXES_SIZE)
+        # plt.rc('xtick', labelsize=AXES_SIZE)
+        # plt.rc('ytick', labelsize=AXES_SIZE)
+        # plt.xlabel('time (s)')
+        # plt.show()
+        # plt.legend()
+    except:
+        pass
     # plt.show()
+    # exit()
+
 
     # exit()
     

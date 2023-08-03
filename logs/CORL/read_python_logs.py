@@ -18,7 +18,6 @@ def plot_npz(filename):
     plt.legend()
     ax = plt.gca()
     ax.set_aspect('equal', 'box')
-    plt.show()
 
     # print(pose_orientations.shape, pose_orientations.shape, cf_positions.shape, ts.shape, thrust_cmds.shape)
     
