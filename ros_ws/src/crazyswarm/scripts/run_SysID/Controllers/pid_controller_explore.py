@@ -94,6 +94,7 @@ class PIDController_explore(ControllerBackbone):
     self.sysid_data_process = np.zeros((self.dimphi, 3))
 
     self.mismatches = np.zeros((self.sysid_H - 1, 3))
+    self.nominal_mass = 1
 
     # self.mppi_controller = self.set_MPPI_cnotroller()
 
@@ -212,7 +213,7 @@ class PIDController_explore(ControllerBackbone):
     # dot{p} = v 
     dsdt[0:3] = s[3:6] 	# <- implies velocity and position in same frame
     # mv = mg + R f_u  	# <- implies f_u in body frame, p, v in world frame
-    dsdt[3:6] = np.array([0., 0., -self.g]) + qrotate(q,f_u) / self.mass
+    dsdt[3:6] = np.array([0., 0., -self.g]) + qrotate(q,f_u) / self.nominal_mass
     
     qnew = qintegrate(q, omega, dt, frame='body')
     qnew = qstandardize(qnew)
