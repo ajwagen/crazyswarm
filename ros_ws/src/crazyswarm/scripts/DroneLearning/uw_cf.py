@@ -130,8 +130,8 @@ class ctrlCF():
             self.cf = self.swarm.allcfs.crazyflies[0]
 
         else:
-            model = crazyflieModel()
-            # model = IdentityModel()
+            # model = crazyflieModel()
+            model = IdentityModel()
             self.cf = QuadSim(model, name=self.cfName)
             eu = np.array([0., 0., 0.])
             rot = R.from_euler('xyz', eu)
@@ -606,7 +606,7 @@ class ctrlCF():
             # Send controller commands to the simulator and simulate the dynamics
             z_acc, ang_vel = 0., np.array([0., 0., 0.])
 
-            dist = [ConstantForce(scale=np.array([0, 0, 0]))]
+            dist = [ConstantForce(scale=np.array([1.0, -0.5, 0]))]
             if t > self.warmup_time:
 
                 z_acc, ang_vel = self.curr_controller.response(t = t - self.prev_task_time, 
@@ -618,11 +618,10 @@ class ctrlCF():
                                                                )   
                 self.adaptation_terms.append(np.copy(self.curr_controller.adaptation_terms))
                                                                             
-                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=1.0, dists=dist)
+                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=0.4, dists=dist)
             
             # End Flight if landed
             if self.flag["land"] == 2:
-                import pdb;pdb.set_trace()
                 z_acc, ang_vel = 0., np.zeros(3)
             if self.flag["land"] == 0:
                 self.land_start_timer = t

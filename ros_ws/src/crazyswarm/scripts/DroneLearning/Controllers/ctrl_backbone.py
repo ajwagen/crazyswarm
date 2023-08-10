@@ -61,7 +61,7 @@ class ControllerBackbone():
     def updateDt(self,t):
 
         if self.prev_t is None:
-            self.dt = 0
+            self.dt = 0.02
         else:
             self.dt = t - self.prev_t
         
@@ -162,7 +162,7 @@ class ControllerBackbone():
         # print(alpha)
         phi = 1 / self.A * (np.exp(self.A * dt) - 1)
 
-        a_t_hat = g_vec + f_t / unit_mass + self.wind_adapt_term + self.A * self.wind_adapt_term
+        a_t_hat = g_vec + f_t / unit_mass + self.wind_adapt_term + self.A * (self.v_hat - v_t)
         
         self.v_hat += a_t_hat * dt
         v_tilde = self.v_hat - v_t

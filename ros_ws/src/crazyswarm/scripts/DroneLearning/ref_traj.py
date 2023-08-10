@@ -9,6 +9,7 @@ from quadsim.learning.refs.pointed_star import NPointedStar
 from quadsim.learning.refs.M_star import M_zigzag
 from quadsim.learning.refs.triangle_ref import Triangle
 from quadsim.learning.refs.closed_polygon import ClosedPoly
+from quadsim.learning.refs.hover_ref import hover_ref
 import os
 from pathlib import Path
 
@@ -30,6 +31,7 @@ class Trajectories:
         self.random_poly_obj = PolyRef(altitude=0.0, seed=0)
         self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=0)
         self.circle_ref_obj = CircleRef(rad=0.5, period=2.0, altitude=0.0)
+        self.hover_ref_obj = hover_ref()
         
         self.gui = gui
         if self.gui:
@@ -102,12 +104,14 @@ class Trajectories:
 
         return ref, self.ret, None
     
-    def set_hover_ref(self, t):
-        ref_pos = np.array([0., 0.0, 0.0])
-        ref_vel = np.array([0., 0., 0])
+    def hover_ref_(self, **traj_defs):
+        self.hover_ref_obj = hover_ref()
+    def hover_ref(self, t):
+        ref_pos = self.hover_ref_obj.pos(t)
+        ref_vel = self.hover_ref_obj.vel(t)
         ref = State_struct(pos=ref_pos, vel=ref_vel)
         self.ret = 0
-        return ref, self.ret, None
+        return ref, self.ret, self.hover_ref_obj
     
 
     def set_landing_ref(self, t, landing_height, landing_rate):

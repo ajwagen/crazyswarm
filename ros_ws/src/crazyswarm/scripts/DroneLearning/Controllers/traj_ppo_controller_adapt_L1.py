@@ -84,12 +84,11 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
       
       # print(self.wind_adapt_term)
       self.adaptation_terms[1: ] = self.wind_adapt_term
-      obs_ = np.hstack((obs, self.mass * self.wind_adapt_term))
+      obs_ = np.hstack((obs, - self.mass * self.wind_adapt_term))
+      print(self.wind_adapt_term)
 
     else:
-      self.naive_adaptation(a_t, f_t)
-      pseudo_adapt_term =  np.ones(self.e_dims) * 1.0
-      pseudo_adapt_term[1:] *= 0 # mass -> 1, wind-> 0
+      pseudo_adapt_term =  np.zeros(self.e_dims)
       obs_ = np.hstack((obs, pseudo_adapt_term))
     mid = time.time() - st
     if fl==0:
@@ -103,9 +102,7 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
           ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
           obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos] + ff_terms)
 
-    midt = time.time()
-    action, _states = self.policy.predict(obs_, deterministic=True)
-    print(time.time() - midt + mid)
+    action, _ = self.policy.predict(obs_, deterministic=True)
 
     # adaptation_input = torch.from_numpy(adaptation_input).to("cuda:0").float()
 

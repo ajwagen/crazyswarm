@@ -19,13 +19,13 @@ tasks:
   #   policy_config: none
   #   description: "hover init"
 
-  - ref: 'random_chained_poly'
+  - ref: 'random_zigzag'
     cntrl: "PPOController_trajectory_L1_adaptive"
-    time: 10.0
+    time: 100.0
     adaptive: False
     policy_config: trajectory_2d_wind_adaptive
     description: "Trajectory PPO"
-    maxes : [0.5, 0.5 ,0.0]
+    maxes : [1.0, 1.0 ,0.0]
     seed : 0
 
 rwik : hello
