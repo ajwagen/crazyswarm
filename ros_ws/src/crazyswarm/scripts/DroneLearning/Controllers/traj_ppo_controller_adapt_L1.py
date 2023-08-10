@@ -22,7 +22,7 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
     # self.lamb = 0.2
 
     # # L1 params
-    self.runL1 = True # L1 v/s naive toggle
+    self.runL1 = False # L1 v/s naive toggle
     # self.filter_coeff = 5
     # self.A = -0.2
     # self.count = 0
@@ -83,13 +83,15 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
         self.naive_adaptation(a_t, f_t)
       
       # print(self.wind_adapt_term)
+      # self.wind_adapt_term = np.random.normal(0, 0.5, self.e_dims) + np.array([1.0, -0.5, 0])
       self.adaptation_terms[1: ] = self.wind_adapt_term
-      obs_ = np.hstack((obs, - self.mass * self.wind_adapt_term))
-      print(self.wind_adapt_term)
+      obs_ = np.hstack((obs, self.wind_adapt_term))
 
     else:
       pseudo_adapt_term =  np.zeros(self.e_dims)
-      obs_ = np.hstack((obs, pseudo_adapt_term))
+      # pseudo_adapt_term = np.random.normal(0, 0.5, self.e_dims) + np.array([1.0, -0.5, 0])
+      self.adaptation_terms[1: ] = pseudo_adapt_term
+      obs_ = np.hstack((obs, -pseudo_adapt_term))
     mid = time.time() - st
     if fl==0:
         obs_ = np.zeros((self.time_horizon+1) * 3 + 10 + self.e_dims)

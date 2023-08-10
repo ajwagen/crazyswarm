@@ -58,6 +58,7 @@ class MPPIController(ControllerBackbone):
       self.L1_adaptation(self.dt, state.vel, self.f_t)
       self.adaptation_terms[1:] = self.wind_adapt_term
       L1_adapt = torch.as_tensor(self.wind_adapt_term, dtype=torch.float32)
+      print(self.wind_adapt_term)
     # action = self.mppi_controller.policy_cf(state=state_torch, time=t).cpu().numpy()
     # start = time.time()
 

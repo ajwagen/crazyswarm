@@ -158,7 +158,7 @@ class ControllerBackbone():
         unit_mass = 1
         g_vec = np.array([0, 0, -1]) * self.g
         # alpha = np.exp(-dt * self.filter_coeff)
-        alpha = 0.9
+        alpha = 0.6
         # print(alpha)
         phi = 1 / self.A * (np.exp(self.A * dt) - 1)
 
@@ -168,5 +168,5 @@ class ControllerBackbone():
         v_tilde = self.v_hat - v_t
         
         adapt_term = -1 / phi * np.exp(self.A * dt) * v_tilde
-        self.wind_adapt_term = (1 - alpha) * adapt_term + alpha * self.wind_adapt_term 
+        self.wind_adapt_term = -(1 - alpha) * adapt_term + alpha * self.wind_adapt_term 
 
