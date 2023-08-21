@@ -13,6 +13,7 @@ def plot_npz(filename):
     overall_mean_error = []
     ovr_std = []
     for key in list(data_dict.keys()):
+        print(key)
         mean_error = np.mean(np.linalg.norm(data_dict[key]['ref_positions'] - data_dict[key]['pose_positions'], axis=1))
         std_error = np.std(np.linalg.norm(data_dict[key]['ref_positions'] - data_dict[key]['pose_positions'], axis=1))
         # pos_rmse = rmse(data_dict[key]['ref_positions'], data_dict[key]['pose_positions']) 

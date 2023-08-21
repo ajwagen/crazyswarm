@@ -66,26 +66,24 @@ class PPOController_trajectory_adaptive(ControllerBackbone):
 
       # if self.adaptation_warmup:
       adaptation_term = self.adaptive_policy(self.history).detach().cpu().numpy()[0]
-      self.adaptation_mean = np.vstack((self.adaptation_mean, self.adaptation_terms[None, :]))
       
-      if self.adapt_smooth:
-        if len(self.adaptation_history) >= self.adaptation_history_len: 
-          self.adaptation_history = np.vstack((adaptation_term[None, :], self.adaptation_history[:-1]))
-        else:
-          self.adaptation_history = np.vstack((adaptation_term[None, :], self.adaptation_history))
+      # if self.adapt_smooth:
+      #   if len(self.adaptation_history) >= self.adaptation_history_len: 
+      #     self.adaptation_history = np.vstack((adaptation_term[None, :], self.adaptation_history[:-1]))
+      #   else:
+      #     self.adaptation_history = np.vstack((adaptation_term[None, :], self.adaptation_history))
 
-        adaptation_term[0] = np.clip(np.mean(self.adaptation_history[:, 0]), 0.0, 10.0)
-        adaptation_term[1] = np.mean(self.adaptation_history[:, 1]) / 3
-        adaptation_term[2] = np.mean(self.adaptation_history[:, 2]) / 3
-        adaptation_term[3] = np.mean(self.adaptation_history[:, 3]) / 3
+      #   adaptation_term[0] = np.clip(np.mean(self.adaptation_history[:, 0]), 0.0, 10.0)
+      #   adaptation_term[1] = np.mean(self.adaptation_history[:, 1]) / 3
+      #   adaptation_term[2] = np.mean(self.adaptation_history[:, 2]) / 3
+      #   adaptation_term[3] = np.mean(self.adaptation_history[:, 3]) / 3
 
-      self.adaptation_terms = adaptation_term
-
+      self.adaptation_terms[1:] = adaptation_term
       obs_ = np.hstack((obs, adaptation_term))
 
     else:
-      pseudo_adapt_term =  np.ones(self.e_dims) * 1.0
-      pseudo_adapt_term[1:] *= 0 # mass -> 1, wind-> 0
+      pseudo_adapt_term =  np.ones(self.e_dims) * 0.0
+      # pseudo_adapt_term[1:] *= 0 # mass -> 1, wind-> 0
       obs_ = np.hstack((obs, pseudo_adapt_term))
     # obs_ = np.hstack((obs, 1.0))
 

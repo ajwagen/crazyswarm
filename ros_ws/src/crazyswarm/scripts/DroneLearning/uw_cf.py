@@ -299,7 +299,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_09/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_11/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -345,7 +345,7 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_09/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_11/sim/"
             # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
@@ -441,9 +441,8 @@ class ctrlCF():
                     if seed is None:
                         if 'seed' in self.tasks[self.task_num].keys(): 
                             ref_kwargs['seed'] = self.tasks[self.task_num]["seed"]
-                        if 'maxes' in self.tasks[self.task_num].keys(): 
-                            ref_kwargs['maxes'] = self.tasks[self.task_num]["maxes"]
-
+                    if 'maxes' in self.tasks[self.task_num].keys(): 
+                        ref_kwargs['maxes'] = self.tasks[self.task_num]["maxes"]
                     init_ref_func(**ref_kwargs)
                 except:
                     pass
@@ -606,7 +605,7 @@ class ctrlCF():
             # Send controller commands to the simulator and simulate the dynamics
             z_acc, ang_vel = 0., np.array([0., 0., 0.])
 
-            dist = [ConstantForce(scale=np.array([1.0, -0.5, 0]))]
+            dist = [ConstantForce(scale=np.array([0.0, 0.0, 0]))]
             if t > self.warmup_time:
 
                 z_acc, ang_vel = self.curr_controller.response(t = t - self.prev_task_time, 
