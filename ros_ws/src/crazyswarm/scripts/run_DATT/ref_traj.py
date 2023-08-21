@@ -9,7 +9,7 @@ from quadsim.learning.refs.pointed_star import NPointedStar
 from quadsim.learning.refs.M_star import M_zigzag
 from quadsim.learning.refs.triangle_ref import Triangle
 from quadsim.learning.refs.closed_polygon import ClosedPoly
-from quadsim.learning.refs.hover_ref  import hover_ref
+from quadsim.learning.refs.hover_ref import hover_ref
 import os
 from pathlib import Path
 
@@ -37,7 +37,7 @@ class Trajectories:
         if self.gui:
             parent = Path('.')
             # print(parent)
-            self.gui_traj = gen_trajectory.main_loop(x_min=-3, x_max=3, y_min=-3, y_max=3, saved_traj='NW', parent=parent, overwrite=False)
+            self.gui_traj = gen_trajectory.main_loop(x_min=-3, x_max=3, y_min=-3, y_max=3, saved_traj='test_ref_7', parent=parent, overwrite=False)
 
     
     # ESSENTIAL FUNCTIONS
@@ -104,9 +104,11 @@ class Trajectories:
 
         return ref, self.ret, None
     
-    def set_hover_ref(self, t):
-        ref_pos = np.array([0., 0.0, 0.0])
-        ref_vel = np.array([0., 0., 0])
+    def hover_ref_(self, **traj_defs):
+        self.hover_ref_obj = hover_ref()
+    def hover_ref(self, t):
+        ref_pos = self.hover_ref_obj.pos(t)
+        ref_vel = self.hover_ref_obj.vel(t)
         ref = State_struct(pos=ref_pos, vel=ref_vel)
         self.ret = 0
         return ref, self.ret, self.hover_ref_obj
@@ -204,7 +206,7 @@ class Trajectories:
         
     def N_pointed_star_ref_(self, **traj_defs):
         n_points = traj_defs.get('seed', 5)
-        self.Nstar_ref_obj = NPointedStar(n_points=n_points, speed=0.6, radius=0.7)
+        self.Nstar_ref_obj = NPointedStar(n_points=n_points, speed=1.0, radius=0.7)
     def N_pointed_star_ref(self,t):
         ref_pos = self.Nstar_ref_obj.pos(t)
         ref_vel = self.Nstar_ref_obj.vel(t)
@@ -222,7 +224,7 @@ class Trajectories:
         return ref, self.ret, self.M_zigzag_ref_obj
     
     def Triangle_ref_(self, **traj_defs):
-        self.Triangle_ref_obj = Triangle(speed=0.6, side_len = 1.0)
+        self.Triangle_ref_obj = Triangle(speed=1.0, side_len = 1.0)
     def Triangle_ref(self,t):
         ref_pos = self.Triangle_ref_obj.pos(t)
         ref_vel = self.Triangle_ref_obj.vel(t)
@@ -231,7 +233,7 @@ class Trajectories:
         return ref, self.ret, self.Triangle_ref_obj
 
     def Closed_polygon_ref_(self, **traj_defs):
-        self.closed_polygon_ref_obj = ClosedPoly(equal_division=True, ang = np.pi/6, direction=-1, radius=0.5 / np.cos(np.deg2rad(30)), speed=0.8)
+        self.closed_polygon_ref_obj = ClosedPoly()
     def Closed_polygon_ref(self,t):
         ref_pos = self.closed_polygon_ref_obj.pos(t)
         ref_vel = self.closed_polygon_ref_obj.vel(t)

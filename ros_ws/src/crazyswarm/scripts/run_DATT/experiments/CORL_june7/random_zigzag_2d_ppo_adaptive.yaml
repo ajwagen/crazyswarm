@@ -5,7 +5,7 @@ landing_height: 0.1
 landing_rate: 0.001
 
 E_BB_width: 4.0 # emergency bounding box width limit
-E_BB_height: 1.3 # emergency bounding box width limit
+E_BB_height: 1.4 # emergency bounding box width limit
 
 kalman_warmup: 3.0
 
@@ -14,16 +14,18 @@ kalman_warmup: 3.0
 tasks: 
   # - ref: 'hover_ref'
   #   cntrl: "PIDController"
-  #   time: 100.0
+  #   time: 4.0
   #   adaptive: False
   #   policy_config: none
-  #   description: "Hover init"
+  #   description: "hover init"
 
-  - ref: 'random_zigzag'
-    cntrl: "MPPIController"
+  - ref: 'random_chained_poly'
+    cntrl: "PPOController_trajectory_L1_adaptive"
     time: 10.0
-    adaptive: False
-    policy_config: none
-    description: "Trajectory mppi"
+    adaptive: True
+    policy_config: trajectory_2d_wind_adaptive_RMA
+    description: "Trajectory PPO"
+    maxes : [1.0, 1.0 ,0.0]
     seed : 0
-    maxes : [1.0, 1.0, 0.0]
+
+rwik : hello

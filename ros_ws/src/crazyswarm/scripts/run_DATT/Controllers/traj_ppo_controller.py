@@ -45,21 +45,11 @@ class PPOController_trajectory(ControllerBackbone):
 
 
     if fl==0:
-        if self.no_fb:
-          obs_ = np.zeros((self.time_horizon) * 3 + 10)
-        else:
-          obs_ = np.zeros((self.time_horizon + 1) * 3 + 10)
-
+        obs_ = np.zeros((self.time_horizon+1) * 3 + 10)
     else:
         obs_ = np.hstack((pos, vel, quat))
         if self.relative:
-          if self.no_fb:
-            obs_ = np.hstack([obs_] + [obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * dt)[0].pos) for i in range(self.time_horizon)])
-            obs_[:3] = obs_[:3] - rot.inv().apply(ref_func(t)[0].pos)
-
-          else:
-            obs_ = np.hstack([obs_, obs_[0:3] - rot.inv().apply(ref_func(t)[0].pos)] \
-                             + [obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * dt)[0].pos) for i in range(self.time_horizon)])
+          obs_ = np.hstack([obs_, obs_[0:3] - rot.inv().apply(ref_func(t)[0].pos)] + [obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * dt)[0].pos) for i in range(self.time_horizon)])
 
         else:
           ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
