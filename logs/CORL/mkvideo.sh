@@ -21,4 +21,4 @@ ffmpeg -framerate 50 -i imgs/%04d.png -pix_fmt yuv420p videos/wind_star_ppo_pid_
 rm -r imgs
 mkdir imgs
 python3 video_gen.py june_21/real/NW_pid_nofb.npz june_21/real/NW_mppi_nofb.npz june_21/real/NW_ppo_nofb.npz -tt 4.2 --hovertime 4.0 --runtime 12.0 -bh 0.6
-ffmpeg -framerate 50 -i imgs/%04d.png -pix_fmt yuv420p videos/gui_NW_ppo_pid_mppi.mp4 -y
+ffmpeg -framerate 20 -i imgs/%04d.png -pix_fmt yuv420p videos/gui_NW_ppo_pid_mppi.mp4 -y

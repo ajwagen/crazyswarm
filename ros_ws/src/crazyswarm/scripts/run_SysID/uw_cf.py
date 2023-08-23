@@ -115,8 +115,7 @@ class ctrlCF():
                                                                                         policy_config = self.config["tasks"][i]["policy_config"],
                                                                                         adaptive = self.config["tasks"][i]["adaptive"],
                                                                                         pseudo_adapt = run_args.pseudo,
-                                                                                        adapt_smooth = self.adaptation_smoothing,
-                                                                                        )
+                                                                                        adapt_smooth = self.adaptation_smoothing)
                 # Warming up controller
 
                 self.controllers[ctrl_policy].response(fl = 0, **warmup_inputs)
@@ -129,17 +128,16 @@ class ctrlCF():
             rospy.on_shutdown(self.shutdown_callback)
             self.emergency_signal = 0
             self.cf = self.swarm.allcfs.crazyflies[0]
-            self.dt = 0.02
 
         else:
-            model = crazyflieModel()
-            # model = IdentityModel()
+            # model = crazyflieModel()
+            model = IdentityModel()
             self.cf = QuadSim(model, name=self.cfName)
             eu = np.array([0., 0., 0.])
             rot = R.from_euler('xyz', eu)
             init_state = State_struct(rot = rot)
             self.cf.setstate(init_state)
-            self.dt = 0.01
+            self.dt = 0.02
 
         self.set_logging_arrays()
         self.set_tasks()
@@ -195,8 +193,6 @@ class ctrlCF():
 
         self.ppo_acc = []
         self.ppo_ang = []
-
-        self.mismatches = []
 
     def set_tasks(self,):
         self.tasks = []
@@ -270,7 +266,7 @@ class ctrlCF():
 
         # Adding ROS subscribed data to state
         self.state.pos = self.pose_pos
-        self.state.vel = (self.state.pos - self.prev_state.pos) / self.dt 
+        self.state.vel = (self.state.pos - self.prev_state.pos) / (0.02) 
         self.state.rot = R.from_quat(rot)
         self.prev_state = copy.deepcopy(self.state)
         self.initialized = True
@@ -303,7 +299,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/SysID/aug_02/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_11/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -349,7 +345,7 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/june_21/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_11/sim/"
             # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
@@ -445,9 +441,8 @@ class ctrlCF():
                     if seed is None:
                         if 'seed' in self.tasks[self.task_num].keys(): 
                             ref_kwargs['seed'] = self.tasks[self.task_num]["seed"]
-                        if 'maxes' in self.tasks[self.task_num].keys(): 
-                            ref_kwargs['maxes'] = self.tasks[self.task_num]["maxes"]
-
+                    if 'maxes' in self.tasks[self.task_num].keys(): 
+                        ref_kwargs['maxes'] = self.tasks[self.task_num]["maxes"]
                     init_ref_func(**ref_kwargs)
                 except:
                     pass
@@ -576,7 +571,7 @@ class ctrlCF():
     
     # Simulation
     def update_sim_states(self, quadsim_state):
-        quadsim_state = self.add_observation_noise(quadsim_state)
+        # quadsim_state = self.add_observation_noise(quadsim_state)
         # import pdb;pdb.set_trace()
         self.state.pos = quadsim_state.pos
         self.state.rot = quadsim_state.rot
@@ -586,7 +581,6 @@ class ctrlCF():
     
     def add_observation_noise(self, state):
         state.pos += np.random.normal(loc=0.0, scale=0.01, size=3)
-        state.vel += np.random.normal(loc=0.0, scale=0.01, size=3)
         return state
 
     def main_loop_sim(self,):
@@ -611,7 +605,7 @@ class ctrlCF():
             # Send controller commands to the simulator and simulate the dynamics
             z_acc, ang_vel = 0., np.array([0., 0., 0.])
 
-            dist = [ConstantForce(scale=np.array([0.0, 0, 0]))]
+            dist = [ConstantForce(scale=np.array([0.0, 0.0, 0]))]
             if t > self.warmup_time:
 
                 z_acc, ang_vel = self.curr_controller.response(t = t - self.prev_task_time, 
@@ -649,7 +643,6 @@ class ctrlCF():
             self.ref_positions.append(np.copy(self.ref.pos))
             self.ref_orientation.append(self.ref.rot.as_euler('ZYX', degrees=True))
             self.ts.append(t)
-            self.mismatches.append(self.curr_controller.mismatch)
             # self.ref_vel.append()
             self.thrust_cmds.append(z_acc)
             self.ang_vel_cmds.append(ang_vel * 180 / (2 * np.pi))
@@ -677,6 +670,7 @@ if __name__ == "__main__":
     parser.add_argument('-ps','--pseudo', type=bool, default=False, help='pseudo adapt')
     parser.add_argument('-aw','--adapt_warmup', type=bool, default=False, help='adaptation warmup')
     parser.add_argument('-as','--adapt_smoothing', type=bool, default=False, help='adaptation smoothing')
+
 
 
     run_args = EasyDict(vars(parser.parse_args()))

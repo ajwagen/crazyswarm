@@ -48,6 +48,8 @@ class ControllerBackbone():
         self.v_prev = np.zeros(3)
         self.v_hat = np.zeros(3)
         self.wind_adapt_term = np.zeros(3)
+        self.wind_adapt_term_t = np.zeros(3)
+
 
         # naive params
         self.lamb = 0.1
@@ -58,13 +60,10 @@ class ControllerBackbone():
         self.A = -0.2
         self.count = 0
 
-        # SysID
-        self.mismatch = np.zeros(3)
-
     def updateDt(self,t):
 
         if self.prev_t is None:
-            self.dt = 0
+            self.dt = 0.02
         else:
             self.dt = t - self.prev_t
         
@@ -83,7 +82,6 @@ class ControllerBackbone():
         self.e_dims = policy_dict["e_dims"]
         self.u_struct = policy_dict["u_struct"]
         self.adaptation_warmup = policy_dict['adaptation_warmup']
-        self.no_fb = policy_dict['no_fb']
 
     def set_policy(self,):
 
@@ -113,7 +111,7 @@ class ControllerBackbone():
         
         self.policy = self.algo_class.load(TEST_POLICY_DIR / f'{self.policy_name}', self.env)
         if self.adaptive == True and self.pseudo_adapt == False:
-            self.adaptive_policy = AdaptationNetwork(14, self.e_dims)
+            self.adaptive_policy = AdaptationNetwork(14, self.e_dims, complex=True)
             self.adaptive_policy.load_state_dict(torch.load(TEST_POLICY_DIR / f'{self.adaptive_policy_name}', map_location='cuda:0'))
         self.prev_pos = 0.
     
@@ -162,15 +160,15 @@ class ControllerBackbone():
         unit_mass = 1
         g_vec = np.array([0, 0, -1]) * self.g
         # alpha = np.exp(-dt * self.filter_coeff)
-        alpha = 0.9
+        alpha = 0.99
         # print(alpha)
         phi = 1 / self.A * (np.exp(self.A * dt) - 1)
 
-        a_t_hat = g_vec + f_t / unit_mass + self.wind_adapt_term + self.A * self.wind_adapt_term
+        a_t_hat = g_vec + f_t / unit_mass - self.wind_adapt_term_t + self.A * (self.v_hat - v_t)
         
         self.v_hat += a_t_hat * dt
         v_tilde = self.v_hat - v_t
         
-        adapt_term = -1 / phi * np.exp(self.A * dt) * v_tilde
-        self.wind_adapt_term = (1 - alpha) * adapt_term + alpha * self.wind_adapt_term 
+        self.wind_adapt_term_t = 1 / phi * np.exp(self.A * dt) * v_tilde
+        self.wind_adapt_term = -(1 - alpha) * self.wind_adapt_term_t + alpha * self.wind_adapt_term 
 

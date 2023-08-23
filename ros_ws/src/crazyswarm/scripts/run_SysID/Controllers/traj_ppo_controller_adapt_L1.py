@@ -16,13 +16,14 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
     self.set_policy()
 
     self.history = np.zeros((1, 14, 5))
+    self.history_rma = np.zeros((1, 14, 50))
     
     # Override L1 params
     # # naive params
     # self.lamb = 0.2
 
     # # L1 params
-    self.runL1 = True # L1 v/s naive toggle
+    # self.runL1 = False # L1 v/s naive toggle
     # self.filter_coeff = 5
     # self.A = -0.2
     # self.count = 0
@@ -68,7 +69,7 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
 
     obs = np.hstack((pos, vel, quat))
     
-    # st = time.time()
+    st = time.time()
     if self.pseudo_adapt== False and fl!=0.0:
       if self.count > 2:
         v_t = state.vel
@@ -82,38 +83,37 @@ class PPOController_trajectory_L1_adaptive(ControllerBackbone):
       else:
         self.naive_adaptation(a_t, f_t)
       
-      # print(self.wind_adapt_term)
-      self.adaptation_terms[1: ] = self.wind_adapt_term
-      obs_ = np.hstack((obs, self.mass * self.wind_adapt_term))
 
+      # rwik = self.adaptive_policy(torch.tensor(self.history_rma).float())
+
+      # self.wind_adapt_term = rwik[0].detach().cpu().numpy()
+      # print(self.wind_adapt_term)
+      # print(rwik)
+      # print(self.wind_adapt_term)
+      # self.wind_adapt_term = np.random.normal(0, 0.5, self.e_dims) + np.array([1.0, -0.5, 0])
+      self.adaptation_terms[1: ] = self.wind_adapt_term
+      obs_ = np.hstack((obs, self.wind_adapt_term))
     else:
-      # self.naive_adaptation(a_t, f_t)
-      pseudo_adapt_term =  np.zeros(self.e_dims) * 1.0
-      # pseudo_adapt_term[1:] *= 0 # mass -> 1, wind-> 0
-      obs_ = np.hstack((obs, pseudo_adapt_term))
-    # mid = time.time() - st
+      pseudo_adapt_term =  np.zeros(self.e_dims)
+      # pseudo_adapt_term = np.random.normal(0, 0.5, self.e_dims) + np.array([1.0, -0.5, 0])
+      self.adaptation_terms[1: ] = pseudo_adapt_term
+      obs_ = np.hstack((obs, -pseudo_adapt_term))
+    mid = time.time() - st
     if fl==0:
-        if self.no_fb:
-          obs_ = np.zeros((self.time_horizon) * 3 + 10 + self.e_dims)
-        else:
-          obs_ = np.zeros((self.time_horizon+1) * 3 + 10 + self.e_dims)
+        obs_ = np.zeros((self.time_horizon+1) * 3 + 10 + self.e_dims)
     else:
 
         if self.relative:
-          if self.no_fb:
-            obs_ = np.hstack([obs_] + [obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * dt)[0].pos) for i in range(self.time_horizon)])
-            obs_[:3] = obs_[:3] - rot.inv().apply(ref_func(t)[0].pos)
-          else:
-            obs_ = np.hstack([obs_, obs_[0:3] - rot.inv().apply(ref_func(t)[0].pos)] + [obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * dt)[0].pos) for i in range(self.time_horizon)])
+          obs_ = np.hstack([obs_, obs_[0:3] - rot.inv().apply(ref_func(t)[0].pos)] + [obs_[0:3] - rot.inv().apply(ref_func(t + 3 * i * dt)[0].pos) for i in range(self.time_horizon)])
 
         else:
           ff_terms = [ref_func(t + 3 * i * dt)[0].pos for i in range(self.time_horizon)]
           obs_ = np.hstack([obs_, obs_[0:3] - ref_func(t)[0].pos] + ff_terms)
 
-    # midt = time.time()
-    action, _states = self.policy.predict(obs_, deterministic=True)
-    # print(time.time() - midt + mid)
+    action, _ = self.policy.predict(obs_, deterministic=True)
 
+    rma_adaptation_input = np.concatenate((obs_bf, action), axis=0)
+    self.history_rma = np.concatenate((rma_adaptation_input[None, :, None], self.history_rma[:, :, :-1]), axis=2)
     # adaptation_input = torch.from_numpy(adaptation_input).to("cuda:0").float()
 
       # import pdb;pdb.set_trace()

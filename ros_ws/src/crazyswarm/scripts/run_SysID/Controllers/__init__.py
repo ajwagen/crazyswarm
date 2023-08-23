@@ -7,4 +7,3 @@ from Controllers.traj_ppo_controller_adapt_L1 import PPOController_trajectory_L1
 
 from Controllers.pid_controller import PIDController
 from Controllers.mppi_controller import MPPIController
-from Controllers.pid_controller_explore import PIDController_explore
