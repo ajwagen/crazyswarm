@@ -6,5 +6,5 @@ from Controllers.traj_ppo_controller_ustruct import PPOController_trajectory_ust
 from Controllers.traj_ppo_controller_adapt_L1 import PPOController_trajectory_L1_adaptive
 
 from Controllers.pid_controller import PIDController
-from Controllers.pid_controller_explore import PIDController_explore
 from Controllers.mppi_controller import MPPIController
+from Controllers.lmpc_controller import LMPCController

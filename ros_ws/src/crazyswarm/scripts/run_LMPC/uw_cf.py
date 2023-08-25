@@ -40,8 +40,14 @@ from quadsim.models import IdentityModel,crazyflieModel
 
 from pathlib import Path
 
-from quadsim.learning.refs.hover_ref import hover_ref
+from quadsim.learning.refs.random_zigzag import RandomZigzag
 
+def angular_velocities(q1, q2, dt):
+    # q -> x,y,z,w
+    return (2 / dt) * np.array([
+        q1[3]*q2[0] - q1[0]*q2[3] - q1[1]*q2[2] + q1[2]*q2[1],
+        q1[3]*q2[1] + q1[0]*q2[2] - q1[1]*q2[3] - q1[2]*q2[0],
+        q1[3]*q2[2] - q1[0]*q2[1] + q1[1]*q2[0] - q1[2]*q2[3]])
 
 np.set_printoptions(linewidth=np.inf)
 
@@ -66,10 +72,11 @@ class ctrlCF():
         self.initialized = False
 
         self.state = State_struct()
+        self.state.ang[1] = 0.01
         self.prev_state = State_struct()
         self.ref = State_struct()
         self.ref_func = None
-        self._ref_func_obj = hover_ref()
+        self._ref_func_obj = RandomZigzag()
 
         self.def_seed = run_args.seed
 
@@ -130,8 +137,8 @@ class ctrlCF():
             self.cf = self.swarm.allcfs.crazyflies[0]
 
         else:
-            # model = crazyflieModel()
-            model = IdentityModel()
+            model = crazyflieModel()
+            # model = IdentityModel()
             self.cf = QuadSim(model, name=self.cfName)
             eu = np.array([0., 0., 0.])
             rot = R.from_euler('xyz', eu)
@@ -268,6 +275,8 @@ class ctrlCF():
         self.state.pos = self.pose_pos
         self.state.vel = (self.state.pos - self.prev_state.pos) / (0.02) 
         self.state.rot = R.from_quat(rot)
+        self.state.ang = angular_velocities(self.prev_state.rot.as_quat(), self.state.rot.as_quat(), 0.02)
+
         self.prev_state = copy.deepcopy(self.state)
         self.initialized = True
     #####################################
@@ -299,7 +308,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/aug_23/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_11/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -345,7 +354,7 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/aug_23/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_11/sim/"
             # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 

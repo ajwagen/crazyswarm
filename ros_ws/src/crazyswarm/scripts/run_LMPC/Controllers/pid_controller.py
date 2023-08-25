@@ -48,10 +48,7 @@ class PIDController(ControllerBackbone):
     rot = state.rot
     p_err = pos - ref.pos
     v_err = vel - ref.vel
-    quat = rot.as_quat()
-
-
-    print(quat)
+    quat = rot.as_quat() 
 
     v_t = state.vel
     if self.count > 2:

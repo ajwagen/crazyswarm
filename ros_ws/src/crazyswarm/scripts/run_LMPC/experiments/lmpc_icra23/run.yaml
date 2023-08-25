@@ -12,10 +12,18 @@ kalman_warmup: 3.0
 # Run Details
 
 tasks: 
-  - ref: 'hover_ref'
-    cntrl: "PIDController_explore"
-    time: 30.0
+  # - ref: 'hover_ref'
+  #   cntrl: "PIDController"
+  #   time: 100.0
+  #   adaptive: False
+  #   policy_config: none
+  #   description: "Hover init"
+
+  - ref: 'random_zigzag'
+    cntrl: "LMPCController"
+    time: 10.0
     adaptive: False
     policy_config: none
-    description: "hover init"
-
+    description: "Trajectory mppi"
+    seed : 0
+    maxes : [1.0, 1.0, 0.0]

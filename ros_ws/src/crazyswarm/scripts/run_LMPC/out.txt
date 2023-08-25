@@ -1,0 +1,12 @@
+pygame 2.4.0 (SDL 2.26.4, Python 3.8.10)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+rwik1
+seed 2023
+rwik2
+rwik3
+[{'ref': 'set_hover_ref', 'cntrl': 'PIDController', 'time': 2.0, 'adaptive': False, 'policy_config': 'none', 'description': 'hover init'}, {'ref': 'random_zigzag', 'cntrl': 'PPOController_trajectory_L1_adaptive', 'time': 10.0, 'adaptive': False, 'policy_config': 'trajectory_2d_wind_adaptive', 'description': 'Trajectory PPO', 'maxes': [1.0, 1.0, 0.0], 'seed': 0}]
+converting obs to body frame: True
+action space : 4
+Warning: No joystick found!
+User Emergency Stop!
+Shutting down ROS!
