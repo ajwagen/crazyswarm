@@ -1,0 +1,42 @@
+# simulation parameters
+sim_dt: 0.05
+sim_dt_MPPI: 0.05
+sim_tf: 2.0
+traj: 'zig-zag'
+traj_ : "circle_ref" #"chained_poly_ref"
+Vwind: 0 # velocity of wind in world frame, 0 means not considering wind
+initial_state: [0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0.0, 0.]
+cntrl: mppi
+
+# MPPI parameters
+mppi:
+  lam: 0.03 # temparature 0.003
+  H: 20 # horizon 10
+  N: 8192 # number of samples
+  sample_std: [0.25, 1, 1, 0.02] # standard deviation for sampling: [thrust (unit: hovering thrust), omega (unit: rad/s)]
+  gamma_mean: 0.9 # learning rate
+  gamma_Sigma: 0. # learning rate
+  omega_gain: 10. # gain of the low-level controller 40
+  discount: 0.99 # discount factor in MPPI
+  a_min: [0., -5., -5., -2.] # bounds of sampling action: [thrust, omega (unit: rad/s)]
+  a_max: [0., 5., 5., 2.]
+
+pid_torch:
+  N: 10
+
+pid:
+  N: 1
+
+# reward functions
+alpha_p: 5.0
+alpha_w: 0.0
+alpha_a: 0.0
+alpha_R: 0.02
+alpha_v: 0.0
+alpha_yaw: 0.0
+
+# pid_torch:
+#   N: 10
+
+# pid:
+#   N: 10

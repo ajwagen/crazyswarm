@@ -79,7 +79,8 @@ class ctrlCF():
         if "def_cntrl" in self.config :
             self.default_controller = (globals()[self.config["def_cntrl"][0]["cntrl"]])(isSim = self.isSim, 
                                                                                         policy_config = self.config["def_cntrl"][0]["policy_config"],
-                                                                                        adaptive = self.config["def_cntrl"][0]["adaptive"])
+                                                                                        adaptive = self.config["def_cntrl"][0]["adaptive"],
+                                                                                        )
         else:
             self.default_controller = PIDController(isSim = self.isSim)
             # self.default_controller = PPOController(isSim = self.isSim, 
@@ -115,10 +116,12 @@ class ctrlCF():
                                                                                         policy_config = self.config["tasks"][i]["policy_config"],
                                                                                         adaptive = self.config["tasks"][i]["adaptive"],
                                                                                         pseudo_adapt = run_args.pseudo,
-                                                                                        adapt_smooth = self.adaptation_smoothing)
+                                                                                        adapt_smooth = self.adaptation_smoothing,
+                                                                                        explore_type = run_args.explore,
+                                                                                        init_run = run_args.init)
                 # Warming up controller
 
-                self.controllers[ctrl_policy].response(fl = 0, **warmup_inputs)
+                # self.controllers[ctrl_policy].response(fl = 0, **warmup_inputs)
                 # self.controller.trajectories = Trajectories
         
 
@@ -299,7 +302,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/aug_23/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/sep_09/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -345,7 +348,7 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/aug_23/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/sep_09/sim/"
             # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
@@ -397,6 +400,17 @@ class ctrlCF():
         if t >= self.takeoff_time+self.tasks_time+self.warmup_time:
             self.task_num+=1
             self.trajs.ret = 0
+
+            #########
+            try:
+                cov = self.curr_controller.cov
+                input_power = self.curr_controller.input_power
+                np.save('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/input_power.npy', input_power.detach().cpu().numpy())
+                np.save('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/cov_real.npy', cov.detach().cpu().numpy())
+
+            except:
+                pass
+            #########
             self.switch_controller(offset_pos)
 
         ###########################################################################
@@ -580,7 +594,7 @@ class ctrlCF():
 
     
     def add_observation_noise(self, state):
-        state.pos += np.random.normal(loc=0.0, scale=0.01, size=3)
+        state.pos += np.random.normal(loc=0.0, scale=0.00001, size=3)
         return state
 
     def main_loop_sim(self,):
@@ -605,7 +619,7 @@ class ctrlCF():
             # Send controller commands to the simulator and simulate the dynamics
             z_acc, ang_vel = 0., np.array([0., 0., 0.])
 
-            dist = [ConstantForce(scale=np.array([0.0, 0.0, 0]))]
+            dist = [ConstantForce(scale=np.array([0.0, 0.0, 0.0]))]
             if t > self.warmup_time:
 
                 z_acc, ang_vel = self.curr_controller.response(t = t - self.prev_task_time, 
@@ -670,8 +684,8 @@ if __name__ == "__main__":
     parser.add_argument('-ps','--pseudo', type=bool, default=False, help='pseudo adapt')
     parser.add_argument('-aw','--adapt_warmup', type=bool, default=False, help='adaptation warmup')
     parser.add_argument('-as','--adapt_smoothing', type=bool, default=False, help='adaptation smoothing')
-
-
+    parser.add_argument('-explore','--explore', type=str, default='random', help='exploration type')
+    parser.add_argument('--init', action='store_true')
 
     run_args = EasyDict(vars(parser.parse_args()))
 

@@ -24,8 +24,9 @@ from Controllers import *
 # from Controllers.hover_ppo_controller import *
 # from Controllers.bc_controller import BCController
 # from Controllers.traj_ppo_controller import PPOController_trajectory
-
-
+torch.set_printoptions(profile="full")
+import numpy as np
+np.set_printoptions(threshold=sys.maxsize)
 from quadsim.learning.refs.gen_trajectory import Trajectory
 
 # Actual Drone
@@ -72,7 +73,6 @@ class ctrlCF():
         self.initialized = False
 
         self.state = State_struct()
-        self.state.ang[1] = 0.01
         self.prev_state = State_struct()
         self.ref = State_struct()
         self.ref_func = None
@@ -125,7 +125,7 @@ class ctrlCF():
                                                                                         adapt_smooth = self.adaptation_smoothing)
                 # Warming up controller
 
-                self.controllers[ctrl_policy].response(fl = 0, **warmup_inputs)
+                # self.controllers[ctrl_policy].response(fl = 0, **warmup_inputs)
                 # self.controller.trajectories = Trajectories
         
 
@@ -308,7 +308,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_11/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_lmpc/sep_10/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -354,7 +354,7 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_11/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_lmpc/sep_10/sim/"
             # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
@@ -590,7 +590,7 @@ class ctrlCF():
     
     def add_observation_noise(self, state):
         state.pos += np.random.normal(loc=0.0, scale=0.01, size=3)
-        return state
+        return stateq
 
     def main_loop_sim(self,):
 
@@ -615,7 +615,7 @@ class ctrlCF():
             z_acc, ang_vel = 0., np.array([0., 0., 0.])
 
             dist = [ConstantForce(scale=np.array([0.0, 0.0, 0]))]
-            if t > self.warmup_time:
+            if t >= self.warmup_time:
 
                 z_acc, ang_vel = self.curr_controller.response(t = t - self.prev_task_time, 
                                                                state = self.state, 
@@ -625,9 +625,9 @@ class ctrlCF():
                                                                adaptation_mean_value=self.adaptation_warmup_value,
                                                                )   
                 self.adaptation_terms.append(np.copy(self.curr_controller.adaptation_terms))
-                                                                            
-                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=0.4, dists=dist)
-            
+                
+                obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=0.4)
+                # print(obs_state.pos, self.state.pos,z_acc, ang_vel)
             # End Flight if landed
             if self.flag["land"] == 2:
                 z_acc, ang_vel = 0., np.zeros(3)
@@ -636,10 +636,12 @@ class ctrlCF():
 
             # Quadsim and State update in the simulation and Visualisation
             quadsim_state = self.cf.rb.state()
-            if t <= self.warmup_time:
-                self.update_sim_states(quadsim_state)
-            else:
-                self.update_sim_states(obs_state)
+
+            self.update_sim_states(quadsim_state)
+            # if t <= self.warmup_time:
+            #     self.update_sim_states(quadsim_state)
+            # else:
+            #     self.update_sim_states(obs_state)
             
 
 
@@ -657,8 +659,8 @@ class ctrlCF():
             self.ang_vel_cmds.append(ang_vel * 180 / (2 * np.pi))
 
             # Simulation timer update
-            t = i * self.dt
             i += 1 
+            t = i * self.dt
 
             if self.flag["land"] == 2:
                 break

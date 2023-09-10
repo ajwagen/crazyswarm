@@ -18,7 +18,9 @@ class ControllerBackbone():
                  policy_config='trajectory', 
                  adaptive=False, 
                  pseudo_adapt=False,
-                 adapt_smooth = False):
+                 adapt_smooth = False,
+                 explore_type = 'random',
+                 init_run = False):
         
         self.isSim = isSim
         self.mass = 0.04
@@ -30,6 +32,10 @@ class ControllerBackbone():
         self.adaptation_terms = np.zeros(4)
         self.adaptation_mean = np.zeros((1, 4))
         self.adapt_smooth = adapt_smooth
+        self.explore_type = explore_type
+        self.exploration_dir = '/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/hessian_bank/circle/1D/seed0/'
+
+        self.init_run = init_run
         # self.I = np.array([[3.144988, 4.753588, 4.640540],
         #                    [4.753588, 3.151127, 4.541223],
         #                    [4.640540, 4.541223, 7.058874]])*1e-5

@@ -10,6 +10,8 @@ from quadsim.learning.refs.M_star import M_zigzag
 from quadsim.learning.refs.triangle_ref import Triangle
 from quadsim.learning.refs.closed_polygon import ClosedPoly
 from quadsim.learning.refs.hover_ref import hover_ref
+from quadsim.learning.refs.random_zigzag_yaw import RandomZigzagYaw
+
 import os
 from pathlib import Path
 
@@ -32,6 +34,8 @@ class Trajectories:
         self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=0)
         self.circle_ref_obj = CircleRef(rad=0.5, period=2.0, altitude=0.0)
         self.hover_ref_obj = hover_ref()
+        self.random_zigzag_yaw_obj = RandomZigzagYaw()
+
         
         self.gui = gui
         if self.gui:
@@ -240,6 +244,18 @@ class Trajectories:
         ref = State_struct(pos=ref_pos, vel=ref_vel)
 
         return ref, self.ret, self.closed_polygon_ref_obj
+    
+    def random_zigzag_yaw_(self, **traj_defs):
+        seed = traj_defs.get('seed', 0)
+        maxes = traj_defs.get('maxes', [1.0, 1.0, 0.0])
+        self.random_zigzag_yaw_obj = RandomZigzagYaw(seed=seed, max_D=np.array(maxes))
+    def random_zigzag_yaw(self,t):
+        ref_pos = self.random_zigzag_yaw_obj.pos(t)
+        ref_vel = self.random_zigzag_yaw_obj.vel(t)
+        ref_quat = self.random_zigzag_yaw_obj.quat(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel, rot=R.from_quat(np.roll(ref_quat, -1)))
+
+        return ref, self.ret, self.random_zigzag_yaw_obj
     
 
 

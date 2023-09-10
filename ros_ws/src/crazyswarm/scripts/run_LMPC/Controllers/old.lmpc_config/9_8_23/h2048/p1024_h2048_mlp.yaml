@@ -1,0 +1,47 @@
+# simulation parameters
+sim_dt: 0.02
+sim_tf: 4.
+traj: 'zig-zag'
+Vwind: 0 # velocity of wind in world frame, 0 means not considering wind
+initial_state: [0., 0., 0., 0., 0., 0., 1., 0., 0., 0., 0., 0.01, 0.]
+
+# MPPI parameters
+sim_dt_MPPI: 0.02
+lam: 0.05 # temparature
+H: 32 # horizon
+N: 1024 # number of samples
+K_delay: 0.4
+sim_K_delay: 0.4
+sample_std: [0.1, 1., 1., 1.] # standard deviation for sampling: [thrust (unit: hovering thrust), omega (unit: rad/s)]
+gamma_mean: 0.8 # learning rate
+gamma_Sigma: 0. # learning rate
+omega_gain: 40. # gain of the low-level controller
+discount: 1.0 # discount factor in MPPI
+a_min: [0., -10., -10., -10.] # bounds of sampling action: [thrust, omega (unit: rad/s)]
+a_max: [0.7848, 10., 10., 10.]
+action_is_mf: False
+
+# LMPC parameters
+update_std: True
+mppi_mode: False
+model_file: models/yaw_flip/9_8_23/p1024_h2048.pt
+samples_file: samples/1024_samples.pkl
+actor_params:
+  net_type: mlp
+  hidden_size: [2048]
+  act: relu
+  init_scale: 0.001
+shift_params:
+  net_type: mlp
+  hidden_size: [1024]
+  act: relu
+  init_scale: 0.001
+
+# reward functions
+alpha_p: 0.05
+alpha_z: 0.0
+alpha_w: 0.0
+alpha_a: 0.0
+alpha_R: 0.05
+alpha_yaw: 0.0
+alpha_v: 0.0

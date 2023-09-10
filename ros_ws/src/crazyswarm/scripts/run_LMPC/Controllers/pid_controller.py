@@ -88,7 +88,7 @@ class PIDController(ControllerBackbone):
     eulers = rot.as_euler("ZYX")
     yaw = eulers[0]
     omega_des = - self.kp_rot * rot_err
-    omega_des[2] += - self.yaw_gain * (yaw - 0.0)
+    omega_des[2] += - self.yaw_gain * (yaw - ref.rot.as_euler('ZYX')[0])
       
 
     self.adaptation_terms[1:] = self.wind_adapt_term

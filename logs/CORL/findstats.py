@@ -11,17 +11,16 @@ def plot_npz(filename):
     data_dict = load_cf_data(filenames, args)
 
     overall_mean_error = []
-    # ovr_std = []
+    ovr_std = []
     for key in list(data_dict.keys()):
-        mean_error = np.mean(np.linalg.norm(data_dict[key]['ref_positions'] - data_dict[key]['pose_positions'], axis=1))
- 
-        overall_mean_error.append(mean_error)
-        # ovr_std.append(std_error)
+        errors = np.linalg.norm(data_dict[key]['ref_positions'] - data_dict[key]['pose_positions'], axis =1)
+        overall_mean_error.append(np.mean(errors))
 
+    # import pdb;pdb.set_trace()
     overall_mean_error_ = np.mean(overall_mean_error)
     ovr_std = np.std(overall_mean_error)
-    print(list(data_dict.keys())[0])
-    print(overall_mean_error)
+    # print(list(data_dict.keys())[0])
+    # print(overall_mean_error)
     print("overall error : ", overall_mean_error_, 'std : ', ovr_std)
 
 

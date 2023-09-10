@@ -8,6 +8,9 @@ import torch
 from torch.autograd.functional import jacobian
 from stable_baselines3.common.env_util import make_vec_env
 import time
+import sys
+torch.set_printoptions(profile="full")
+np.set_printoptions(threshold=sys.maxsize)
 
 class LMPCController(ControllerBackbone):
   def __init__(self, **kwargs):
@@ -19,12 +22,12 @@ class LMPCController(ControllerBackbone):
 
   def ref_func_t(self, t):
     # import pdb;pdb.set_trace()
-    ref_pos = self.ref_func_obj.pos(t).T
-    ref_vel = self.ref_func_obj.vel(t).T
-    ref_quat = self.ref_func_obj.quat(t).T
-    ref_angvel = self.ref_func_obj.angvel(t).T
+    ref_pos = torch.as_tensor(self.ref_func_obj.pos(t).T)
+    ref_vel = torch.as_tensor(self.ref_func_obj.vel(t).T)
+    ref_quat = torch.as_tensor(self.ref_func_obj.quat(t).T)
+    ref_angvel = torch.as_tensor(self.ref_func_obj.angvel(t).T)
 
-    ref = np.hstack((ref_pos, ref_vel, ref_quat, ref_angvel))
+    ref = torch.cat((ref_pos, ref_vel, ref_quat, ref_angvel), dim=-1)
 
     return ref
   
@@ -55,17 +58,15 @@ class LMPCController(ControllerBackbone):
     state_torch = torch.as_tensor(obs, dtype=torch.float32)
     # action = self.lmpc_controller.policy_cf(state=state_torch, time=t).cpu().numpy()
     # start = time.time()
-
-    action = self.lmpc_controller.policy_with_ref_func(state=state_torch, time=t, new_ref_func=self.ref_func_t).cpu().numpy()
+    action = self.lmpc_controller.policy_with_ref_func(state=state_torch, time=t, new_ref_func=self.ref_func_t)
+    action = action.cpu().numpy()
     # print(time.time() - start)
     # MPPI controller designed for output in world frame
     # World Frame -> Body Frame
     
     # st = time.time()
-    action[0] = action[0] / 0.034
+    action[0] = action[0] / 0.04
     # action[1:] = (rot.as_matrix().T).dot(action[1:])
-    print(action)
     # self.f_t = rot.apply(np.array([0, 0, action[0]]))
     # print(time.time() - st)
-    # print("-------")
     return action[0], action[1:]

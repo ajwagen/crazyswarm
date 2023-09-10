@@ -9,6 +9,9 @@ from cf_utils.rigid_body import State_struct
 from pytorch3d import transforms
 
 torch.set_default_tensor_type('torch.cuda.FloatTensor')
+import sys
+np.set_printoptions(threshold=sys.maxsize)
+torch.set_printoptions(threshold=sys.maxsize)
 
 def xyzw(quat):
 	w = quat[0]
@@ -20,9 +23,17 @@ class PIDController(ControllerBackbone):
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
 
-    self.kp_pos = 6.0
-    self.kd_pos = 4.0
-    self.ki_pos = 1.2 # 0 for sim
+    if self.explore_type=='none':
+      gains = np.load(self.exploration_dir + 'gains.npy')
+      self.kp_pos = gains[0]
+      self.kd_pos = gains[1]
+      self.ki_pos = gains[2] # 0 for sim
+    else:
+      self.kp_pos = 6
+      self.kd_pos = 4
+      self.ki_pos = 1.5
+
+
     self.kp_rot =   150.0/16
     self.yaw_gain = 220.0/16
     self.kp_ang =   16
@@ -34,7 +45,13 @@ class PIDController(ControllerBackbone):
 
     self.history = np.zeros((1, 14, 50))
     self.int_p_e = torch.zeros((500, 3), dtype=torch.float32)
-    
+
+    if self.explore_type == 'none':
+      self.Adrag_np = np.load(self.exploration_dir+'aker.npy')
+      self.Adrag = torch.tensor(self.Adrag_np)
+    else:
+      self.Adrag = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
+      self.Adrag_np = self.Adrag.detach().cpu().numpy()
 
     # self.mppi_controller = self.set_MPPI_cnotroller()
     # self.runL1 = False
@@ -58,8 +75,8 @@ class PIDController(ControllerBackbone):
     pos = state.pos
     vel = state.vel
     rot = state.rot
-    p_err = pos - ref.pos
-    v_err = vel - ref.vel
+    p_err = (pos - ref.pos)
+    v_err = (vel - ref.vel)
     quat = rot.as_quat() 
     self.pos_err_int += p_err * self.dt
     obs = np.hstack((pos, vel, quat))
@@ -73,20 +90,14 @@ class PIDController(ControllerBackbone):
     unity_mass = 1
     f_t = rot.apply(np.array([0, 0, self.history[0, 10, 0]])) * unity_mass
 
-    if not self.pseudo_adapt:
-      if self.runL1:
-          # L1 adaptation update
-        self.L1_adaptation(self.dt, vel, f_t)
-      else:
-        self.naive_adaptation(a_t, f_t)
-    self.adaptation_terms[1:] = self.wind_adapt_term
 
     acc_des = (np.array([0, 0, self.g]) 
               - self.kp_pos * (p_err) 
               - self.kd_pos * (v_err) 
-              - self.ki_pos * self.pos_err_int 
-              + 0.5 * ref.acc
-              + 1 * self.wind_adapt_term)
+              - self.ki_pos * self.pos_err_int
+              - self.Adrag_np @ vel)
+    
+
     u_des = rot.as_matrix().T.dot(acc_des)
     acc_des = np.linalg.norm(u_des)
 
@@ -119,14 +130,16 @@ class PIDController(ControllerBackbone):
     # position controller
     # p_e = state_ref[:,:3] - state[:,:3]
     # v_e = state_ref[:,3:6] - state[:,3:6]
-    p_e = state[:,:3] - state_ref[:, :3]
-    v_e = state[:,3:6] - state_ref[:,3:6]
+    p_e = 0 * (state[:,:3] - state_ref[:, :3] )
+    v_e = 0 * (state[:,3:6] - state_ref[:,3:6])
 
     #int_p_e = self.integrate_error(p_e, time)
     # int_p_e = self.integrate_error(p_e, time_step)
     self.int_p_e += 0.02 * p_e
     F_d = - (self.ki_pos * self.int_p_e + self.kp_pos * p_e + self.kd_pos * v_e) 
     F_d[:, 2] += self.g
+    # if self.Adrag is not None:
+    F_d = F_d.float() - (self.Adrag.float() @ state[:,3:6].float().T).T 
 
     F_d_body = transforms.quaternion_apply(q, F_d)
     F_d_mag = torch.linalg.norm(F_d_body, dim=-1)
@@ -140,25 +153,10 @@ class PIDController(ControllerBackbone):
     omega_des = -self.kp_ang * rot_err
     omega_des[:, 2] += -self.yaw_gain * (yaw - yaw_ref)
 
-    # if self.Adrag is not None:
-    #   F_d = F_d - (self.Adrag @ state[:,3:6].T).T 
-    # T_d = torch.linalg.norm(F_d,dim=1)
 
-    # attitude controller
-
-
-    # rpy = transforms.quaternion_to_axis_angle(q)
-    # rpy_r = transforms.quaternion_to_axis_angle(q_r)
-
-    # z_d_world = torch.divide(F_d, torch.outer(T_d, torch.ones(3))) 
-    # z_d_body = qrotate_torch(qconjugate_torch(q).float(), z_d_world.float())
-    # temp = torch.tensor([0, 0, 1], dtype=torch.float32).repeat([N,1])
-    # att_e = torch.cross(temp, z_d_body.float(), dim=1)
-    # att_e[:,2] = rpy_r[:,2] - rpy[:,2]
-    # omega_des = self.kp_ang * att_e
+    T_d = torch.linalg.norm(F_d,dim=1)
 
     if N == 1:
-      #print(T_d.shape,torque.shape,state.shape)
       motorForce = torch.flatten(torch.concatenate((F_d_mag[None,:], omega_des),dim=1))
       #motorForce = torch.clip(motorForce, self.a_min, self.a_max)
     else:
@@ -238,8 +236,11 @@ def to_euler(q, convention="zyx", axis_type="intrinsic"):  # noqa: C901
 class PIDController_explore(PIDController):
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
-
     self.N = 500
+
+    # self.int_p_e = torch.zeros((self.N, 3), dtype=torch.float32)
+    # print(self.int_p_e.shape)
+    # exit()
 
     self.kernel = AirDragKernel()
     self.dimx = 13
@@ -249,36 +250,44 @@ class PIDController_explore(PIDController):
     self.dimz = self.dimphi
 
     self.power = torch.tensor(0.0001)
-    self.U_init = torch.zeros(self.dimu, self.H)
+    self.U_init = torch.zeros(self.dimu, self.N)
     self.epoch_power = 0
     self.planning_horizon = 10
-
-    self.cov = torch.zeros(self.dimz, self.dimz)
-
     self.state = State_struct()
 
     self.plan_stab_controller = PIDController(**kwargs)
+    
+    if not self.init_run:
+      hessian = np.load(self.exploration_dir+'hess.npy')
+      self.cov = torch.tensor(np.load(self.exploration_dir+'cov.npy'))
+      self.hessian = torch.tensor(hessian)
+      self.Aker = torch.tensor(np.load(self.exploration_dir+'aker.npy'))
+      print(self.Aker)
+    else:
+      self.hessian = None
+      self.cov = torch.zeros(self.dimz,self.dimz)
+      self.Aker = None
 
-    self.hessian = torch.tensor([[ 1.0951e+00,  6.0636e-02, -1.8848e-01, -2.3686e-01,  2.3872e-01,
-         -2.7995e-02,  7.9846e-02, -3.1138e-02, -4.4298e-02],
-        [ 6.0636e-02,  3.3575e-03, -1.0436e-02, -1.3116e-02,  1.3218e-02,
-         -1.5501e-03,  4.4212e-03, -1.7242e-03, -2.4528e-03],
-        [-1.8848e-01, -1.0436e-02,  3.2440e-02,  4.0768e-02, -4.1087e-02,
-          4.8184e-03, -1.3743e-02,  5.3594e-03,  7.6243e-03],
-        [-2.3686e-01, -1.3116e-02,  4.0768e-02,  5.1233e-02, -5.1635e-02,
-          6.0553e-03, -1.7271e-02,  6.7352e-03,  9.5816e-03],
-        [ 2.3872e-01,  1.3218e-02, -4.1087e-02, -5.1635e-02,  5.2039e-02,
-         -6.1027e-03,  1.7406e-02, -6.7879e-03, -9.6566e-03],
-        [-2.7995e-02, -1.5501e-03,  4.8184e-03,  6.0553e-03, -6.1027e-03,
-          7.1567e-04, -2.0412e-03,  7.9603e-04,  1.1324e-03],
-        [ 7.9846e-02,  4.4212e-03, -1.3743e-02, -1.7271e-02,  1.7406e-02,
-         -2.0412e-03,  5.8218e-03, -2.2704e-03, -3.2299e-03],
-        [-3.1138e-02, -1.7242e-03,  5.3594e-03,  6.7352e-03, -6.7879e-03,
-          7.9603e-04, -2.2704e-03,  8.8542e-04,  1.2596e-03],
-        [-4.4298e-02, -2.4528e-03,  7.6243e-03,  9.5816e-03, -9.6566e-03,
-          1.1324e-03, -3.2299e-03,  1.2596e-03,  1.7919e-03]])
     self.scaling_mat = torch.eye(4)
     self.objective = 'hessian'
+    self.input_power = torch.tensor(0, dtype=torch.float32)
+    self.max_power = torch.tensor(2.0)
+
+
+    arm_length = 0.046 # m
+    arm = 0.707106781 * arm_length
+    t2t = 0.006 # thrust-to-torque ratio
+    self.B0 = torch.tensor([
+      [1, 1, 1, 1],
+      [-arm, -arm, arm, arm],
+      [-arm, arm, arm, -arm],
+      [-t2t, t2t, -t2t, t2t]
+      ])
+    self.J = torch.diag(torch.tensor([16.571710e-6, 16.655602e-6, 29.261652e-6]))
+    self.J_inv = torch.linalg.inv(self.J)
+
+    self.padding = torch.zeros(self.dimx,3)
+    self.padding[3:6,:] = torch.eye(3)
 
   def _response(self, fl=1, **response_inputs):
     t = response_inputs.get('t')
@@ -294,15 +303,22 @@ class PIDController_explore(PIDController):
 
 
     acc_des, omega_des = super()._response(fl=1, **response_inputs)
-    ceed_output, self.U_init = self.compute_CEED_term(self.cov, state, ref_func_obj)
 
-    ceed_output = ceed_output.detach().cpu().numpy()
-    acc_des += ceed_output[0]
-    omega_des += ceed_output[1:]
+    if self.explore_type != 'none':
+      if self.explore_type == 'ceed':
+        ceed_output, self.U_init = self.compute_ceed_term(self.cov, state, ref_func_obj)
+      else:
+        ceed_output = self.compute_random_term()
+          
+      ceed_output = ceed_output.detach().cpu().numpy()
+      acc_des += ceed_output[0]
+      omega_des += ceed_output[1:]
 
     u = np.r_[acc_des, omega_des]
     self.cov = self.cov + self.get_cov(torch.tensor(obs), torch.tensor(u))
-
+    # print(self.get_cov(torch.tensor(obs), torch.tensor(u)))
+    # print(self.cov)
+    # print('-----------')
     self.state.ang = omega_des
     return acc_des, omega_des
   
@@ -314,9 +330,17 @@ class PIDController_explore(PIDController):
     else:
       z = self.kernel.phi(x, u)
       return torch.outer(z,z)
-    
-  def compute_CEED_term(self, cov, obs, ref):
-    power_to_go = self.H * self.power - self.epoch_power
+  
+  def compute_random_term(self,):
+      u_std = torch.tensor([1.0, 1.0, 1.0, 1.0])
+      u_mean = torch.tensor([0., 0., 0., 0.])
+      U = torch.normal(u_mean, u_std)
+      # u = torch.sqrt(self.max_power / self.dimu) * torch.randn(self.dimu)
+      # self.input_power = self.input_power + u @ u
+      return U
+  
+  def compute_ceed_term(self, cov, obs, ref):
+    power_to_go = self.H * self.max_power - self.epoch_power
 
     # if self.planning_horizon is None:
     #   unroll_steps = self.H - self.count
@@ -330,13 +354,23 @@ class PIDController_explore(PIDController):
     unroll_steps = self.planning_horizon
     if power_to_go < 0:
       return torch.zeros(self.dimu), torch.zeros(self.dimu, unroll_steps)
-    U_init2 = torch.zeros(self.dimu, unroll_steps)
-    U_init2[:, 0:unroll_steps-1] = self.U_init[:, 0:unroll_steps - 1]
-    self.U_init = U_init2[:, :,  None]
-    U = self.U_init.repeat(1, 1, self.N) 
-    U = U + torch.randn(self.dimu, unroll_steps, self.N) 
+    # U_init2 = torch.zeros(self.dimu, unroll_steps)
+    # U_init2[:, 0:unroll_steps-1] = self.U_init[:, 0:unroll_steps - 1]
+    # self.U_init = U_init2[:, :,  None]
+    # U = self.U_init.repeat(1, 1, self.N) 
+    # U = U + torch.randn(self.dimu, unroll_steps, self.N)
+    u_std = torch.tensor([0.25, 60.0, 60.0, 10.0])
+    u_std = u_std[:, None, None]
+    u_std = u_std.repeat(1, unroll_steps, self.N)
 
-    U = torch.sqrt(power_to_go) * torch.nn.functional.normalize(U, dim=(0,1))
+    u_mean = torch.tensor([0., 0., 0., 0.])
+    u_mean = u_mean[:, None, None]
+    u_mean = u_mean.repeat(1, unroll_steps, self.N)
+
+    U = torch.normal(u_mean, u_std)
+    # for i in range(self.N):
+    #     U[:,:,i] = torch.sqrt(power_to_go) * U[:,:,i] / torch.norm(U[:,:,i])
+    # U = u_mean
 
     x = obs.get_vec_state_torch('wxyz')[:, None]
     x = x.repeat(1, self.N)
@@ -346,8 +380,6 @@ class PIDController_explore(PIDController):
     for h in range(unroll_steps):
       u = U[:, h, :]
       if self.scaling_mat is not None:
-        u = self.scaling_mat @ u
-
         stab_controller_output = self.plan_stab_controller.response_torch(
           time_step=h + self.count,
           state = x.T,
@@ -355,7 +387,6 @@ class PIDController_explore(PIDController):
         )
         u = u + stab_controller_output.T
       cov = cov + self.get_cov(x, u, parallel=True)
-
       x = self.dynamics(x.T, u.T)
 
     if self.objective == 'lammin':
@@ -365,41 +396,46 @@ class PIDController_explore(PIDController):
       cov_inv = torch.linalg.inv(cov[:, :, 0] + 0.001 * torch.eye(self.dimz)).contiguous()
       min_loss = torch.trace(self.hessian.float() @ torch.kron(torch.eye(3).float(), cov_inv.float()))
 
-    if self.objective == 'lammin':
-      min_idx = 0
-      for i in range(self.N):
-        if self.objective == 'lammin':
-          e,_ = torch.linalg.eig(cov[:, :, i])
-          loss = torch.min(torch.real(e))
-          if loss < min_loss:
-            min_loss = loss
-            min_idx = i
-        else:
-          cov_inv = torch.linalg.inv(cov[:, :, i] + 0.001 * torch.eye(self.dimz)).contiguous()
-          loss = torch.trace(self.hessian.float() @ torch.kron(torch.eye(3).float(), cov_inv.float()))
-          if i == 0:
-              print(loss)
-          if loss < min_loss:
-            min_loss = loss
-            min_idx = i
-    else:
-      cov_inv_temp = cov + 0.001 * torch.eye(self.dimz).unsqueeze(-1)
-      cov_inv = torch.linalg.inv(cov_inv_temp.permute(2,0,1)).contiguous() 
-      kron_product = torch.kron(torch.eye(3).float(), cov_inv.float())
-      loss = torch.matmul(self.hessian, kron_product)
-      loss = torch.einsum('bii->b', loss) # Shape: [500]
+        # pass
+    # min_idx = 0
+    # for i in range(self.N):
+      # if self.objective == 'lammin':
+        # e,_ = torch.linalg.eig(cov[:, :, i])
+        # loss = torch.min(torch.real(e))
+        # if loss < min_loss:
+        #   min_loss = loss
+        #   min_idx = i
+    #   else:
+    #     cov_inv = torch.linalg.inv(cov[:, :, i] + 0.001 * torch.eye(self.dimz)).contiguous()
+    #     loss = torch.trace(self.hessian.float() @ torch.kron(torch.eye(3).float(), cov_inv.float()))
+    #     # if i == 0:
+    #         # print(loss)
+    #     if loss < min_loss:
+    #       min_loss = loss
+    #       min_idx = i
+    # else:
 
-      min_loss, min_idx = loss.squeeze().min(dim=-1)  
+    e,_ = torch.linalg.eig(cov.permute(2,1,0))
+    cov_inv_temp = cov + 0.001 * torch.eye(self.dimz).unsqueeze(-1)
+    cov_inv = torch.linalg.inv(cov_inv_temp.permute(2,0,1)).contiguous() 
+    kron_product = torch.kron(torch.eye(3).float(), cov_inv.float())
+    loss = torch.matmul(self.hessian, kron_product)
+    loss = torch.einsum('bii->b', loss) # Shape: [500]
+    min_loss, min_idx = loss.squeeze().min(dim=-1)
+    max_loss, _ = loss.squeeze().max(dim=-1)
+    U_ = torch.sum((U * (max_loss - loss) / torch.sum(max_loss - loss))[:,:,:200], dim = -1)
 
-    
-    if self.scaling_mat is None:
-      return U[:, 0, min_idx], U[:, 1:, min_idx]
-    else:
-      return self.scaling_mat @ U[:, 0, min_idx], U[:, 1:, min_idx]
+    return U_[:, 0], U_[:, 1:]
+    # if self.scaling_mat is None:
+    #   return U[:, 0, min_idx], U[:, 1:, min_idx]
+    # else:
+    #   return self.scaling_mat @ U[:, 0, min_idx], U[:, 1:, min_idx]
 
   def dynamics(self, x, u):
     x += self.f(x, u) * 0.02
     x[:, 10:] = u[:, 1:]
+
+    x += (self.padding @ self.Aker.float() @ self.kernel.phi(x.T,u.T).float()).T
     return x.T
 
   def f(self, x, a):
@@ -416,13 +452,14 @@ class PIDController_explore(PIDController):
     #f_u = torch.zeros(self.N, 3) 
     f_u = torch.zeros(N_temp, 3)
     f_u[:, 2] = eta[:, 0] # total thrust (N, 3)
+    tau_u = eta[:, 1:] # torque (N, 3)
 
     # dynamics 
     # \dot{p} = v 
     dsdt[:, :3] = x[:, 3:6] 	# <- implies velocity and position in same frame
     # mv = mg + R f_u  	# <- implies f_u in body frame, p, v in world frame
     dsdt[:, 5] -= self.g
-    dsdt[:, 3:6] += qrotate_torch(q.float(), f_u.float()) / self.mass
+    dsdt[:, 3:6] += qrotate_torch(q.float(), f_u.float())
 
     # \dot{R} = R S(w)
     # see https://rowan.readthedocs.io/en/latest/package-calculus.html
@@ -430,6 +467,10 @@ class PIDController_explore(PIDController):
     qnew = qstandardize_torch(qnew)
     # transform qnew to a "delta q" that works with the usual euler integration
     dsdt[:, 6:10] = (qnew - q) / 0.02
-    
+    # print(self.J.shape, omega.shape)
+    # Jomega = torch.mm(self.J, omega.T).T # J*omega (N, 3)
+    # dsdt[:, 10:] = torch.cross(Jomega, omega) + tau_u
+    # dsdt[:, 10:] = torch.mm(self.inv_J, dsdt[:, 10:].T).T
+
     return dsdt
 

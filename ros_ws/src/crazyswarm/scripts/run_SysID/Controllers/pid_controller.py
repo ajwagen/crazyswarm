@@ -51,8 +51,6 @@ class PIDController(ControllerBackbone):
     quat = rot.as_quat()
 
 
-    print(quat)
-
     v_t = state.vel
     if self.count > 2:
       v_t = state.vel

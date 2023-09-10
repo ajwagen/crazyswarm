@@ -71,7 +71,6 @@ class MPPIController(ControllerBackbone):
     
     # st = time.time()
     action[1:] = (rot.as_matrix().T).dot(action[1:])
-    print(action)
     self.f_t = rot.apply(np.array([0, 0, action[0]]))
     # print(time.time() - st)
     # print("-------")
