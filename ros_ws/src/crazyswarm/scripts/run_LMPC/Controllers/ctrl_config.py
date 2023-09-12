@@ -54,7 +54,8 @@ def select_policy_config_(policy_config):
     if policy_config == "trajectory_2d":
         task: DroneTask = DroneTask.TRAJFBFF
         # policy_name =DIR + '/' + "ppo-rl-zigzag_xy_bf_rel.zip" # traj_mixed2D_reset_thresh_5000_body_frame_relative_fixed3.zip
-        policy_name = DIR + '/' + 'traj_mixed2D_all_refs_diffaxis2_17500000_steps.zip'
+        # policy_name = DIR + '/' + 'traj_mixed2D_all_refs_diffaxis2_17500000_steps.zip'
+        policy_name = DIR + '/' + 'jake_ppo_baseline.zip'
         # policy_name = DIR + '/' + "traj_mixed2D_symlog_noisy.zip"
         config_filename = "trajectory_latency.py"
         body_frame = True

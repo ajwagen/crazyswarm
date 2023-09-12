@@ -10,6 +10,7 @@ from quadsim.learning.refs.M_star import M_zigzag
 from quadsim.learning.refs.triangle_ref import Triangle
 from quadsim.learning.refs.closed_polygon import ClosedPoly
 from quadsim.learning.refs.hover_ref import hover_ref
+from quadsim.learning.refs.ref_from_file import Ref_from_file
 import os
 from pathlib import Path
 
@@ -30,8 +31,9 @@ class Trajectories:
         self.random_zigzag_obj.isShift = False
         self.random_poly_obj = PolyRef(altitude=0.0, seed=0)
         self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=0)
-        self.circle_ref_obj = CircleRef(rad=0.5, period=4.0, altitude=0.0)
+        self.circle_ref_obj = CircleRef(rad=0.5, period=2.0, altitude=0.0)
         self.hover_ref_obj = hover_ref()
+        # self.ref_from_file_obj = Ref_from_file()
         
         self.gui = gui
         if self.gui:
@@ -244,6 +246,17 @@ class Trajectories:
         ref = State_struct(pos=ref_pos, vel=ref_vel)
 
         return ref, self.ret, self.closed_polygon_ref_obj
+    
+
+    def File_ref_(self, **traj_defs):
+        fname = traj_defs.get('fname', '/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/hessian_bank/traj_ceed_1/1D/seed0/traj.npy')
+        self.ref_from_file_obj = Ref_from_file(fname)
+    def File_ref(self,t):
+        ref_pos = self.ref_from_file_obj.pos(t)
+        ref_vel = self.ref_from_file_obj.vel(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel)
+
+        return ref, self.ret, self.ref_from_file_obj
     
 
 

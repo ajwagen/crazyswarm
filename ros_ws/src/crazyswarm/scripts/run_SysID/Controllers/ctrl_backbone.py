@@ -13,6 +13,9 @@ from pathlib import Path
 import os
 from Controllers.ctrl_config import select_policy_config_
 
+from Opt_Nonlinear_SysID_Quad.controllers import QuadrotorPIDController
+
+
 class ControllerBackbone():
     def __init__(self, isSim, 
                  policy_config='trajectory', 
@@ -33,7 +36,7 @@ class ControllerBackbone():
         self.adaptation_mean = np.zeros((1, 4))
         self.adapt_smooth = adapt_smooth
         self.explore_type = explore_type
-        self.exploration_dir = '/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/hessian_bank/circle/1D/seed0/'
+        self.exploration_dir = '/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/hessian_bank/traj_ceed_1/1D/seed0/'
 
         self.init_run = init_run
         # self.I = np.array([[3.144988, 4.753588, 4.640540],
@@ -146,6 +149,32 @@ class ControllerBackbone():
         self.relative = False
         self.bc_policy = bc.reconstruct_policy(TEST_POLICY_DIR / f'{bc_policy_name}')
     
+    def set_PID_torch(self, ):
+        from Opt_Nonlinear_SysID_Quad.param_torch import Param as param_explore
+
+        with open('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/zigzag.yaml') as f:
+            config = yaml.load(f, Loader=yaml.FullLoader)
+        
+        param = param_explore(config, MPPI=True)
+        param.ref_traj_func = None
+
+        param.sim_dt = 0.02
+        param.dt = 0.02
+
+        # Aker = np.load(self.exploration_dir+'aker.npy')
+        aker = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
+        controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,3), optimize_Adrag=True, control_angvel=True)
+
+        gains = torch.tensor([ 6.1881, 9.1030, -1.0490], dtype=torch.float)
+        aker = torch.tensor([[-2.6281, -0.0569, 0.3017],
+                [-0.0392, 0.1447, 0.8692],
+                [-3.8791, -0.2126, 1.1563]], dtype=torch.float)
+
+            # gains[2] = 4
+            # import pdb;pdb.set_trace()
+        controller.update_params([gains, aker])
+
+        return controller
 
     def _response(self, fl1, response_inputs):
         raise NotImplementedError

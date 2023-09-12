@@ -38,7 +38,6 @@ def load_cf_data(filenames, args):
         
 
         data['ts'] = saved_data['ts'][t_mask]
-        # import pdb;pdb.set_trace()
 
         data['ref_positions'] = saved_data['ref_positions'][t_mask] #- saved_data['ref_positions'][st]
 

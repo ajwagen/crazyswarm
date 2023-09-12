@@ -8,6 +8,7 @@ import time
 from cf_utils.rigid_body import State_struct
 from pytorch3d import transforms
 
+
 torch.set_default_tensor_type('torch.cuda.FloatTensor')
 import sys
 np.set_printoptions(threshold=sys.maxsize)
@@ -25,9 +26,13 @@ class PIDController(ControllerBackbone):
 
     if self.explore_type=='none':
       gains = np.load(self.exploration_dir + 'gains.npy')
+      print(gains)
       self.kp_pos = gains[0]
       self.kd_pos = gains[1]
       self.ki_pos = gains[2] # 0 for sim
+      # self.kp_pos = 6
+      # self.kd_pos = 4
+      # self.ki_pos = 1.5 # 0 for sim
     else:
       self.kp_pos = 6
       self.kd_pos = 4
@@ -36,7 +41,7 @@ class PIDController(ControllerBackbone):
 
     self.kp_rot =   150.0/16
     self.yaw_gain = 220.0/16
-    self.kp_ang =   16
+    # self.kp_ang =   16
 
     self.pos_err_int = np.zeros(3)
     self.count = 0
@@ -49,9 +54,11 @@ class PIDController(ControllerBackbone):
     if self.explore_type == 'none':
       self.Adrag_np = np.load(self.exploration_dir+'aker.npy')
       self.Adrag = torch.tensor(self.Adrag_np)
+      self.traj_ceed = None
     else:
       self.Adrag = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
       self.Adrag_np = self.Adrag.detach().cpu().numpy()
+      self.traj_ceed = np.load(self.exploration_dir+'traj.npy').T
 
     # self.mppi_controller = self.set_MPPI_cnotroller()
     # self.runL1 = False
@@ -150,7 +157,7 @@ class PIDController(ControllerBackbone):
     eulers_ref = transforms.quaternion_to_axis_angle(q_r)
     yaw_ref = eulers_ref[:, 2]
 
-    omega_des = -self.kp_ang * rot_err
+    omega_des = -self.kp_rot * rot_err
     omega_des[:, 2] += -self.yaw_gain * (yaw - yaw_ref)
 
 
@@ -262,7 +269,6 @@ class PIDController_explore(PIDController):
       self.cov = torch.tensor(np.load(self.exploration_dir+'cov.npy'))
       self.hessian = torch.tensor(hessian)
       self.Aker = torch.tensor(np.load(self.exploration_dir+'aker.npy'))
-      print(self.Aker)
     else:
       self.hessian = None
       self.cov = torch.zeros(self.dimz,self.dimz)
@@ -301,18 +307,25 @@ class PIDController_explore(PIDController):
     self.state = state
     obs = np.r_[pos, vel, rot.as_quat(), self.state.ang]
 
+    if self.explore_type=='traj_ceed':
+      # ref_state = State_struct()
+      # ref_state.pos = self.traj_ceed[self.count][:3]
+      # ref_state.vel = self.traj_ceed[self.count][3:6]
+      # response_inputs['ref'] = ref_state
+      acc_des, omega_des = super()._response(fl=1, **response_inputs)
 
-    acc_des, omega_des = super()._response(fl=1, **response_inputs)
+    else:
+      acc_des, omega_des = super()._response(fl=1, **response_inputs)
 
-    if self.explore_type != 'none':
-      if self.explore_type == 'ceed':
-        ceed_output, self.U_init = self.compute_ceed_term(self.cov, state, ref_func_obj)
-      else:
-        ceed_output = self.compute_random_term()
-          
-      ceed_output = ceed_output.detach().cpu().numpy()
-      acc_des += ceed_output[0]
-      omega_des += ceed_output[1:]
+      if self.explore_type != 'none':
+        if self.explore_type == 'ceed':
+          ceed_output, self.U_init = self.compute_ceed_term(self.cov, state, ref_func_obj)
+        else:
+          ceed_output = self.compute_random_term()
+            
+        ceed_output = ceed_output.detach().cpu().numpy()
+        acc_des += ceed_output[0]
+        omega_des += ceed_output[1:]
 
     u = np.r_[acc_des, omega_des]
     self.cov = self.cov + self.get_cov(torch.tensor(obs), torch.tensor(u))

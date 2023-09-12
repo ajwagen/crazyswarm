@@ -13,7 +13,7 @@ def plot_npz(filename):
     overall_mean_error = []
     ovr_std = []
     for key in list(data_dict.keys()):
-        errors = np.linalg.norm(data_dict[key]['ref_positions'] - data_dict[key]['pose_positions'], axis =1)
+        errors = np.linalg.norm(data_dict[key]['ref_positions'][:, :3] - data_dict[key]['pose_positions'][:, :3], axis =1)
         overall_mean_error.append(np.mean(errors))
         print(key, ' : ', np.mean(errors))
 
@@ -29,8 +29,8 @@ if __name__ == "__main__":
     parser.add_argument("filename", nargs="+")
     parser.add_argument("--runtime", type=float, default=10)
     parser.add_argument("--hovertime",type=float,default=4)
-    parser.add_argument("-bh", "--baseheight", type=float, default=0.6)
-    parser.add_argument("-tt", "--takeofftime",type=float,default=4.2)
+    parser.add_argument("-bh", "--baseheight", type=float, default=1.0)
+    parser.add_argument("-tt", "--takeofftime",type=float,default=5.0)
 
     args = parser.parse_args()
     filenames = args.filename
