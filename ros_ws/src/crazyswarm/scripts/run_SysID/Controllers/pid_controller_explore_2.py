@@ -314,6 +314,9 @@ class PIDController_explore(ControllerBackbone):
     self.pid_controller.set_ref_traj(ref_func_obj)
 
     u = self.pid_controller.get_input(torch.tensor(obs, dtype=torch.float), self.count)
+
+    if self.explore_type == 'random':
+      u += self.compute_random_term()
     u = u.detach().cpu().numpy()
     self.count += 1
 
@@ -349,6 +352,13 @@ class PIDController_explore(ControllerBackbone):
     # self.state.ang = omega_des
     return acc_des, omega_des
   
+  def compute_random_term(self,):
+      u_std = torch.tensor([1.0, 1.0, 1.0, 1.0])
+      u_mean = torch.tensor([0., 0., 0., 0.])
+      U = torch.normal(u_mean, u_std)
+      # u = torch.sqrt(self.max_power / self.dimu) * torch.randn(self.dimu)
+      # self.input_power = self.input_power + u @ u
+      return U
   # def get_cov(self, x, u, parallel=False):
   #   if parallel:
   #     z = self.kernel.phi(x,u)

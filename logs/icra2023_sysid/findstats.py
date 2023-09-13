@@ -28,9 +28,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("filename", nargs="+")
     parser.add_argument("--runtime", type=float, default=10.0)
-    parser.add_argument("--hovertime",type=float,default=0.0)
-    parser.add_argument("-bh", "--baseheight", type=float, default=0.0)
-    parser.add_argument("-tt", "--takeofftime",type=float,default=0.0)
+    parser.add_argument("--hovertime",type=float,default=4.0)
+    parser.add_argument("-bh", "--baseheight", type=float, default=1.0)
+    parser.add_argument("-tt", "--takeofftime",type=float,default=5.0)
 
     args = parser.parse_args()
     filenames = args.filename

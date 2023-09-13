@@ -164,16 +164,11 @@ class ControllerBackbone():
         # Aker = np.load(self.exploration_dir+'aker.npy')
         aker = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
         controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,3), optimize_Adrag=True, control_angvel=True)
-
-        gains = torch.tensor([ 6.1881, 9.1030, -1.0490], dtype=torch.float)
-        aker = torch.tensor([[-2.6281, -0.0569, 0.3017],
-                [-0.0392, 0.1447, 0.8692],
-                [-3.8791, -0.2126, 1.1563]], dtype=torch.float)
-
-            # gains[2] = 4
-            # import pdb;pdb.set_trace()
-        controller.update_params([gains, aker])
-
+        # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/explore_circle_aggressive_opt_controller.npz', allow_pickle=True)
+        # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/random_plate_0_policy_params.npz', allow_pickle=True)
+        # gains = torch.tensor(controller_params['control_gains'], dtype=torch.float)
+        # aker = torch.tensor(controller_params['control_aker'], dtype=torch.float)
+        # controller.update_params([gains, aker])
         return controller
 
     def _response(self, fl1, response_inputs):

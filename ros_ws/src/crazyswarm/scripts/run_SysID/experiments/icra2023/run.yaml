@@ -20,9 +20,9 @@ tasks:
     policy_config: none
     description: "hover init"
 
-  - ref: 'circle_ref'
-    cntrl: "PIDController"
-    time: 10.0
+  - ref: 'random_chained_poly'
+    cntrl: "PIDController_explore"
+    time: 4.0
     adaptive: False
     policy_config: none
     description: "poly"
