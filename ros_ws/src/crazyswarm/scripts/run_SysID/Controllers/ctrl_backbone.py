@@ -14,6 +14,7 @@ import os
 from Controllers.ctrl_config import select_policy_config_
 
 from Opt_Nonlinear_SysID_Quad.controllers import QuadrotorPIDController
+from Opt_Nonlinear_SysID_Quad.environments import LearnedKernel
 
 
 class ControllerBackbone():
@@ -161,14 +162,17 @@ class ControllerBackbone():
         param.sim_dt = 0.02
         param.dt = 0.02
 
+        kernel = LearnedKernel()
         # Aker = np.load(self.exploration_dir+'aker.npy')
         aker = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
-        controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,3), optimize_Adrag=True, control_angvel=True)
+        controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,5), optimize_Adrag=True, control_angvel=True, kernel=kernel)
         # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/explore_circle_aggressive_opt_controller.npz', allow_pickle=True)
         # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/random_plate_0_policy_params.npz', allow_pickle=True)
-        # gains = torch.tensor(controller_params['control_gains'], dtype=torch.float)
-        # aker = torch.tensor(controller_params['control_aker'], dtype=torch.float)
-        # controller.update_params([gains, aker])
+        gains = torch.tensor([8.7688, 7.8229, 5.5202], dtype=torch.float)
+        aker = torch.tensor( [[ 0.1952, -1.2934, -5.8129, 3.9083, -1.1850],
+                              [ 0.1518, 0.5483, 0.9804, -1.1564, 0.9719],
+                              [-0.6708, 1.6213, 0.6581, 0.8983, 1.3700]], dtype=torch.float)
+        controller.update_params([gains, aker])
         return controller
 
     def _response(self, fl1, response_inputs):

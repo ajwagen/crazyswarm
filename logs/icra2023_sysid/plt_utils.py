@@ -42,6 +42,7 @@ def load_cf_data(filenames, args):
         data['ref_positions'] = saved_data['ref_positions'][t_mask] #- saved_data['ref_positions'][st]
 
 
+
         data['pose_positions'] = saved_data['pose_positions'][t_mask] #- saved_data['pose_positions'][st]
         data['pose_positions'][:, :2] -= data["ref_positions"][0, :2]
         data['pose_positions'][:, 2] -= args.baseheight
@@ -50,6 +51,8 @@ def load_cf_data(filenames, args):
         data['ref_positions'][:, -1] -= args.baseheight
 
         data['pose_orientations'] = saved_data['pose_orientations'][t_mask]
+        data['pose_vel'] = np.diff(data['pose_positions'], axis=0) / np.diff(data['ts'])[:, None]#- saved_data['ref_positions'][st]
+        data['pose_vel'] = np.r_[data['pose_vel'][0][None,  :], data['pose_vel']]
 
         # data['cf_positions'] = saved_data['cf_positions'][t_mask] - saved_data['cf_positions'][st]
 

@@ -19,7 +19,7 @@ tasks:
     policy_config: none
     description: "Hover init"
 
-  - ref: 'random_zigzag'
+  - ref: 'random_zigzag_yaw'
     cntrl: "LMPCController"
     time: 10.2
     adaptive: False
