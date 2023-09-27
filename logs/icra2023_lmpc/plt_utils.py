@@ -36,13 +36,15 @@ def load_cf_data(filenames, args):
 
         t_mask = (saved_data['ts'] > args.takeofftime + args.hovertime) * (saved_data['ts'] < args.runtime + args.takeofftime + args.hovertime)
 
-        data['ts'] = saved_data['ts'][t_mask]
+        data['ts'] = saved_data['ts'][t_mask] - saved_data['ts'][t_mask][0]
         # import pdb;pdb.set_trace()
 
-        data['ref_positions'] = saved_data['ref_positions'][t_mask] #- saved_data['ref_positions'][st]
+        off = saved_data['ref_positions'][t_mask][0] - 0
+        data['ref_positions'] = saved_data['ref_positions'][t_mask] - off #- saved_data['ref_positions'][st]
 
+        off = saved_data['pose_positions'][t_mask][0] - 0
 
-        data['pose_positions'] = saved_data['pose_positions'][t_mask] #- saved_data['pose_positions'][st]
+        data['pose_positions'] = saved_data['cf_positions'][t_mask] - off #- saved_data['pose_positions'][st]
         data['pose_positions'][:, :2] -= data["ref_positions"][0, :2]
         data['pose_positions'][:, 2] -= args.baseheight
 

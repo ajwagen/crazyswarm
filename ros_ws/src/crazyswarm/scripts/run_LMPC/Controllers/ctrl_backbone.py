@@ -130,16 +130,18 @@ class ControllerBackbone():
         return controller
 
     def set_LMPC_controller(self,):
-        # config_dir = config_dir = os.path.dirname(os.path.abspath(__file__)) + "/lmpc_configs/yaw_flip"
+        config_dir = config_dir = os.path.dirname(os.path.abspath(__file__)) + "/lmpc_configs/yaw_flip"
         # config_dir = config_dir = os.path.dirname(os.path.abspath(__file__)) + "/lmpc_configs/zig_zag/9_12_23/"
-        config_dir = config_dir = os.path.dirname(os.path.abspath(__file__)) + "/lmpc_configs/yaw_flip/9_9_23/control_cost"
+        # config_dir = config_dir = os.path.dirname(os.path.abspath(__file__)) + "/lmpc_configs/yaw_flip/9_9_23/control_cost"
         # config_dir = config_dir = os.path.dirname(os.path.abspath(__file__)) + "/lmpc_configs/yaw_flip/9_11_23/"
 
         # config_dir = "/mnt/hdd/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
         # config_dir = "/home/guan/ya/rwik/drones/crazyswarm/ros_ws/src/crazyswarm/scripts/DroneLearning/Controllers/mppi_config"
-        # with open(config_dir + "/512_mlp.yaml") as f:
-        # with open(config_dir + "/p256_h256.yaml") as f:
-        with open(config_dir + "/p512_h1024_01thrust_01omega.yaml") as f:
+        # with open(config_dir + "/256_mlp.yaml") as f:
+        with open(config_dir + "/512_mlp.yaml") as f:
+
+        # with open(config_dir + "/p4096_h256.yaml") as f:
+        # with open(config_dir + "/p512_h1024_01thrust_01omega.yaml") as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
         
         self.param_MPPI = Param(config, MPPI=True)
