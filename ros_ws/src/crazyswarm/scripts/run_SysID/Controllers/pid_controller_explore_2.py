@@ -314,7 +314,6 @@ class PIDController_explore(ControllerBackbone):
     self.pid_controller.set_ref_traj(ref_func_obj)
 
     u = self.pid_controller.get_input(torch.tensor(obs, dtype=torch.float), self.count)
-
     if self.explore_type == 'random':
       u += self.compute_random_term()
     u = u.detach().cpu().numpy()

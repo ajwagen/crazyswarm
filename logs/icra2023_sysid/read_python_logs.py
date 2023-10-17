@@ -85,11 +85,9 @@ def plot_npz(filename):
         a = np.hstack((a_t[:, None], w))
         dt = np.diff(data_dict[key]['ts'])
         dt = np.r_[0.02, dt]
-        for i in range(len(fullstates)):
-            # import pdb;pdb.set_trace()
+        for i in range(len(fullstates)-1):
             data_dict[key]['nominal_dyn'][i] = quadrotor.next_state(fullstates[i].copy(), a[i].copy(), dt[i].copy())
     
-
     plt.figure(0)
     ax1 = plt.subplot(3, 1, 1)
     for key in data_dict.keys():

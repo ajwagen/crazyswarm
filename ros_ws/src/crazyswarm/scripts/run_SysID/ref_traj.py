@@ -31,7 +31,7 @@ class Trajectories:
         self.random_zigzag_obj.isShift = False
         self.random_poly_obj = PolyRef(altitude=0.0, seed=0)
         self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=0)
-        self.circle_ref_obj = CircleRef(rad=0.5, period=4.0, altitude=0.0)
+        self.circle_ref_obj = CircleRef(rad=0.3, period=3.0, altitude=0.0)
         self.hover_ref_obj = hover_ref()
         # self.ref_from_file_obj = Ref_from_file()
         
