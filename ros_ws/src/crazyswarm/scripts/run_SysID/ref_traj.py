@@ -11,6 +11,8 @@ from quadsim.learning.refs.triangle_ref import Triangle
 from quadsim.learning.refs.closed_polygon import ClosedPoly
 from quadsim.learning.refs.hover_ref import hover_ref
 from quadsim.learning.refs.ref_from_file import Ref_from_file
+
+from quadsim.learning.refs.chained_poly_ref_fast import ChainedPolyRefFast
 import os
 from pathlib import Path
 
@@ -31,6 +33,8 @@ class Trajectories:
         self.random_zigzag_obj.isShift = False
         self.random_poly_obj = PolyRef(altitude=0.0, seed=0)
         self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=0)
+        self.random_chained_poly_fast_obj = ChainedPolyRefFast(altitude=0.0, use_y=True, seed=0)
+
         self.circle_ref_obj = CircleRef(rad=0.3, period=3.0, altitude=0.0)
         self.hover_ref_obj = hover_ref()
         # self.ref_from_file_obj = Ref_from_file()
@@ -192,6 +196,21 @@ class Trajectories:
         ref = State_struct(pos=ref_pos, vel=ref_vel, acc=ref_acc)
 
         return ref, self.ret, self.random_chained_poly_obj
+    
+    def random_chained_poly_fast_(self, **traj_defs):
+        seed = traj_defs.get('seed', 0)
+        maxes = traj_defs.get('maxes', [1.0, 1.0, 0.0])
+        use_y = True
+        if maxes[1]==0.0:
+            use_y = False
+        self.random_chained_poly_fast_obj = ChainedPolyRefFast(altitude=0, use_y=use_y, seed=seed)
+    def random_chained_poly_fast(self, t):
+        ref_pos = self.random_chained_poly_fast_obj.pos(t)
+        ref_vel = self.random_chained_poly_fast_obj.vel(t)
+        ref_acc = self.random_chained_poly_fast_obj.acc(t)
+        ref = State_struct(pos=ref_pos, vel=ref_vel, acc=ref_acc)
+
+        return ref, self.ret, self.random_chained_poly_fast_obj
 
     def circle_ref(self, t):
         ref_pos = self.circle_ref_obj.pos(t)

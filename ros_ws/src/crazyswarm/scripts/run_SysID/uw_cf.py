@@ -302,7 +302,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/plate_bank/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/oct_20/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -348,7 +348,7 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/plate_bank/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/oct_20/sim/"
             # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 

@@ -14,7 +14,7 @@ import os
 from Controllers.ctrl_config import select_policy_config_
 
 from Opt_Nonlinear_SysID_Quad.controllers import QuadrotorPIDController
-from Opt_Nonlinear_SysID_Quad.environments import LearnedKernel
+from Opt_Nonlinear_SysID_Quad.environments import LearnedKernel, FixedLearnedKernel
 
 
 class ControllerBackbone():
@@ -162,18 +162,20 @@ class ControllerBackbone():
         param.sim_dt = 0.02
         param.dt = 0.02
 
-        kernel = LearnedKernel()
+        kernel = FixedLearnedKernel()
         # Aker = np.load(self.exploration_dir+'aker.npy')
         aker = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
-        controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,5), optimize_Adrag=True, control_angvel=True, kernel=kernel)
+        controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,12), optimize_Adrag=True, control_angvel=True, kernel=kernel)
         # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/explore_circle_aggressive_opt_controller.npz', allow_pickle=True)
         # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/random_plate_0_policy_params.npz', allow_pickle=True)
         # gains = torch.tensor([8.9898, 8.2800, 3.7587], dtype=torch.float)
-        gains = torch.tensor([6.0, 4.0, 1.0], dtype=torch.float)
-
-        aker = 0 * torch.tensor( [[-0.4689, -0.0987, -0.4908, -0.4878,  0.0804],
-                            [-1.0853,  0.4904, -1.0504, -1.0661, -1.1105],
-                            [-0.5342,  0.1207, -0.5095, -0.5131, -0.3813]], dtype=torch.float)
+        gains = torch.tensor([ 3.9785,  7.4346, -0.1567])
+        aker = torch.tensor([[ 0.0333,  0.0672,  0.0859,  0.0841, -0.1125, -0.3306,  0.1373,  0.0065,
+         -0.1780, -0.0017, -0.0149,  0.0704],
+        [-0.0758,  0.0009, -0.0571, -0.0469, -0.0630, -0.3979,  0.2740, -0.0286,
+         -0.6609,  0.1521,  0.0013, -0.0346],
+        [-0.2763, -0.0192, -0.3056, -0.3024, -0.0485, -0.0668,  0.0256,  0.3047,
+         -0.0843,  0.0319,  0.1334, -0.3213]])
         controller.update_params([gains, aker])
         return controller
 
