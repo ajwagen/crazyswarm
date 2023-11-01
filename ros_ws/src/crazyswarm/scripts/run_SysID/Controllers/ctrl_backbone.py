@@ -176,7 +176,7 @@ class ControllerBackbone():
          -0.0615, -0.0452, -0.0235, -0.0657],
         [ 1.4143, -0.3964,  0.4221, -0.0520,  0.2544, -0.6137,  0.0108,  3.3282,
          -0.6375,  0.1638,  0.1868, -1.4380]])
-        controller.update_params([gains, aker])
+        controller.update_params([gains, aker * 0])
 
         if False:
             from Opt_Nonlinear_SysID_Quad.environments import QuadrotorAirDrag

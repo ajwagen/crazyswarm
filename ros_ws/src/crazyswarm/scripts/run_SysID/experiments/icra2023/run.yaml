@@ -20,7 +20,7 @@ tasks:
     policy_config: none
     description: "hover init"
 
-  - ref: 'hover_ref'
+  - ref: 'random_chained_poly_fast'
     cntrl: "PIDController_explore"
     time: 10.0
     adaptive: False
