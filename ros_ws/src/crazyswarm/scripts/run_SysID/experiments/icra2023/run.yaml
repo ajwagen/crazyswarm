@@ -20,11 +20,11 @@ tasks:
     policy_config: none
     description: "hover init"
 
-  - ref: 'random_chained_poly_fast'
+  - ref: 'random_chained_poly'
     cntrl: "PIDController_explore"
     time: 10.0
     adaptive: False
     policy_config: none
     description: "poly"
-    maxes: [1.0, 0.0, 0.0]
+    maxes: [1.0, 1.0, 0.0]
 

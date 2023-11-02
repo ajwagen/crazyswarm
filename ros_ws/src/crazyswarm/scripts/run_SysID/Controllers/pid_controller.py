@@ -71,7 +71,6 @@ class PIDController(ControllerBackbone):
     obs = np.hstack((pos, vel, quat))
     # Updating error for integral term.
     self.pos_err_int += p_err * self.dt
-
     acc_des = (np.array([0, 0, self.g]) 
               - self.kp_pos * (p_err) 
               - self.kd_pos * (v_err) 
@@ -101,3 +100,7 @@ class PIDController(ControllerBackbone):
     self.count += 1
     self.v_prev = state.vel
     return acc_des, omega_des
+  
+
+if __name__=='__main__':
+  cntrl = PIDController()

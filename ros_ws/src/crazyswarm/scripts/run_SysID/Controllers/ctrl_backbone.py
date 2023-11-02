@@ -21,11 +21,10 @@ class ControllerBackbone():
     def __init__(self, isSim, 
                  policy_config='trajectory', 
                  adaptive=False, 
-                 pseudo_adapt=False,
+                 pseudo_adapt=True,
                  adapt_smooth = False,
                  explore_type = 'random',
                  init_run = False):
-        
         self.isSim = isSim
         self.mass = 0.04
         self.g = 9.8

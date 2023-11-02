@@ -111,7 +111,6 @@ class ctrlCF():
             if ctrl_policy in self.controllers.keys():
                 pass
             else:
-                    
                 self.controllers[ctrl_policy] = (globals()[self.config["tasks"][i]["cntrl"]])(isSim = self.isSim, 
                                                                                         policy_config = self.config["tasks"][i]["policy_config"],
                                                                                         adaptive = self.config["tasks"][i]["adaptive"],
