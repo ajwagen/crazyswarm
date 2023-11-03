@@ -54,7 +54,7 @@ def plot_npz(filename):
             p = plt.plot(data_dict[key]['pose_positions'][:i,0], data_dict[key]['pose_positions'][:i, 1], label=lab)
             plt.plot(data_dict[key]['pose_positions'][i,0], data_dict[key]['pose_positions'][i, 1], '*', color = p[0].get_color())
 
-        plt.legend()
+        # plt.legend()
         ax = plt.gca()
         ax.set_aspect('equal', 'box')
         plt.xlim((-0.2 + x_min, 0.2 + x_max))

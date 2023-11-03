@@ -14,7 +14,7 @@ import os
 from Controllers.ctrl_config import select_policy_config_
 
 from Opt_Nonlinear_SysID_Quad.controllers import QuadrotorPIDController
-from Opt_Nonlinear_SysID_Quad.environments import LearnedKernel, FixedLearnedKernel
+from Opt_Nonlinear_SysID_Quad.environments import LearnedKernel, FixedLearnedKernel, AirDragKernel2
 
 
 class ControllerBackbone():
@@ -162,6 +162,7 @@ class ControllerBackbone():
         param.dt = 0.02
 
         kernel = FixedLearnedKernel(weights_name='weights_checkpoint_xy2')
+        # kernel = AirDragKernel2()
         # Aker = np.load(self.exploration_dir+'aker.npy')
         aker = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
         controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,12), optimize_Adrag=True, control_angvel=True, kernel=kernel)
@@ -169,13 +170,13 @@ class ControllerBackbone():
         # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/random_plate_0_policy_params.npz', allow_pickle=True)
         # gains = torch.tensor([8.9898, 8.2800, 3.7587], dtype=torch.float)
         gains = torch.tensor([ 6.0,  4.0, 1.0])
-        aker = torch.tensor([[ 0.6939, -0.4696, -0.5149, -1.0297, -1.5843,  0.4077,  0.3526,  0.1648,
-         -0.2010,  0.0802, -0.0952, -0.1213],
-        [ 2.8421, -1.3046, -4.3308, -3.7894, -1.1156, -1.4041,  0.2328, -0.2722,
-         -0.0615, -0.0452, -0.0235, -0.0657],
-        [ 1.4143, -0.3964,  0.4221, -0.0520,  0.2544, -0.6137,  0.0108,  3.3282,
-         -0.6375,  0.1638,  0.1868, -1.4380]])
-        controller.update_params([gains, aker * 0])
+        aker = torch.tensor([[-0.6945,  0.6121, -0.0849, -1.0009, -4.0403,  0.0711, -0.2365,  0.1167,
+         -0.2468,  0.1191,  0.3170, -0.0754],
+        [10.2484, -1.5416, -7.5573, -6.2646, -1.5349,  0.3832,  0.0953, -0.6668,
+         -0.1260,  0.0165,  2.1889, -0.3209],
+        [-0.6954, -1.1567,  0.2842,  0.0989,  1.7070, -0.2872, -0.0643,  1.9840,
+          0.2489,  0.2554,  0.9371, -0.7107]])
+        controller.update_params([gains, aker * 0.5])
 
         if False:
             from Opt_Nonlinear_SysID_Quad.environments import QuadrotorAirDrag
