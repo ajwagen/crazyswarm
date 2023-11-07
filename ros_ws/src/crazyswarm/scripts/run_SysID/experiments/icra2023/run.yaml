@@ -21,10 +21,10 @@ tasks:
     description: "hover init"
 
   - ref: 'random_chained_poly' # random_chained_poly, circle_ref
-    cntrl: "PIDController"
-    time: 10.0
+    cntrl: "PIDController_explore"
+    time: 20.0
     adaptive: False
     policy_config: none
     description: "poly"
-    maxes: [1.0, 1.0, 0.0]
+    maxes: [1.0, 0.0, 0.0]
 

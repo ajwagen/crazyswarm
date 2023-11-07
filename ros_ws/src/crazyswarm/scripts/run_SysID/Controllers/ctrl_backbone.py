@@ -152,7 +152,7 @@ class ControllerBackbone():
     def set_PID_torch(self, ):
         from Opt_Nonlinear_SysID_Quad.param_torch import Param as param_explore
 
-        with open('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/zigzag.yaml') as f:
+        with open('/home/ajwagen/Code/Opt_Nonlinear_SysID_Quad/zigzag.yaml') as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
         
         param = param_explore(config, MPPI=True)
@@ -161,7 +161,7 @@ class ControllerBackbone():
         param.sim_dt = 0.02
         param.dt = 0.02
 
-        kernel = FixedLearnedKernel(weights_name='weights_checkpoint_xy2')
+        kernel = FixedLearnedKernel(weights_name='weights_new_checkpoint_xy_relu_dim5')
         # kernel = AirDragKernel2()
         # Aker = np.load(self.exploration_dir+'aker.npy')
         aker = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
@@ -170,13 +170,16 @@ class ControllerBackbone():
         # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/random_plate_0_policy_params.npz', allow_pickle=True)
         # gains = torch.tensor([8.9898, 8.2800, 3.7587], dtype=torch.float)
         gains = torch.tensor([ 6.0,  4.0, 1.0])
-        aker = torch.tensor([[-0.6945,  0.6121, -0.0849, -1.0009, -4.0403,  0.0711, -0.2365,  0.1167,
-         -0.2468,  0.1191,  0.3170, -0.0754],
-        [10.2484, -1.5416, -7.5573, -6.2646, -1.5349,  0.3832,  0.0953, -0.6668,
-         -0.1260,  0.0165,  2.1889, -0.3209],
-        [-0.6954, -1.1567,  0.2842,  0.0989,  1.7070, -0.2872, -0.0643,  1.9840,
-          0.2489,  0.2554,  0.9371, -0.7107]])
-        controller.update_params([gains, aker * 0.5])
+        aker = torch.tensor([[ 1.4300e+00, -8.2686e-01, -2.1950e+00, -3.3507e-01,  4.4455e-01,
+         -5.9932e-02, -1.2462e-01,  1.8531e-02, -1.1276e-01,  1.2805e-01,
+         -6.3240e-03, -1.0102e-02],
+        [-4.7590e+00, -6.9587e+00, -3.8261e+00, -6.6526e+00, -4.1042e-01,
+         -5.9233e-02,  1.1095e-01, -1.7859e-01,  4.4701e-02, -2.7983e-01,
+          4.1692e-01, -9.6943e-02],
+        [-5.5641e-01,  3.7336e-01,  5.3040e-01,  7.4111e-01, -4.5806e-01,
+         -2.1302e-01, -1.2089e-01,  2.0560e+00,  2.1339e-01,  2.5362e-01,
+          9.3224e-01, -7.5126e-01]])
+        controller.update_params([gains, aker])
 
         if False:
             from Opt_Nonlinear_SysID_Quad.environments import QuadrotorAirDrag
