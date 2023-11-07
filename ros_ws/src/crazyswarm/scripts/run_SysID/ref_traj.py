@@ -10,7 +10,7 @@ from quadsim.learning.refs.M_star import M_zigzag
 from quadsim.learning.refs.triangle_ref import Triangle
 from quadsim.learning.refs.closed_polygon import ClosedPoly
 from quadsim.learning.refs.hover_ref import hover_ref
-from quadsim.learning.refs.ref_from_file import Ref_from_file
+#from quadsim.learning.refs.ref_from_file import Ref_from_file
 
 from quadsim.learning.refs.chained_poly_ref_fast import ChainedPolyRefFast
 import os

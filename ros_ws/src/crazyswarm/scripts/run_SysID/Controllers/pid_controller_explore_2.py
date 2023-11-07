@@ -9,7 +9,7 @@ from cf_utils.rigid_body import State_struct
 from pytorch3d import transforms
 
 
-torch.set_default_tensor_type('torch.cuda.FloatTensor')
+#torch.set_default_tensor_type('torch.cuda.FloatTensor')
 import sys
 np.set_printoptions(threshold=sys.maxsize)
 torch.set_printoptions(threshold=sys.maxsize)
