@@ -82,8 +82,8 @@ class ctrlCF():
                                                                                         adaptive = self.config["def_cntrl"][0]["adaptive"],
                                                                                         )
         else:
-            #self.default_controller = PIDController(isSim = self.isSim)
-            self.default_controller = MPPIController(isSim = self.isSim)
+            self.default_controller = PIDController(isSim = self.isSim)
+            #self.default_controller = MPPIController(isSim = self.isSim)
             # self.default_controller = PPOController(isSim = self.isSim, 
             #                                         policy_config = "hover", 
             #                                         adaptive = False)
@@ -496,7 +496,7 @@ class ctrlCF():
         
             self.land_buffer.appendleft(self.state.pos[-1])
             self.land_buffer.pop()
-            if np.mean(self.land_buffer) < 0.16: #0.06
+            if np.mean(self.land_buffer) < 0.15: #0.06
                 print("***** Flight done! ******")
                 self.flag['land'] = 2
         

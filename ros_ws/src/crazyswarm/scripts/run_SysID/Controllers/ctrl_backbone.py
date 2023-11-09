@@ -166,7 +166,7 @@ class ControllerBackbone():
         kernel = AirDragKernel2()
         # Aker = np.load(self.exploration_dir+'aker.npy')
         aker = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
-        controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,12), optimize_Adrag=True, control_angvel=True, kernel=kernel)
+        controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,12), optimize_Adrag=True, control_angvel=True, kernel=kernel, Att_p=torch.tensor(150/16, dtype=torch.float32), Att_p_yaw=torch.tensor(220/16, dtype=torch.float32))
         # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/explore_circle_aggressive_opt_controller.npz', allow_pickle=True)
         # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/random_plate_0_policy_params.npz', allow_pickle=True)
         # gains = torch.tensor([8.9898, 8.2800, 3.7587], dtype=torch.float)
@@ -174,10 +174,10 @@ class ControllerBackbone():
         #aker = torch.tensor([[ 1.3392, -0.1821,  0.2880,  0.1450,  0.0265,  0.2777, -0.0643],
         #[ 0.6081,  0.6013, -0.3648,  0.1887, -0.7169,  0.3071,  0.0058],
         #[ 1.1289, -1.3013,  1.1387,  0.4944, -1.0385, -0.9167, -1.7765]])
-        aker = torch.tensor([[ 0.8432, -0.1764,  0.1854, -1.6821, -0.1340,  0.3789, -0.0807],
-        [ 0.0089,  0.7748, -0.1196, -0.2652, -0.6341, -0.4430,  0.0039],
-        [-0.5730, -0.3850,  0.8757,  0.1158, -0.4461,  3.4122, -1.3335]])
-        controller.update_params([gains, aker])
+        aker = torch.tensor([[ 1.0537, -0.1493, 0.4639, -2.0708, -0.0634, 0.3407, -0.3400],
+    [ 0.0742, 1.5009, -0.2685, -0.4469, -0.3160, -0.9550, -0.0056],
+    [-0.6432, -0.2796, 1.6171, 0.2790, -0.5720, 4.1284, -1.2968]])
+        controller.update_params([gains, 0.0*aker])
 
         if False:
             from Opt_Nonlinear_SysID_Quad.environments import QuadrotorAirDrag
