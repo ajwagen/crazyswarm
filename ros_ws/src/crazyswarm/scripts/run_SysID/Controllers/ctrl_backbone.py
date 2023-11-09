@@ -162,7 +162,8 @@ class ControllerBackbone():
         param.dt = 0.02
 
         kernel = FixedLearnedKernel(weights_name='weights_new_checkpoint_xy_relu_dim5')
-        # kernel = AirDragKernel2()
+     
+        kernel = AirDragKernel2()
         # Aker = np.load(self.exploration_dir+'aker.npy')
         aker = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
         controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,12), optimize_Adrag=True, control_angvel=True, kernel=kernel)
@@ -170,15 +171,12 @@ class ControllerBackbone():
         # controller_params = np.load('/home/rwik/proj/Drones/icra_23/Opt_Nonlinear_SysID_Quad/Opt_Nonlinear_SysID_Quad/data/random_plate_0_policy_params.npz', allow_pickle=True)
         # gains = torch.tensor([8.9898, 8.2800, 3.7587], dtype=torch.float)
         gains = torch.tensor([ 6.0,  4.0, 1.0])
-        aker = torch.tensor([[ 1.4300e+00, -8.2686e-01, -2.1950e+00, -3.3507e-01,  4.4455e-01,
-         -5.9932e-02, -1.2462e-01,  1.8531e-02, -1.1276e-01,  1.2805e-01,
-         -6.3240e-03, -1.0102e-02],
-        [-4.7590e+00, -6.9587e+00, -3.8261e+00, -6.6526e+00, -4.1042e-01,
-         -5.9233e-02,  1.1095e-01, -1.7859e-01,  4.4701e-02, -2.7983e-01,
-          4.1692e-01, -9.6943e-02],
-        [-5.5641e-01,  3.7336e-01,  5.3040e-01,  7.4111e-01, -4.5806e-01,
-         -2.1302e-01, -1.2089e-01,  2.0560e+00,  2.1339e-01,  2.5362e-01,
-          9.3224e-01, -7.5126e-01]])
+        #aker = torch.tensor([[ 1.3392, -0.1821,  0.2880,  0.1450,  0.0265,  0.2777, -0.0643],
+        #[ 0.6081,  0.6013, -0.3648,  0.1887, -0.7169,  0.3071,  0.0058],
+        #[ 1.1289, -1.3013,  1.1387,  0.4944, -1.0385, -0.9167, -1.7765]])
+        aker = torch.tensor([[ 0.8432, -0.1764,  0.1854, -1.6821, -0.1340,  0.3789, -0.0807],
+        [ 0.0089,  0.7748, -0.1196, -0.2652, -0.6341, -0.4430,  0.0039],
+        [-0.5730, -0.3850,  0.8757,  0.1158, -0.4461,  3.4122, -1.3335]])
         controller.update_params([gains, aker])
 
         if False:

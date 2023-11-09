@@ -82,7 +82,8 @@ class ctrlCF():
                                                                                         adaptive = self.config["def_cntrl"][0]["adaptive"],
                                                                                         )
         else:
-            self.default_controller = PIDController(isSim = self.isSim)
+            #self.default_controller = PIDController(isSim = self.isSim)
+            self.default_controller = MPPIController(isSim = self.isSim)
             # self.default_controller = PPOController(isSim = self.isSim, 
             #                                         policy_config = "hover", 
             #                                         adaptive = False)
@@ -301,7 +302,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/nov_7/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/nov_7/real_est_plate_wind/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -495,7 +496,7 @@ class ctrlCF():
         
             self.land_buffer.appendleft(self.state.pos[-1])
             self.land_buffer.pop()
-            if np.mean(self.land_buffer) < 0.06:
+            if np.mean(self.land_buffer) < 0.16: #0.06
                 print("***** Flight done! ******")
                 self.flag['land'] = 2
         

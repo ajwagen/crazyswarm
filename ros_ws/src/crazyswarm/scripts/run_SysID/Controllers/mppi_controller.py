@@ -32,6 +32,9 @@ class MPPIController(ControllerBackbone):
     t = response_inputs.get('t')
     state = response_inputs.get('state')
     ref_func_obj = response_inputs.get('ref_func_obj')
+    
+    print(state)
+    #print(state.shape)
 
     self.updateDt(t)
     if fl:
@@ -47,7 +50,7 @@ class MPPIController(ControllerBackbone):
     # (x,y,z,w) -> (w,x,y,z)
     quat = np.roll(quat, 1)
 
-    obs = np.hstack((pos, vel, quat))
+    obs = np.hstack((pos, vel, quat, ang))
     noise = np.random.normal(scale=self.param_MPPI.noise_measurement_std)
     noisystate = obs + noise
     noisystate[6:10] /= np.linalg.norm(noisystate[6:10])
@@ -62,7 +65,7 @@ class MPPIController(ControllerBackbone):
     # start = time.time()
 
     if self.pseudo_adapt:
-      action = self.mppi_controller.policy_with_ref_func(state=state_torch, time=t, new_ref_func=self.ref_func_t).cpu().numpy()
+      action = self.mppi_controller.policy(state=state_torch, time=t, new_ref_func=self.ref_func_t).cpu().numpy()
     else:
       action = self.mppi_controller.policy_with_ref_func(state=state_torch, time=t, new_ref_func=self.ref_func_t, L1_adapt=L1_adapt).cpu().numpy()
     # print(time.time() - start)

@@ -1,5 +1,5 @@
 # Take off and landig parameters
-takeoff_height: 0.6
+takeoff_height: 0.65 #0.75
 takeoff_rate: 0.5
 landing_height: 0.0
 landing_rate: 0.001
@@ -20,9 +20,9 @@ tasks:
     policy_config: none
     description: "hover init"
 
-  - ref: 'random_chained_poly' # random_chained_poly, circle_ref
+  - ref: 'random_poly' # random_chained_poly, circle_ref
     cntrl: "PIDController_explore"
-    time: 20.0
+    time: 10.0
     adaptive: False
     policy_config: none
     description: "poly"
