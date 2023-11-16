@@ -14,7 +14,7 @@ import os
 from Controllers.ctrl_config import select_policy_config_
 
 from Opt_Nonlinear_SysID_Quad.controllers import QuadrotorPIDController
-from Opt_Nonlinear_SysID_Quad.environments import LearnedKernel, FixedLearnedKernel, AirDragKernel2
+from Opt_Nonlinear_SysID_Quad.environments import LearnedKernel, FixedLearnedKernel, AirDragKernel2, NeuralFly
 
 
 class ControllerBackbone():
@@ -161,9 +161,10 @@ class ControllerBackbone():
         param.sim_dt = 0.02
         param.dt = 0.02
 
-        kernel = FixedLearnedKernel(weights_name='weights_new_checkpoint_xy_relu_dim5')
+        kernel = FixedLearnedKernel(weights_name='weights_new_checkpoint_class_x_relu_dim5_nov7_xpos', feature_type='torch_nn')
      
-        kernel = AirDragKernel2()
+        #kernel = AirDragKernel2()
+        #kernel = NeuralFly()
         # Aker = np.load(self.exploration_dir+'aker.npy')
         aker = torch.tensor(0.01*np.random.randn(3,3), dtype=torch.float32)
         controller = QuadrotorPIDController(torch.tensor([6, 4, 1.5], dtype=torch.float32), param, Adrag=torch.zeros(3,12), optimize_Adrag=True, control_angvel=True, kernel=kernel, Att_p=torch.tensor(150/16, dtype=torch.float32), Att_p_yaw=torch.tensor(220/16, dtype=torch.float32))
@@ -174,9 +175,15 @@ class ControllerBackbone():
         #aker = torch.tensor([[ 1.3392, -0.1821,  0.2880,  0.1450,  0.0265,  0.2777, -0.0643],
         #[ 0.6081,  0.6013, -0.3648,  0.1887, -0.7169,  0.3071,  0.0058],
         #[ 1.1289, -1.3013,  1.1387,  0.4944, -1.0385, -0.9167, -1.7765]])
-        aker = torch.tensor([[ 1.0537, -0.1493, 0.4639, -2.0708, -0.0634, 0.3407, -0.3400],
-    [ 0.0742, 1.5009, -0.2685, -0.4469, -0.3160, -0.9550, -0.0056],
-    [-0.6432, -0.2796, 1.6171, 0.2790, -0.5720, 4.1284, -1.2968]])
+        aker = torch.tensor([[-2.9789e-01, -3.2003e+00, 1.2876e+01, 8.3899e-01, 7.2612e-01,
+     5.1957e-02, -2.0139e-01, 2.3421e-02, 7.6963e-02, 3.0408e-03,
+     -7.2416e-02, -4.2117e-01],
+    [-2.3557e-03, -1.5667e+00, -2.0925e+00, 3.3720e-02, 6.3185e-02,
+     -9.2766e-02, 1.0564e+00, -1.2203e-01, 1.3972e-01, -2.2118e-01,
+     3.0177e-01, 1.7387e-02],
+    [-1.6003e-01, -1.7073e+00, 6.8719e+00, 1.0361e+00, 3.3875e-01,
+     -1.0684e+00, -9.2144e-02, 1.5896e+00, 1.6111e+00, -1.5268e+00,
+     1.3537e+00, -8.3237e-01]], dtype=torch.float)
         controller.update_params([gains, 0.0*aker])
 
         if False:
