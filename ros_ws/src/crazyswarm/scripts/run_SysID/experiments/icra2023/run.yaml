@@ -26,5 +26,5 @@ tasks:
     adaptive: False
     policy_config: none
     description: "poly"
-    maxes: [1.0, 0.0, 0.0]
+    maxes: [0.0, 1.0, 0.0]
 
