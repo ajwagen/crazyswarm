@@ -86,21 +86,29 @@ def plot_npz(filename):
         plt.plot(data_dict[key]['ts'], zero_error, label=key+'zero error')
     plt.legend()
     plt.suptitle('position error')
-    # plt.figure(1)
-    # ax2 = plt.subplot(3, 1, 1)
-    # plt.plot(ts, ang_vel_cmds[:, 0])
-    # plt.plot(ts, mocap_orientation[:,2])
-    # plt.plot(ts, pose_orientations[:, 2], color='red')
-    # plt.subplot(3, 1, 2, sharex=ax2)
-    # plt.plot(ts, ang_vel_cmds[:, 1])
-    # plt.plot(ts, mocap_orientation[:,1])
-    # plt.plot(ts, pose_orientations[:, 1], color='red')
-    # plt.subplot(3, 1, 3, sharex=ax2)
-    # plt.plot(ts, ang_vel_cmds[:, 2], label='Ang Vel Cmd (deg/s)')
-    # plt.plot(ts, mocap_orientation[:,0], label='mocap data')
-    # plt.plot(ts, pose_orientations[:, 0], color='red', label='Euler Angle (deg)')
-    # plt.suptitle('cf/pose orientation (python) & ang vel cmds')
-    # plt.legend()
+
+    plt.figure(3)
+    ax1 = plt.subplot(3, 1, 1)
+    for key in data_dict.keys():
+        zero_error = np.zeros_like(data_dict[key]['ts'])
+        # plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 0], label='/cf/pose position')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['ang_vel_cmds'][:, 0])
+        plt.plot(data_dict[key]['ts'], zero_error)
+    plt.subplot(3, 1, 2, sharex=ax1)
+    for key in data_dict.keys():
+        zero_error = np.zeros_like(data_dict[key]['ts'])
+        # plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positionss'][:, 1], label='/cf/pose position')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['ang_vel_cmds'][:, 1])
+        plt.plot(data_dict[key]['ts'], zero_error)
+    plt.subplot(3, 1, 3, sharex=ax1)
+    for key in data_dict.keys():
+        zero_error = np.zeros_like(data_dict[key]['ts'])
+        # plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positionss'][:, 2], label='/cf/pose position')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['ang_vel_cmds'][:, 2])
+        plt.plot(data_dict[key]['ts'], zero_error, label=key+'zero error')
+    plt.legend()
+    plt.suptitle('angvel control')
+
 
     # plt.figure(2)
     # ax3 = plt.subplot(3, 1, 1)
@@ -111,7 +119,7 @@ def plot_npz(filename):
     # plt.plot(ts, cf_positions[:, 2])
     # plt.suptitle('cf.position() (python)')
 
-    plt.figure(3)
+    plt.figure(4)
     for key in data_dict.keys():
         plt.plot(data_dict[key]['ts'], data_dict[key]['thrust_cmds'])
     plt.title('Cmd z acc (python)')
@@ -136,6 +144,7 @@ if __name__ == "__main__":
     parser.add_argument("-tt", "--takeofftime",type=float,default=5.0)
 
     args = parser.parse_args()
+
     filenames = args.filename
     # print(filename)
     # exit()

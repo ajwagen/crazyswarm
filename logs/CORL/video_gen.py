@@ -40,19 +40,19 @@ def plot_npz(filename):
         plt.figure(5)
         plt.clf()
         plt.plot(data_dict[filename[0]]['ref_positions'][:i, 0], data_dict[filename[0]]['ref_positions'][:i, 1], '--')
-        for key in data_dict.keys():
-            if 'mppi' in key:
-                lab = leg_dict['mppi']
-            if 'pid' in key:
-                lab = leg_dict['pid']
-            if 'ppo' in key:
-                lab = leg_dict['ppo']
+        # for key in data_dict.keys():
+        #     if 'mppi' in key:
+        #         lab = leg_dict['mppi']
+        #     if 'pid' in key:
+        #         lab = leg_dict['pid']
+        #     if 'ppo' in key:
+        #         lab = leg_dict['ppo']
             
-            if 'L1' in key:
-                lab = 'L1-' + lab
+        #     if 'L1' in key:
+        #         lab = 'L1-' + lab
 
-            p = plt.plot(data_dict[key]['pose_positions'][:i,0], data_dict[key]['pose_positions'][:i, 1], label=lab)
-            plt.plot(data_dict[key]['pose_positions'][i,0], data_dict[key]['pose_positions'][i, 1], '*', color = p[0].get_color())
+        #     p = plt.plot(data_dict[key]['pose_positions'][:i,0], data_dict[key]['pose_positions'][:i, 1], label=lab)
+        #     plt.plot(data_dict[key]['pose_positions'][i,0], data_dict[key]['pose_positions'][i, 1], '*', color = p[0].get_color())
 
         # plt.legend()
         ax = plt.gca()

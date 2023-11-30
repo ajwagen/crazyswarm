@@ -299,7 +299,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_11/real/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/debug/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -345,7 +345,7 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/aug_11/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/CORL/debug/sim/"
             # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
@@ -558,7 +558,7 @@ class ctrlCF():
                 self.ts.append(t)
 
                 self.thrust_cmds.append(z_acc)
-                self.ang_vel_cmds.append(ang_vel * 180 / (2 * np.pi))
+                self.ang_vel_cmds.append(ang_vel * 180 / (np.pi))
 
 
             self._send2cfClient(self.cf, z_acc, ang_vel)
@@ -675,7 +675,7 @@ if __name__ == "__main__":
 
     run_args = EasyDict(vars(parser.parse_args()))
 
-    x = ctrlCF(run_args, cfName="cf3")
+    x = ctrlCF(run_args, cfName="cf5")
 
     try:
         if run_args.quadsim:

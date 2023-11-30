@@ -36,7 +36,6 @@ def load_cf_data(filenames, args):
 
         t_mask = (saved_data['ts'] > args.takeofftime + args.hovertime) * (saved_data['ts'] < args.runtime + args.takeofftime + args.hovertime)
         
-
         data['ts'] = saved_data['ts'][t_mask]
         # import pdb;pdb.set_trace()
 
