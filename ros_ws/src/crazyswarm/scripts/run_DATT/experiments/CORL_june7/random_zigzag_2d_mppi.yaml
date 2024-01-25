@@ -26,4 +26,4 @@ tasks:
     policy_config: none
     description: "Trajectory mppi"
     seed : 0
-    maxes : [1.0, 0.0, 0.0]
+    maxes : [1.0, 1.0, 0.0]
