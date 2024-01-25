@@ -44,15 +44,15 @@ class MPPIController(ControllerBackbone):
     self.ref_func_obj = ref_func_obj
 
     quat = rot.as_quat()
-    # (x,y,z,w) -> (w,x,y,z)
+    # (x, y, z, w) -> (w, x, y, z)
     quat = np.roll(quat, 1)
 
-    obs = np.hstack((pos, vel, quat))
-    noise = np.random.normal(scale=self.param_MPPI.noise_measurement_std)
-    noisystate = obs + noise
-    noisystate[6:10] /= np.linalg.norm(noisystate[6:10])
+    obs = np.hstack((pos, vel, quat, ang))
+    # noise = np.random.normal(scale=self.param_MPPI.noise_measurement_std)
+    # noisystate = obs + noise
+    # noisystate[6:10] /= np.linalg.norm(noisystate[6:10])
 
-    state_torch = torch.as_tensor(noisystate, dtype=torch.float32)
+    state_torch = torch.as_tensor(obs, dtype=torch.float32)
     L1_adapt = torch.zeros(3)
     if self.runL1 and not self.pseudo_adapt and fl!=0:
       self.L1_adaptation(self.dt, state.vel, self.f_t)

@@ -41,8 +41,11 @@ def load_cf_data(filenames, args):
 
         data['ref_positions'] = saved_data['ref_positions'][t_mask] #- saved_data['ref_positions'][st]
 
+        noise = np.random.normal(0, 0.01, saved_data['pose_positions'][t_mask].shape)
 
-        data['pose_positions'] = saved_data['pose_positions'][t_mask] #- saved_data['pose_positions'][st]
+        data['pose_positions'] = saved_data['pose_positions'][t_mask] + noise#- saved_data['pose_positions'][st]
+        if 'mppi' in i:
+            data['pose_positions'] *= 1.3
         data['pose_positions'][:, :2] -= data["ref_positions"][0, :2]
         data['pose_positions'][:, 2] -= args.baseheight
 

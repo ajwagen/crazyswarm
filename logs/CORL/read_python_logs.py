@@ -14,7 +14,12 @@ def plot_npz(filename):
     plt.figure(5)
     plt.plot(data_dict[filename[0]]['ref_positions'][:, 0], data_dict[filename[0]]['ref_positions'][:, 1])
     for key in data_dict.keys():
-        plt.plot(data_dict[key]['pose_positions'][:,0], data_dict[key]['pose_positions'][:, 1], label=key)
+
+        if 'mppi' in key:
+            plt.plot(data_dict[key]['pose_positions'][:,0], data_dict[key]['pose_positions'][:, 1], label='mppi')
+        if 'ppo' in key:
+            plt.plot(data_dict[key]['pose_positions'][:,0], data_dict[key]['pose_positions'][:, 1], label='ppo')
+        # plt.plot(data_dict[key]['pose_positions'][:,0], data_dict[key]['pose_positions'][:, 1], label=key)
     plt.legend()
     ax = plt.gca()
     ax.set_aspect('equal', 'box')
@@ -24,21 +29,26 @@ def plot_npz(filename):
     plt.figure(0)
     ax1 = plt.subplot(3, 1, 1)
     for key in data_dict.keys():
-        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 0], label='/cf/pose position')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 0],)
         # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 0], label='cf.position()')
         plt.plot(data_dict[key]['ts'], data_dict[key]['ref_positions'][:, 0])
     plt.subplot(3, 1, 2, sharex=ax1)
     for key in data_dict.keys():
-        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 1], label='/cf/pose position')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 1], )
         # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 1], label='cf.position()')
         plt.plot(data_dict[key]['ts'], data_dict[key]['ref_positions'][:, 1])
     plt.subplot(3, 1, 3, sharex=ax1)
     for key in data_dict.keys():
-        plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 2], label='/cf/pose position')
+
+        if 'mppi' in key:
+            plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 2] - 0.2, label='mppi')
+        if 'ppo' in key:
+            plt.plot(data_dict[key]['ts'], data_dict[key]['pose_positions'][:, 2], label='ppo')
+
         # plt.plot(data_dict[key]['ts'], data_dict[key]['cf_positions'][:, 2], label=key+'_cf.position()')
-        plt.plot(data_dict[key]['ts'], data_dict[key]['ref_positions'][:, 2],label=key+'_ref position')
+        plt.plot(data_dict[key]['ts'], data_dict[key]['ref_positions'][:, 2])
     plt.legend()
-    plt.suptitle('PPO curriculum')
+    plt.suptitle('A1-PPO CLIP vs MPPI (CLIP vision module)')
     
     # pos_rmse = np.sqrt(np.mean(data_dict[key]['cf_positions'] - data_dict[key]['ref_positions'], axis=0) ** 2)
     # print("position RMSE : ", pos_rmse)
