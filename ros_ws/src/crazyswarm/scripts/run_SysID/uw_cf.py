@@ -690,6 +690,7 @@ if __name__ == "__main__":
     run_args = EasyDict(vars(parser.parse_args()))
 
     x = ctrlCF(run_args, cfName="cf5")
+    #x = ctrlCF(run_args, cfName="cf1")
 
     try:
         if run_args.quadsim:

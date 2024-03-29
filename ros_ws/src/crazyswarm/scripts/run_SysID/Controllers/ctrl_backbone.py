@@ -152,7 +152,7 @@ class ControllerBackbone():
 	def set_PID_torch(self, ):
 		from Opt_Nonlinear_SysID_Quad.param_torch import Param as param_explore
 
-		with open('/home/ajwagen/Code/Opt_Nonlinear_SysID_Quad/zigzag.yaml') as f:
+		with open('/home/drones/drones_project/Opt_Nonlinear_SysID_Quad/zigzag.yaml') as f:
 			config = yaml.load(f, Loader=yaml.FullLoader)
 		
 		param = param_explore(config, MPPI=True)

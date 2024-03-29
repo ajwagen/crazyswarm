@@ -33,7 +33,7 @@ class MPPIController(ControllerBackbone):
     state = response_inputs.get('state')
     ref_func_obj = response_inputs.get('ref_func_obj')
     
-    print(state)
+    #print(state)
     #print(state.shape)
 
     self.updateDt(t)

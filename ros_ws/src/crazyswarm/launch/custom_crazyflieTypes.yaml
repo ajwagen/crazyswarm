@@ -67,6 +67,7 @@ crazyflieTypes:
         mNGyro_rollpitch: 0.2 # default 0.1
         mNGyro_yaw: 0.1 # default 0.1
       ctrlRwik:
+      #ctrlMel: 
         # kp_xy: 0.4 #0.6 # p for position
         # kd_xy: 0.2 # 0.35 # d for position
         # ki_xy: 0.05
