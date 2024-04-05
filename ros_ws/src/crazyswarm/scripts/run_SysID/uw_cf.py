@@ -27,7 +27,7 @@ from Controllers import *
 
 
 from quadsim.learning.refs.gen_trajectory import Trajectory
-
+from quadsim.learning.BC_experts.MPPI.controller_torch import MPPI_thrust_omega
 # Actual Drone
 import rospy
 from geometry_msgs.msg import PoseStamped
@@ -104,7 +104,7 @@ class ctrlCF():
         # Reusing controllers if tasks require the exact same controller with same the same policy. 
         # keys of the dict are saved as cntrl+"_"+policy_config
         self.controllers = { }        
-        
+        #print(globals())
         print(self.config["tasks"])
         for i in range(len(self.config["tasks"])):
             ctrl_policy = self.config["tasks"][i]["cntrl"] + "_" + self.config["tasks"][i]["policy_config"]
@@ -689,8 +689,8 @@ if __name__ == "__main__":
 
     run_args = EasyDict(vars(parser.parse_args()))
 
-    x = ctrlCF(run_args, cfName="cf5")
-    #x = ctrlCF(run_args, cfName="cf1")
+    #x = ctrlCF(run_args, cfName="cf5")
+    x = ctrlCF(run_args, cfName="cf1")
 
     try:
         if run_args.quadsim:
