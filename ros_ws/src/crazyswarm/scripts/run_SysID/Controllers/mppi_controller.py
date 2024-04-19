@@ -64,6 +64,11 @@ class MPPIController(ControllerBackbone):
       self.L1_adaptation(self.dt, state.vel, self.f_t)
       self.adaptation_terms[1:] = self.wind_adapt_term
       L1_adapt = torch.as_tensor(self.wind_adapt_term, dtype=torch.float32)
+
+   # if self.runL1Learned and not self.pseudo_adapt and fl!=0:
+   #     L1_learned_val = self.L1_Learned(state_torch[3:9])
+   #     L1_adapt = torch.as_tensor()
+   #   L1_adapt = torch.zeros_like(L1_adapt)
       self.timer.toc('L1_adaption')
     # action = self.mppi_controller.policy_cf(state=state_torch, time=t).cpu().numpy()
     # start = time.time()
@@ -85,5 +90,5 @@ class MPPIController(ControllerBackbone):
     self.timer.toc('rot')
     # print(time.time() - st)
     # print("-------")
-    print(self.timer.stats)
+    #print(self.timer.stats)
     return action[0], action[1:]

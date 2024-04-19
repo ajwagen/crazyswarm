@@ -1,6 +1,8 @@
 import numpy as np
 import yaml
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 from quadsim.learning.train_policy import DroneTask, RLAlgo, SAVED_POLICY_DIR, import_config, CONFIG_DIR, TEST_POLICY_DIR
 from quadsim.learning.utils.adaptation_network import AdaptationNetwork
 from stable_baselines3.common.env_util import make_vec_env
@@ -261,5 +263,23 @@ class ControllerBackbone():
 		v_tilde = self.v_hat - v_t
 		
 		self.wind_adapt_term_t = 1 / phi * np.exp(self.A * dt) * v_tilde
-		self.wind_adapt_term = -(1 - alpha) * self.wind_adapt_term_t + alpha * self.wind_adapt_term 
-
+		self.wind_adapt_term = -(1 - alpha) * self.wind_adapt_term_t + alpha * self.wind_adapt_term
+'''
+         def L1_learned(self, inputs):
+                class residual_net(torch.nn.Module):
+                        def __init__(self):
+                                dim_hidden = 32
+                                super(residual_net, self).__init__()
+                                self.fc1 = nn.Linear(6, dim_hidden)
+                                self.fc2 = nn.Linear(dim_hidden, dim_hidden)
+                                self.fc4 = nn.Linear(dim_hidden, 5)
+                        def forward(self, x):
+                                x = F.relu(self.fc1(x))
+                                x = F.relu(self.fc2(x))
+                                x = self.fc4(x)
+                                return x
+                network = residual_net()
+                # FIXME: REVISE PATH
+                network.load_state_dict(torch.load('./model_weights/weights_new_checkpoint_L1_test_small_ft'))
+                return network(x)
+'''

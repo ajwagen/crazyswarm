@@ -25,7 +25,7 @@ class PIDController(ControllerBackbone):
     
 
     # self.mppi_controller = self.set_MPPI_cnotroller()
-    # self.runL1 = False
+    self.runL1 = True
 
   def _response(self, fl=1, **response_inputs ):
     
@@ -65,8 +65,10 @@ class PIDController(ControllerBackbone):
       if self.runL1:
           # L1 adaptation update
         self.L1_adaptation(self.dt, v_t, f_t)
+        #print('L_1 here')
       else:
         self.naive_adaptation(a_t, f_t)
+        #print('naive here')
 
     obs = np.hstack((pos, vel, quat))
     # Updating error for integral term.

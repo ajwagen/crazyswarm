@@ -173,6 +173,11 @@ class ctrlCF():
         w_bound = self.config["E_BB_width"]
         h_bound = self.config["E_BB_height"]
         if abs(pos[0] - self.init_pos[0]) > w_bound / 2 or abs(pos[1] - self.init_pos[1]) > w_bound / 2 or pos[2]>h_bound:
+            print('x pos',pos[0],'; y pos ',pos[1],'; z pos ',pos[2])
+            print(w_bound)
+            print(h_bound)
+            print(self.init_pos[0])
+            print(self.init_pos[1])
             print('Out of Bounding Box EMERGENCY STOP!!')
             self.swarm.allcfs.emergency()
             self.write_to_log()
@@ -252,6 +257,7 @@ class ctrlCF():
 
         self.state.t = rospy.get_time()
         self.pose_pos = np.array([pos.x, pos.y, pos.z])
+        #self.pose_pos = np.array([pos.y, pos.x, pos.z])
         self.pos_pos = self.cf.position()
         # self.motrack_orientation = self.cf.orientation()
         # self.motrack_orientation = R.from_quat(self.motrack_orientation)
@@ -302,7 +308,7 @@ class ctrlCF():
         if not self.isSim:
             # Rwik :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/nov_16/real_fan/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/april_12_24/real/"
 
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik_hdd/drones' / 'crazyswarm' / 'logs/'
@@ -348,7 +354,7 @@ class ctrlCF():
             
             # Guanya :
             # LOG_DIR = Path().home() / 'rwik/drones' / 'crazyswarm' / 'sim_logs'
-            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/nov_16/sim/"
+            LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../logs/icra2023_sysid/april_12_24/sim/"
             # LOG_DIR = os.path.dirname(os.path.abspath(__file__)) + "/../../../../../sim_logs/"
 
             # Kevin : 
@@ -496,7 +502,7 @@ class ctrlCF():
         
             self.land_buffer.appendleft(self.state.pos[-1])
             self.land_buffer.pop()
-            if np.mean(self.land_buffer) < 0.12: #0.06
+            if np.mean(self.land_buffer) < 0.06: #0.06
                 print("***** Flight done! ******")
                 self.flag['land'] = 2
         
@@ -530,7 +536,7 @@ class ctrlCF():
                 self.set_refs_from_tasks(t, offset_pos)
                 
                 # Sending state data to the controller
-                z_acc,ang_vel = 0.,np.array([0.,0.,0.])      
+                z_acc,ang_vel = 0.,np.array([0.,0.,0.])    
                 if t>self.warmup_time:
                     z_acc,ang_vel = self.curr_controller.response(t = t - self.prev_task_time, 
                                                                 state = self.state, 
