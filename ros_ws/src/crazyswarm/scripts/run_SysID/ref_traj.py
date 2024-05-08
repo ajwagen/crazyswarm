@@ -32,8 +32,8 @@ class Trajectories:
         self.random_zigzag_obj = RandomZigzag(max_D=np.array([1.0, 1.0, 0.0]), seed=0)
         self.random_zigzag_obj.isShift = False
         self.random_poly_obj = PolyRef(altitude=0.0, seed=0)
-        self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=True, seed=0)
-        self.random_chained_poly_fast_obj = ChainedPolyRefFast(altitude=0.0, use_y=True, seed=0)
+        self.random_chained_poly_obj = ChainedPolyRef(altitude=0.0, use_y=False, seed=0)
+        self.random_chained_poly_fast_obj = ChainedPolyRefFast(altitude=0.0, use_y=False, seed=0)
 
         self.circle_ref_obj = CircleRef(rad=0.3, period=3.0, altitude=0.0)
         self.hover_ref_obj = hover_ref()
@@ -185,7 +185,7 @@ class Trajectories:
     def random_chained_poly_(self, **traj_defs):
         seed = traj_defs.get('seed', 0)
         maxes = traj_defs.get('maxes', [1.0, 1.0, 0.0])
-        use_y = True
+        use_y = False
         if maxes[1]==0.0:
             use_y = False
         self.random_chained_poly_obj = ChainedPolyRef(altitude=0, use_y=use_y, seed=seed)
@@ -200,7 +200,7 @@ class Trajectories:
     def random_chained_poly_fast_(self, **traj_defs):
         seed = traj_defs.get('seed', 0)
         maxes = traj_defs.get('maxes', [1.0, 1.0, 0.0])
-        use_y = True
+        use_y = False
         if maxes[1]==0.0:
             use_y = False
         self.random_chained_poly_fast_obj = ChainedPolyRefFast(altitude=0, use_y=use_y, seed=seed)

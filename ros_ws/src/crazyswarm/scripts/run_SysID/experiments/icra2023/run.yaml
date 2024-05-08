@@ -20,8 +20,8 @@ tasks:
     policy_config: none
     description: "hover init"
 
-  - ref: 'circle_ref' # random_chained_poly, circle_ref
-    cntrl: 'PIDController' #"MPPIController"
+  - ref: 'random_chained_poly' # random_chained_poly, circle_ref
+    cntrl: 'MPPIController' #"MPPIController"
     time: 10.0
     adaptive: False
     policy_config: none

@@ -15,8 +15,9 @@ class MPPIController(ControllerBackbone):
 
     self.mppi_controller = self.set_MPPI_controller()
     self.f_t = np.zeros(3)
-    self.runL1 = True
-    self.timer = Timer(topics = ['get_inputs_rspnse', 'calc_state', 'L1_adaption', 'more_adaptation', 'rot'])
+    #self.runL1 = True
+    #self.runL1Learned = False
+    self.timer = Timer(topics = ['get_inputs_rspnse', 'calc_state', 'L1_adaptation', 'more_adaptation', 'rot'])
 
   def ref_func_t(self, t):
     # import pdb;pdb.set_trace()
@@ -53,30 +54,57 @@ class MPPIController(ControllerBackbone):
     quat = np.roll(quat, 1)
     self.timer.tic()
     obs = np.hstack((pos, vel, quat, ang))
-    noise = np.random.normal(scale=self.param_MPPI.noise_measurement_std)
-    noisystate = obs + noise
-    noisystate[6:10] /= np.linalg.norm(noisystate[6:10])
+    #noise = np.random.normal(scale=self.param_MPPI.noise_measurement_std)
+    #noisystate = obs + noise
+    #noisystate[6:10] /= np.linalg.norm(noisystate[6:10])
     self.timer.toc('calc_state')
-    state_torch = torch.as_tensor(noisystate, dtype=torch.float32)
+    #state_torch = torch.as_tensor(noisystate, dtype=torch.float32)
+    state_torch = torch.as_tensor(obs, dtype=torch.float32)
     L1_adapt = torch.zeros(3)
-    if self.runL1 and not self.pseudo_adapt and fl!=0:
-      self.timer.tic()
-      self.L1_adaptation(self.dt, state.vel, self.f_t)
-      self.adaptation_terms[1:] = self.wind_adapt_term
-      L1_adapt = torch.as_tensor(self.wind_adapt_term, dtype=torch.float32)
 
+    # Set the adaptation type here
+    adaptation_type = 'L1_basic'
+    self.timer.tic()
+
+    # basic L1 adaptation
+    self.L1_adaptation(self.dt, state.vel, self.f_t)
+    self.adaptation_terms[1:] = self.wind_adapt_term
+
+    # learned L1 adaptation
+   # self.L1_learned(state_torch[3:9])
+
+    if adaptation_type == 'L1_basic':
+      self.final_adapt_term = torch.as_tensor(self.wind_adapt_term, dtype=torch.float32)
+      #L1_adapt = torch.as_tensor(self.wind_adapt_term, dtype=torch.float32)
+      # Isolating the effects of the x and z adaptations
+      #self.final_adapt_term[0] = 0
+      #self.final_adapt_term[2] = 0
+      #L1_adapt = torch.zeros_like(L1_adapt)
+    elif adaptation_type == 'L1_learned':
+        #print('l1 learned')
+        self.final_adapt_term = torch.as_tensor(self.L1_adapt_term, dtype=torch.float32)
+        #L1_adapt = torch.as_tensor(self.L1_adapt_term, dtype=torch.float32)
+      #  print('L1_learned: ',self.final_adapt_term)
+        #L1_adapt = torch.zeros_like(L1_adapt)
+    else:
+        self.final_adapt_term = torch.zeros(3)
+        #L1_adapt = torch.zeros(3)
+       # print('no adaptation: ', self.final_adapt_term)
+    #self.final_adapt_term = torch.zeros_like(self.final_adapt_term)
+    print('final_adapt_term: ',self.final_adapt_term)
+        
    # if self.runL1Learned and not self.pseudo_adapt and fl!=0:
    #     L1_learned_val = self.L1_Learned(state_torch[3:9])
    #     L1_adapt = torch.as_tensor()
    #   L1_adapt = torch.zeros_like(L1_adapt)
-      self.timer.toc('L1_adaption')
+    self.timer.toc('L1_adaptation')
     # action = self.mppi_controller.policy_cf(state=state_torch, time=t).cpu().numpy()
     # start = time.time()
     self.timer.tic()
-    if self.pseudo_adapt:
-      action = self.mppi_controller.policy(state=state_torch, time=t, new_ref_func=self.ref_func_t).cpu().numpy()
-    else:
-      action = self.mppi_controller.policy_with_ref_func(state=state_torch, time=t, new_ref_func=self.ref_func_t, L1_adapt=L1_adapt).cpu().numpy()
+    #if self.pseudo_adapt:
+     # action = self.mppi_controller.policy(state=state_torch, time=t, new_ref_func=self.ref_func_t).cpu().numpy()
+    #else:
+    action = self.mppi_controller.policy_with_ref_func(state=state_torch, time=t, new_ref_func=self.ref_func_t, L1_adapt=self.final_adapt_term.clone()).cpu().numpy()
     self.timer.toc('more_adaptation')
     # print(time.time() - start)
     # MPPI controller designed for output in world frame
