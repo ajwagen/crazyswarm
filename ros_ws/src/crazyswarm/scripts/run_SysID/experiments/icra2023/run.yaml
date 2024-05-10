@@ -22,7 +22,7 @@ tasks:
 
   - ref: 'random_chained_poly' # random_chained_poly, circle_ref
     cntrl: 'MPPIController' #"MPPIController"
-    time: 10.0
+    time: 25.0
     adaptive: False
     policy_config: none
     description: "poly"

@@ -18,8 +18,8 @@ ref_kwargs['maxes'] = maxes
 init_ref_func(**ref_kwargs)
 '''
 
-start_idx = 400
-stop_idx = start_idx + int(10*1/0.02)
+start_idx = 200
+stop_idx = start_idx + int(10*1/0.02)+ 100
 
 #path1 = './../../../../../logs/icra2023_sysid/nov_16/real_fan/'
 path1 = "./../../../../../logs/icra2023_sysid/april_12_24/real/"
@@ -31,8 +31,14 @@ path1 = "./../../../../../logs/icra2023_sysid/april_12_24/real/"
 #file_ids1 = ['naive_ctrl_policy_mppi_spd_2_trial_1.npz', 'naive_ctrl_policy_mppi_spd_2_trial_2.npz', 'naive_ctrl_policy_mppi_spd_2_trial_3.npz', 'naive_ctrl_policy_mppi_spd_2_trial_4.npz','naive_ctrl_policy_mppi_spd_2_trial_5.npz']
 #file_ids1 = ['naive_ctrl_policy_mppi_spd_1_trial_1.npz', 'naive_ctrl_policy_mppi_spd_1_trial_2.npz', 'naive_ctrl_policy_mppi_spd_1_trial_3.npz', 'naive_ctrl_policy_mppi_spd_1_trial_4.npz','naive_ctrl_policy_mppi_spd_1_trial_5.npz']
 #file_ids1 = ['naive_adaptation_policy_mppi_spd_2_2_fans_4_12_trial_1.npz', 'naive_adaptation_policy_mppi_spd_2_2_fans_4_12_trial_2.npz', 'naive_adaptation_policy_mppi_spd_2_2_fans_4_12_trial_3.npz', 'naive_adaptation_policy_mppi_spd_2_2_fans_4_12_trial_4.npz', 'naive_adaptation_policy_mppi_spd_2_2_fans_4_12_trial_5.npz' ]
-file_ids1 = ['naive_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_1.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_2.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_3.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_4.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_5.npz']
+#file_ids1 = ['naive_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_1.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_2.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_3.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_4.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_5.npz']
 #file_ids1 = ['naive_ctrl_policy_drag_plate_mppi_spd_3_2_fans_trial_1.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_3_2_fans_trial_2.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_3_2_fans_trial_3.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_3_2_fans_trial_4.npz', 'naive_ctrl_policy_drag_plate_mppi_spd_3_2_fans_trial_5.npz']
+#file_ids1 = ['mppi_ctrl_no_policy_2fans_speed3_trial_1.npz', 'mppi_ctrl_no_policy_2fans_speed3_trial_2.npz', 'mppi_ctrl_no_policy_2fans_speed3_trial_3.npz', 'mppi_ctrl_no_policy_2fans_speed3_trial_4.npz', 'mppi_ctrl_no_policy_2fans_speed3_trial_5.npz']
+#file_ids1 = ['mppi_straight_line_3fans_speed3_no_adapt_trial_1.npz','mppi_straight_line_3fans_speed3_no_adapt_trial_2.npz', 'mppi_straight_line_3fans_speed3_no_adapt_trial_3.npz', 'mppi_straight_line_3fans_speed3_no_adapt_trial_4.npz', 'mppi_straight_line_3fans_speed3_no_adapt_trial_5.npz' ]
+#file_ids1 = ['mppi_no_policy_3_fans_straight_speed_3_trial_1.npz', 'mppi_no_policy_3_fans_straight_speed_3_trial_2.npz', 'mppi_no_policy_3_fans_straight_speed_3_trial_3.npz', 'mppi_no_policy_3_fans_straight_speed_3_trial_4.npz', 'mppi_no_policy_3_fans_straight_speed_3_trial_5.npz']
+#file_ids1 = ['mppi_no_policy_3_fans_straight_speed_3_trial_1.npz', 'mppi_no_policy_3_fans_straight_speed_3_trial_2.npz', 'mppi_no_policy_3_fans_straight_speed_3_trial_4.npz', 'mppi_no_policy_3_fans_straight_speed_3_trial_5.npz']
+file_ids1 = ['mppi_no_policy_3fans_speed3_may_8_trial_1.npz', 'mppi_no_policy_3fans_speed3_may_8_trial_2.npz', 'mppi_no_policy_3fans_speed3_may_8_trial_3.npz', 'mppi_no_policy_3fans_speed3_may_8_trial_4.npz' ]
+#file_ids1 = ['mppi_L1_basic_3fans_speed3_may_8_trial_1.npz', 'mppi_L1_basic_3fans_speed3_may_8_trial_2.npz', 'mppi_L1_basic_3fans_speed3_may_8_trial_3.npz', 'mppi_L1_basic_3fans_speed3_may_8_trial_4.npz' ]
 residual1 = None
 residual1_all = None
 count = 0
@@ -60,8 +66,15 @@ path2 = "./../../../../../logs/icra2023_sysid/april_12_24/real/"
 #file_ids2 = ['L1_adapt_policy_mppi_spd_2_trial_1.npz', 'L1_adapt_policy_mppi_spd_2_trial_2.npz','L1_adapt_policy_mppi_spd_2_trial_3.npz','L1_adapt_policy_mppi_spd_2_trial_4.npz','L1_adapt_policy_mppi_spd_2_trial_5.npz']
 #file_ids2 = ['L1_adapt_policy_mppi_spd_1_trial_1.npz', 'L1_adapt_policy_mppi_spd_1_trial_2.npz','L1_adapt_policy_mppi_spd_1_trial_3.npz','L1_adapt_policy_mppi_spd_1_trial_4.npz','L1_adapt_policy_mppi_spd_1_trial_5.npz']
 #file_ids2 = ['L1_adaptation_policy_mppi_spd_2_2_fans_4_12_trial_1.npz', 'L1_adaptation_policy_mppi_spd_2_2_fans_4_12_trial_2.npz', 'L1_adaptation_policy_mppi_spd_2_2_fans_4_12_trial_3.npz', 'L1_adaptation_policy_mppi_spd_2_2_fans_4_12_trial_4.npz', 'L1_adaptation_policy_mppi_spd_2_2_fans_4_12_trial_5.npz']
-file_ids2 = ['L1_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_1.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_2.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_3.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_4.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_5.npz']
+#file_ids2 = ['L1_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_1.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_2.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_3.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_4.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_2_2_fans_trial_5.npz']
 #file_ids2 = ['L1_ctrl_policy_drag_plate_mppi_spd_3_2_fans_trial_1.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_3_2_fans_trial_2.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_3_2_fans_trial_3.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_3_2_fans_trial_4.npz', 'L1_ctrl_policy_drag_plate_mppi_spd_3_2_fans_trial_5.npz']
+#file_ids2 = ['mppi_ctrl_learned_l1_policy_2fans_speed3_trial_1.npz', 'mppi_ctrl_learned_l1_policy_2fans_speed3_trial_2.npz', 'mppi_ctrl_learned_l1_policy_2fans_speed3_trial_3.npz', 'mppi_ctrl_learned_l1_policy_2fans_speed3_trial_4.npz', 'mppi_ctrl_learned_l1_policy_2fans_speed3_trial_5.npz']
+#file_ids2 = ['mppi_ctrl_learned_l1_policy_2fans_speed3_one_trial_trial_1.npz', 'mppi_ctrl_learned_l1_policy_2fans_speed3_one_trial_trial_3.npz','mppi_ctrl_learned_l1_policy_2fans_speed3_one_trial_trial_4.npz', 'mppi_ctrl_learned_l1_policy_2fans_speed3_one_trial_trial_5.npz', 'mppi_ctrl_learned_l1_policy_2fans_speed3_one_trial_trial_2.npz']
+#file_ids2 = ['mppi_straight_line_3fans_speed3_l1_learned_adapt_one_trial_trial_1.npz','mppi_straight_line_3fans_speed3_l1_learned_adapt_one_trial_trial_2.npz', 'mppi_straight_line_3fans_speed3_l1_learned_adapt_one_trial_trial_3.npz', 'mppi_straight_line_3fans_speed3_l1_learned_adapt_one_trial_trial_4.npz', 'mppi_straight_line_3fans_speed3_l1_learned_adapt_one_trial_trial_5.npz']
+#file_ids2 = ['mppi_L1_policy_3_fans_straight_speed_3_trial_1.npz', 'mppi_L1_policy_3_fans_straight_speed_3_trial_2.npz', 'mppi_L1_policy_3_fans_straight_speed_3_trial_3.npz', 'mppi_L1_policy_3_fans_straight_speed_3_trial_4.npz', 'mppi_L1_policy_3_fans_straight_speed_3_trial_5.npz']
+#file_ids2 = ['mppi_L1_policy_no_x_z_3_fans_straight_speed_3_trial_1.npz','mppi_L1_policy_no_x_z_3_fans_straight_speed_3_trial_2.npz', 'mppi_L1_policy_no_x_z_3_fans_straight_speed_3_trial_4.npz', 'mppi_L1_policy_no_x_z_3_fans_straight_speed_3_trial_5.npz'  ]
+file_ids2 = ['mppi_L1_basic_3fans_speed3_may_8_trial_1.npz', 'mppi_L1_basic_3fans_speed3_may_8_trial_2.npz', 'mppi_L1_basic_3fans_speed3_may_8_trial_3.npz', 'mppi_L1_basic_3fans_speed3_may_8_trial_4.npz' ]
+#file_ids2 = ['mppi_L1_learned_3fans_speed3_may_8_trial_1.npz', 'mppi_L1_learned_3fans_speed3_may_8_trial_2.npz', 'mppi_L1_learned_3fans_speed3_may_8_trial_3.npz', 'mppi_L1_learned_3fans_speed3_may_8_trial_4.npz']
 residual2 = None
 residual2_all = None
 count = 0

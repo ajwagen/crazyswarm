@@ -195,6 +195,7 @@ class ctrlCF():
         self.thrust_cmds = []
         self.ang_vel_cmds = []
         self.adaptation_terms = []
+        self.L1_adaptation_terms = []
         # self.ref_vel = []
 
         self.pose_orient_mocap=[]
@@ -329,6 +330,7 @@ class ctrlCF():
 
             self.pose_orient_mocap = np.array(self.pose_orient_mocap)
             self.adaptation_terms = np.array(self.adaptation_terms)
+            self.L1_adaptation_terms = np.array(self.L1_adaptation_terms)
     
             # self.ppo_acc = np.array(self.ppo_acc)
             # self.ppo_ang = np.array(self.ppo_ang)
@@ -343,7 +345,8 @@ class ctrlCF():
                 ang_vel_cmds=self.ang_vel_cmds,
                 ts=self.ts,
                 thrust_cmds=self.thrust_cmds,
-                adaptation_terms = self.adaptation_terms
+                adaptation_terms = self.adaptation_terms,
+                L1_adaptation_terms = self.L1_adaptation_terms
                 # ppo_ang = self.ppo_ang,
                 # ppo_acc = self.ppo_acc,
             )
@@ -368,6 +371,7 @@ class ctrlCF():
             self.thrust_cmds = np.array(self.thrust_cmds)
             self.ang_vel_cmds = np.array(self.ang_vel_cmds)
             self.adaptation_terms = np.array(self.adaptation_terms)
+            self.L1_adaptation_terms = np.array(self.L1_adaptation_terms)
             # self.ref_vel = np.array(self.ref_vel)
             print(LOG_DIR + self.logfile)
             np.savez(LOG_DIR + self.logfile, 
@@ -378,7 +382,8 @@ class ctrlCF():
                     ang_vel_cmds=self.ang_vel_cmds,
                     ts=self.ts,
                     thrust_cmds=self.thrust_cmds,
-                    adaptation_terms = self.adaptation_terms)
+                    adaptation_terms = self.adaptation_terms,
+                    L1_adaptation_terms = self.L1_adaptation_terms)
     
     def switch_controller(self,offset_pos):
         ###### Setting the controller for the particular task
@@ -546,6 +551,7 @@ class ctrlCF():
                                                                 adaptation_mean_value=self.adaptation_warmup_value,)
 
                 self.adaptation_terms.append(np.copy(self.curr_controller.adaptation_terms))
+                self.L1_adaptation_terms.append(np.copy(self.curr_controller.L1_adaptation_terms))
 
                 self.pose_positions.append(np.copy(self.pose_pos))
                 self.pose_orientations.append(self.state.rot.as_euler('ZYX', degrees=True))
@@ -636,6 +642,7 @@ class ctrlCF():
                                                                adaptation_mean_value=self.adaptation_warmup_value,
                                                                )   
                 self.adaptation_terms.append(np.copy(self.curr_controller.adaptation_terms))
+                self.L1_adaptation_terms.append(np.copy(self.curr_controller.L1_adaptation_terms))
                                                                             
                 obs_state = self.cf.step_angvel_raw(self.dt, z_acc * self.cf.mass, ang_vel, k=0.4, dists=dist)
             
